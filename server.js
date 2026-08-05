@@ -35,6 +35,7 @@ function getErrorHtml(targetUrl) {
   return `<!DOCTYPE html>
 <html>
 <head>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5451638891460185" crossorigin="anonymous"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
