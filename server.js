@@ -22,6 +22,15 @@ app.use(cors())
 app.use(express.json())
 app.use(express.static('public'))
 
+// Strip Netlify function path prefix if routed via Netlify Functions
+app.use((req, res, next) => {
+  if (req.url.startsWith('/.netlify/functions/server')) {
+    req.url = req.url.replace('/.netlify/functions/server', '');
+    if (!req.url) req.url = '/';
+  }
+  next();
+});
+
 // Dark Theme Error Page HTML
 const ERROR_PAGE_HTML = `<!DOCTYPE html>
 <html>
@@ -52,26 +61,86 @@ const ERROR_PAGE_HTML = `<!DOCTYPE html>
 </body>
 </html>`
 
+// Global In-Memory Store for Serverless Environments
+let globalAppsStore = null;
+
 // Helper Functions
 function readApps() {
+  if (globalAppsStore !== null && Array.isArray(globalAppsStore) && globalAppsStore.length > 0) {
+    return globalAppsStore;
+  }
+
+  let apps = [];
   try {
-    if (!fs.existsSync(DATA_FILE)) {
-      const dir = path.dirname(DATA_FILE)
-      if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true })
-      }
-      fs.writeFileSync(DATA_FILE, '[]', 'utf8')
-      return []
+    if (fs.existsSync(DATA_FILE)) {
+      const content = fs.readFileSync(DATA_FILE, 'utf8')
+      apps = JSON.parse(content || '[]')
     }
-    const content = fs.readFileSync(DATA_FILE, 'utf8')
-    return JSON.parse(content || '[]')
   } catch (err) {
     console.error('Error reading apps.json:', err.message)
-    return []
   }
+
+  if (!Array.isArray(apps) || apps.length === 0) {
+    apps = [
+      {
+        "id": "110ec44a-0941-4b77-88d0-e37784013401",
+        "name": "Khan Academy",
+        "url": "https://www.khanacademy.org",
+        "logoUrl": "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=150&auto=format&fit=crop&q=80",
+        "category": "Live Class",
+        "featured": true,
+        "order": 1,
+        "addedAt": "2024-01-01T00:00:00.000Z"
+      },
+      {
+        "id": "220ec44a-0941-4b77-88d0-e37784013402",
+        "name": "Coursera",
+        "url": "https://www.coursera.org",
+        "logoUrl": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=150&auto=format&fit=crop&q=80",
+        "category": "Coaching",
+        "featured": true,
+        "order": 2,
+        "addedAt": "2024-01-02T00:00:00.000Z"
+      },
+      {
+        "id": "330ec44a-0941-4b77-88d0-e37784013403",
+        "name": "Physics Wallah",
+        "url": "https://www.pw.live",
+        "logoUrl": "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=150&auto=format&fit=crop&q=80",
+        "category": "Live Class",
+        "featured": false,
+        "order": 3,
+        "addedAt": "2024-01-03T00:00:00.000Z"
+      },
+      {
+        "id": "440ec44a-0941-4b77-88d0-e37784013404",
+        "name": "NPTEL Courses",
+        "url": "https://nptel.ac.in",
+        "logoUrl": "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=150&auto=format&fit=crop&q=80",
+        "category": "Test Series",
+        "featured": false,
+        "order": 4,
+        "addedAt": "2024-01-04T00:00:00.000Z"
+      },
+      {
+        "id": "550ec44a-0941-4b77-88d0-e37784013405",
+        "name": "GeeksforGeeks",
+        "url": "https://www.geeksforgeeks.org",
+        "logoUrl": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=150&auto=format&fit=crop&q=80",
+        "category": "Notes",
+        "featured": true,
+        "order": 5,
+        "addedAt": "2024-01-05T00:00:00.000Z"
+      }
+    ];
+  }
+
+  globalAppsStore = apps;
+  return globalAppsStore;
 }
 
 function writeApps(data) {
+  globalAppsStore = data;
   try {
     const dir = path.dirname(DATA_FILE)
     if (!fs.existsSync(dir)) {
@@ -79,7 +148,7 @@ function writeApps(data) {
     }
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf8')
   } catch (err) {
-    console.error('Error writing apps.json:', err.message)
+    console.warn('Filesystem write notice (Serverless/Read-only):', err.message)
   }
 }
 
