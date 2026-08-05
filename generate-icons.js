@@ -2,31 +2,26 @@ const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
 
-// Minimal PNG generator in pure Node.js (no external canvas needed)
-function createSquarePng(size, bgColorHex, text) {
-  // Parse bg color #0a0a0a
+function createPng(width, height) {
   const r = 0x0a, g = 0x0a, b = 0x0a, a = 0xff;
+  const rowSize = 1 + width * 4;
+  const rawData = Buffer.alloc(rowSize * height);
 
-  // Uncompressed raw image data: filter byte (0) + size * 4 bytes per row
-  const rowSize = 1 + size * 4;
-  const rawData = Buffer.alloc(rowSize * size);
-
-  for (let y = 0; y < size; y++) {
+  for (let y = 0; y < height; y++) {
     const rowOffset = y * rowSize;
-    rawData[rowOffset] = 0; // Filter type None
-    for (let x = 0; x < size; x++) {
+    rawData[rowOffset] = 0;
+    for (let x = 0; x < width; x++) {
       const pxOffset = rowOffset + 1 + x * 4;
-      rawData[pxOffset] = r;
-      rawData[pxOffset + 1] = g;
-      rawData[pxOffset + 2] = b;
+      const isAccent = (x > width * 0.3 && x < width * 0.7 && y > height * 0.3 && y < height * 0.7);
+      rawData[pxOffset] = isAccent ? 0xff : r;
+      rawData[pxOffset + 1] = isAccent ? 0x7a : g;
+      rawData[pxOffset + 2] = isAccent ? 0x17 : b;
       rawData[pxOffset + 3] = a;
     }
   }
 
-  // Compress IDAT payload
   const compressed = zlib.deflateSync(rawData);
 
-  // Helper CRC32
   function crc32(buf) {
     let crc = 0xffffffff;
     for (let i = 0; i < buf.length; i++) {
@@ -48,24 +43,17 @@ function createSquarePng(size, bgColorHex, text) {
     return Buffer.concat([len, typeBuf, data, crcBuf]);
   }
 
-  // PNG Signature
   const sig = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
-
-  // IHDR chunk
   const ihdrData = Buffer.alloc(13);
-  ihdrData.writeUInt32BE(size, 0);
-  ihdrData.writeUInt32BE(size, 4);
-  ihdrData[8] = 8; // bit depth
-  ihdrData[9] = 6; // color type RGBA
-  ihdrData[10] = 0; // compression method
-  ihdrData[11] = 0; // filter method
-  ihdrData[12] = 0; // interlace method
+  ihdrData.writeUInt32BE(width, 0);
+  ihdrData.writeUInt32BE(height, 4);
+  ihdrData[8] = 8;
+  ihdrData[9] = 6;
+  ihdrData[10] = 0;
+  ihdrData[11] = 0;
+  ihdrData[12] = 0;
   const ihdr = makeChunk('IHDR', ihdrData);
-
-  // IDAT chunk
   const idat = makeChunk('IDAT', compressed);
-
-  // IEND chunk
   const iend = makeChunk('IEND', Buffer.alloc(0));
 
   return Buffer.concat([sig, ihdr, idat, iend]);
@@ -76,7 +64,9 @@ if (!fs.existsSync(iconsDir)) {
   fs.mkdirSync(iconsDir, { recursive: true });
 }
 
-fs.writeFileSync(path.join(iconsDir, 'icon-192.png'), createSquarePng(192, '#0a0a0a', 'NX'));
-fs.writeFileSync(path.join(iconsDir, 'icon-512.png'), createSquarePng(512, '#0a0a0a', 'NX'));
+fs.writeFileSync(path.join(iconsDir, 'icon-192.png'), createPng(192, 192));
+fs.writeFileSync(path.join(iconsDir, 'icon-512.png'), createPng(512, 512));
+fs.writeFileSync(path.join(iconsDir, 'screenshot-narrow.png'), createPng(540, 960));
+fs.writeFileSync(path.join(iconsDir, 'screenshot-wide.png'), createPng(960, 540));
 
-console.log('Icons generated successfully.');
+console.log('PWA icons and screenshots generated successfully.');

@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "NEXORA",
+  "name": "NEXORA — Educational Launcher",
   "short_name": "NEXORA",
-  "description": "NEXORA — EdTech Platform Launcher",
+  "description": "Mobile-first educational platform launcher app.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -16,29 +16,50 @@
       "src": "/icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
   "screenshots": [
     {
-      "src": "/icons/icon-512.png",
-      "sizes": "512x512",
+      "src": "/icons/screenshot-narrow.png",
+      "sizes": "540x960",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "NEXORA Mobile Screen"
     },
     {
-      "src": "/icons/icon-512.png",
-      "sizes": "512x512",
+      "src": "/icons/screenshot-wide.png",
+      "sizes": "960x540",
       "type": "image/png",
       "form_factor": "wide",
       "label": "NEXORA Desktop Screen"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Admin Console",
+      "short_name": "Admin",
+      "description": "Manage educational platforms",
+      "url": "/admin.html",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
     }
   ]
 }

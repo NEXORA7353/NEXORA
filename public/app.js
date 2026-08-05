@@ -275,4 +275,31 @@ document.addEventListener('DOMContentLoaded', () => {
         .catch(err => console.error('ServiceWorker registration failed:', err));
     });
   }
+
+  // PWA Install Prompt Handler
+  let deferredPrompt = null;
+  const pwaInstallBtn = document.getElementById('pwaInstallBtn');
+
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    if (pwaInstallBtn) {
+      pwaInstallBtn.style.display = 'inline-flex';
+    }
+  });
+
+  if (pwaInstallBtn) {
+    pwaInstallBtn.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+          pwaInstallBtn.style.display = 'none';
+        }
+        deferredPrompt = null;
+      } else {
+        alert('To Install NEXORA Android App / APK:\n\nOption A (Instant Direct Install):\n1. Open Chrome menu (⋮)\n2. Tap "Install app" or "Add to Home screen"\n\nOption B (Build Standalone APK):\n1. Visit PWABuilder.com\n2. Paste URL: https://nexora-6ag.pages.dev\n3. Click "Build Android Package" to download APK!');
+      }
+    });
+  }
 });
