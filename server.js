@@ -69,9 +69,12 @@ try {
   Redis = require('@upstash/redis').Redis;
 } catch (e) {}
 
+const DEFAULT_UPSTASH_URL = 'https://legible-loon-84378.upstash.io';
+const DEFAULT_UPSTASH_TOKEN = 'gQAAAAAAAUmaAAIgcDE5M2IwMjM4MTczZjA0ZWQ5YWUwYzYzNTU1YzIyYTQ3Mg';
+
 function getUpstashClient() {
-  const url = process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const url = process.env.UPSTASH_REDIS_REST_URL || DEFAULT_UPSTASH_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN || DEFAULT_UPSTASH_TOKEN;
   if (Redis && url && token) {
     try {
       return new Redis({ url, token });
