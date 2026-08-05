@@ -61,16 +61,32 @@ const ERROR_PAGE_HTML = `<!DOCTYPE html>
 </body>
 </html>`
 
-// Global In-Memory & Netlify Blobs Store
+// Global In-Memory, Netlify Blobs & Upstash Redis Store
 let globalAppsStore = null;
+
+let Redis = null;
+try {
+  Redis = require('@upstash/redis').Redis;
+} catch (e) {}
+
+function getUpstashClient() {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (Redis && url && token) {
+    try {
+      return new Redis({ url, token });
+    } catch (e) {
+      console.warn('Upstash Redis init warning:', e.message);
+    }
+  }
+  return null;
+}
 
 let getStore = null;
 try {
   const blobs = require('@netlify/blobs');
   getStore = blobs.getStore;
-} catch (e) {
-  // @netlify/blobs not loaded locally
-}
+} catch (e) {}
 
 function getNetlifyBlobStore() {
   if (!getStore) return null;
@@ -83,6 +99,21 @@ function getNetlifyBlobStore() {
 
 // Helper Functions
 async function readApps() {
+  // 1. Try Upstash Redis Cloud DB
+  const redis = getUpstashClient();
+  if (redis) {
+    try {
+      const redisData = await redis.get('nexora_apps');
+      if (redisData && Array.isArray(redisData)) {
+        globalAppsStore = redisData;
+        return globalAppsStore;
+      }
+    } catch (e) {
+      console.warn('Upstash Redis read notice:', e.message);
+    }
+  }
+
+  // 2. Try Netlify Blobs Store
   const store = getNetlifyBlobStore();
   if (store) {
     try {
@@ -96,6 +127,7 @@ async function readApps() {
     }
   }
 
+  // 3. Fallback to In-Memory / File
   if (globalAppsStore !== null && Array.isArray(globalAppsStore)) {
     return globalAppsStore;
   }
@@ -177,6 +209,17 @@ async function readApps() {
 async function writeApps(data) {
   globalAppsStore = data;
 
+  // 1. Save to Upstash Redis
+  const redis = getUpstashClient();
+  if (redis) {
+    try {
+      await redis.set('nexora_apps', data);
+    } catch (e) {
+      console.warn('Upstash Redis write notice:', e.message);
+    }
+  }
+
+  // 2. Save to Netlify Blobs Store
   const store = getNetlifyBlobStore();
   if (store) {
     try {
