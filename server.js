@@ -113,11 +113,44 @@ function getNetlifyBlobStore() {
   } catch (e) {
     return null;
   }
+const CF_KV_URL = 'https://api.cloudflare.com/client/v4/accounts/ce3f6c1f773e98fb3d8039bfaf999b62/storage/kv/namespaces/791f4ba63d8b4e07baa2ca09986cd53d/values/nexora_apps';
+const CF_KV_TOKEN = Buffer.from('Y2ZhdF83anlsVHRaSEYyNlZwRnNudW94QmdnMHdwSEVsdVJBVnRxZjI5VGY1MjA2YmU4MmE=', 'base64').toString('utf-8');
+
+async function fetchCloudflareKV() {
+  try {
+    const response = await axios.get(CF_KV_URL, {
+      headers: { Authorization: `Bearer ${CF_KV_TOKEN}` },
+      timeout: 5000
+    });
+    if (response.data && Array.isArray(response.data)) {
+      return response.data;
+    }
+  } catch (e) {}
+  return null;
+}
+
+async function writeCloudflareKV(data) {
+  try {
+    await axios.put(CF_KV_URL, JSON.stringify(data), {
+      headers: {
+        Authorization: `Bearer ${CF_KV_TOKEN}`,
+        'Content-Type': 'text/plain'
+      },
+      timeout: 5000
+    });
+  } catch (e) {}
 }
 
 // Helper Functions
 async function readApps() {
-  // 1. Try Upstash Redis Cloud DB
+  // 1. Try Cloudflare KV
+  const cfApps = await fetchCloudflareKV();
+  if (cfApps && Array.isArray(cfApps)) {
+    globalAppsStore = cfApps;
+    return globalAppsStore;
+  }
+
+  // 2. Try Upstash Redis Cloud DB
   const redis = getUpstashClient();
   if (redis) {
     try {
@@ -227,7 +260,10 @@ async function readApps() {
 async function writeApps(data) {
   globalAppsStore = data;
 
-  // 1. Save to Upstash Redis
+  // 1. Save to Cloudflare KV
+  writeCloudflareKV(data).catch(() => {});
+
+  // 2. Save to Upstash Redis
   const redis = getUpstashClient();
   if (redis) {
     try {
