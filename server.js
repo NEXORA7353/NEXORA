@@ -195,65 +195,8 @@ async function readApps() {
     console.error('Error reading apps.json:', err.message)
   }
 
-  apps = [
-    {
-      "id": "110ec44a-0941-4b77-88d0-e37784013401",
-      "name": "Khan Academy",
-      "url": "https://www.khanacademy.org",
-      "logoUrl": "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=150&auto=format&fit=crop&q=80",
-      "category": "Live Class",
-      "featured": true,
-      "order": 1,
-      "addedAt": "2024-01-01T00:00:00.000Z"
-    },
-    {
-      "id": "220ec44a-0941-4b77-88d0-e37784013402",
-      "name": "Coursera",
-      "url": "https://www.coursera.org",
-      "logoUrl": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=150&auto=format&fit=crop&q=80",
-      "category": "Coaching",
-      "featured": true,
-      "order": 2,
-      "addedAt": "2024-01-02T00:00:00.000Z"
-    },
-    {
-      "id": "330ec44a-0941-4b77-88d0-e37784013403",
-      "name": "Physics Wallah",
-      "url": "https://www.pw.live",
-      "logoUrl": "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=150&auto=format&fit=crop&q=80",
-      "category": "Live Class",
-      "featured": false,
-      "order": 3,
-      "addedAt": "2024-01-03T00:00:00.000Z"
-    },
-    {
-      "id": "440ec44a-0941-4b77-88d0-e37784013404",
-      "name": "NPTEL Courses",
-      "url": "https://nptel.ac.in",
-      "logoUrl": "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=150&auto=format&fit=crop&q=80",
-      "category": "Test Series",
-      "featured": false,
-      "order": 4,
-      "addedAt": "2024-01-04T00:00:00.000Z"
-    },
-    {
-      "id": "550ec44a-0941-4b77-88d0-e37784013405",
-      "name": "GeeksforGeeks",
-      "url": "https://www.geeksforgeeks.org",
-      "logoUrl": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=150&auto=format&fit=crop&q=80",
-      "category": "Notes",
-      "featured": true,
-      "order": 5,
-      "addedAt": "2024-01-05T00:00:00.000Z"
-    }
-  ];
-
+  apps = [];
   globalAppsStore = apps;
-
-  if (store) {
-    store.setJSON('apps', globalAppsStore).catch(() => {});
-  }
-
   return globalAppsStore;
 }
 

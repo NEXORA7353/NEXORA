@@ -92,7 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load platforms from Server API route (/api/apps) or Upstash Cloud DB
   async function loadPlatforms() {
     try {
-      const res = await fetch('/api/apps');
+      const res = await fetch('/api/apps', { cache: 'no-store' });
       if (res.ok) {
         const resData = await res.json();
         if (resData && (Array.isArray(resData) || Array.isArray(resData.data))) {

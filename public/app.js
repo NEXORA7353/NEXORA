@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function fetchApps() {
     // 1. Primary: Server API route (/api/apps) - handles Cloudflare KV & Upstash server-side
     try {
-      const res = await fetch('/api/apps');
+      const res = await fetch('/api/apps', { cache: 'no-store' });
       if (res.ok) {
         const resData = await res.json();
         if (resData && (Array.isArray(resData) || Array.isArray(resData.data))) {
