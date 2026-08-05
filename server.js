@@ -32,7 +32,14 @@ app.use((req, res, next) => {
 });
 
 // Dark Theme Error Page HTML
-const ERROR_PAGE_HTML = `<!DOCTYPE html>
+function getErrorHtml(targetUrl) {
+  let safeUrl = targetUrl ? String(targetUrl).trim() : '';
+  if (safeUrl && !/^https?:\/\//i.test(safeUrl)) {
+    safeUrl = 'https://' + safeUrl;
+  }
+  const escapedUrl = safeUrl.replace(/"/g, '&quot;');
+
+  return `<!DOCTYPE html>
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -51,15 +58,23 @@ const ERROR_PAGE_HTML = `<!DOCTYPE html>
       color: #7d8187; margin-bottom: 16px;
     }
     .title { font-size: 18px; color: #ffffff; margin-bottom: 8px; font-weight: 400; }
-    .sub   { font-size: 14px; color: #7d8187; font-weight: 400; }
+    .sub   { font-size: 14px; color: #7d8187; font-weight: 400; margin-bottom: 24px; }
+    .btn   {
+      background: #ffffff; color: #0a0a0a; border: none;
+      border-radius: 9999px; padding: 12px 24px; font-size: 14px;
+      font-weight: 400; cursor: pointer; text-decoration: none;
+      display: inline-flex; align-items: center; justify-content: center;
+    }
   </style>
 </head>
 <body>
-  <p class="label">NEXORA — CONNECTION ERROR</p>
-  <p class="title">Platform unavailable</p>
-  <p class="sub">Could not establish connection to this platform.</p>
+  <p class="label">NEXORA — PROXY NOTICE</p>
+  <p class="title">Protected Educational Platform</p>
+  <p class="sub">This platform blocks embedded frames. Launch directly below.</p>
+  ${safeUrl ? `<a href="${escapedUrl}" target="_blank" rel="noopener noreferrer" class="btn">Open Platform Directly</a>` : ''}
 </body>
 </html>`
+}
 
 // Global In-Memory, Netlify Blobs & Upstash Redis Store
 let globalAppsStore = null;
@@ -407,12 +422,12 @@ app.get('/proxy', async (req, res) => {
 
   // 1. Read & Validate url
   if (!targetUrl || typeof targetUrl !== 'string') {
-    return res.status(400).send(ERROR_PAGE_HTML)
+    return res.status(400).send(getErrorHtml(targetUrl))
   }
 
   // 2. Validate url starts with http:// or https://
   if (!/^https?:\/\//i.test(targetUrl.trim())) {
-    return res.status(400).send(ERROR_PAGE_HTML)
+    return res.status(400).send(getErrorHtml(targetUrl))
   }
 
   try {
@@ -609,7 +624,7 @@ app.get('/proxy', async (req, res) => {
     } else {
       console.error(`Proxy request error: ${error.message}`)
     }
-    return res.status(200).send(ERROR_PAGE_HTML)
+    return res.status(200).send(getErrorHtml(targetUrl))
   }
 })
 
