@@ -444,6 +444,16 @@ app.get('/proxy', async (req, res) => {
       // a. Convert arraybuffer to string
       let htmlString = response.data.toString('utf-8')
 
+      if (
+        response.status === 403 || 
+        htmlString.includes('you have been blocked') || 
+        htmlString.includes('Cloudflare Ray ID') || 
+        htmlString.includes('Attention Required!') ||
+        htmlString.includes('Just a moment...')
+      ) {
+        return res.send(getErrorHtml(targetUrl));
+      }
+
       // b. Target origin
       const targetOrigin = new URL(targetUrl.trim()).origin
 
