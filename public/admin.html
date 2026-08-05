@@ -89,6 +89,13 @@
               <input type="number" id="appOrder" class="admin-input" placeholder="1" value="1" min="1" required>
             </div>
             <div class="form-group">
+              <label class="form-label" for="appMode">Container Engine Mode</label>
+              <select id="appMode" class="admin-input" style="background: var(--canvas); color: var(--ink);">
+                <option value="DIRECT">⚡ Direct Bypass Mode (Default - High Speed)</option>
+                <option value="PROXY">🛡️ Edge Proxy Mode (Strip X-Frame-Options)</option>
+              </select>
+            </div>
+            <div class="form-group">
               <div class="toggle-wrapper">
                 <span class="form-label">Featured Platform</span>
                 <label class="toggle-switch">

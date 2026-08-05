@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
       openBtn.className = 'btn-outline card-open-btn';
       openBtn.textContent = 'Open';
       openBtn.addEventListener('click', () => {
-        openInAppBrowser(app.url, app.name);
+        openInAppBrowser(app.url, app.name, app.mode);
       });
 
       card.appendChild(logoWrapper);
@@ -233,15 +233,48 @@ document.addEventListener('DOMContentLoaded', () => {
     return name.substring(0, 2).toUpperCase();
   }
 
-  // Native Standalone History Router & WebView Container Engine
+  // Native Standalone History Router & Hybrid WebView Container Engine
   let isBrowserPanelActive = false;
+  let currentEngineMode = localStorage.getItem('nexora_preferred_engine') || 'DIRECT';
+  const browserEngineBtn = document.getElementById('browserEngineBtn');
 
-  function openInAppBrowser(rawUrl, appName) {
+  function updateEngineBtnUI() {
+    if (!browserEngineBtn) return;
+    if (currentEngineMode === 'DIRECT') {
+      browserEngineBtn.textContent = '⚡ Direct';
+      browserEngineBtn.title = 'Current Engine: Direct Bypass (Tap to switch to Proxy)';
+      browserEngineBtn.style.color = '#10b981';
+      browserEngineBtn.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+    } else {
+      browserEngineBtn.textContent = '🛡️ Proxy';
+      browserEngineBtn.title = 'Current Engine: Edge Proxy (Tap to switch to Direct Bypass)';
+      browserEngineBtn.style.color = '#a855f7';
+      browserEngineBtn.style.borderColor = 'rgba(168, 85, 247, 0.4)';
+    }
+  }
+
+  function loadContainerUrl(rawUrl) {
+    if (!rawUrl) return;
+    if (currentEngineMode === 'PROXY') {
+      const proxyUrl = `/proxy?url=${encodeURIComponent(rawUrl)}`;
+      browserIframe.src = proxyUrl;
+    } else {
+      // DIRECT mode: bypass proxy completely
+      browserIframe.src = rawUrl;
+    }
+  }
+
+  function openInAppBrowser(rawUrl, appName, appMode) {
     if (!rawUrl) return;
     if (!/^https?:\/\//i.test(rawUrl)) {
       rawUrl = 'https://' + rawUrl;
     }
     currentTargetUrl = rawUrl;
+
+    // Use platform-specific mode preference if set, otherwise currentEngineMode
+    if (appMode === 'DIRECT' || appMode === 'PROXY') {
+      currentEngineMode = appMode;
+    }
 
     // Display platform title instead of link URL
     browserDomain.textContent = appName || 'Platform';
@@ -252,9 +285,8 @@ document.addEventListener('DOMContentLoaded', () => {
       browserDirectBtn.href = rawUrl;
     }
 
-    // Route via Edge Proxy to strip X-Frame-Options: DENY headers
-    const proxyUrl = `/proxy?url=${encodeURIComponent(rawUrl)}`;
-    browserIframe.src = proxyUrl;
+    updateEngineBtnUI();
+    loadContainerUrl(rawUrl);
 
     browserPanel.classList.add('open');
     browserPanel.setAttribute('aria-hidden', 'false');
@@ -266,6 +298,18 @@ document.addEventListener('DOMContentLoaded', () => {
         history.pushState({ modal: 'browser', url: rawUrl }, '', '#view=platform');
       } catch (e) {}
     }
+  }
+
+  // Toggle Direct vs Proxy Mode handler
+  if (browserEngineBtn) {
+    browserEngineBtn.addEventListener('click', () => {
+      currentEngineMode = currentEngineMode === 'DIRECT' ? 'PROXY' : 'DIRECT';
+      localStorage.setItem('nexora_preferred_engine', currentEngineMode);
+      updateEngineBtnUI();
+      if (currentTargetUrl) {
+        loadContainerUrl(currentTargetUrl);
+      }
+    });
   }
 
   function closeBrowserPanel(triggerHistoryBack = true) {

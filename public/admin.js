@@ -243,6 +243,13 @@ document.addEventListener('DOMContentLoaded', () => {
           <input type="number" class="admin-input edit-order" value="${app.order || 1}" min="1" required>
         </div>
         <div class="form-group">
+          <label class="form-label">Container Engine Mode</label>
+          <select class="admin-input edit-mode" style="background: var(--canvas); color: var(--ink);">
+            <option value="DIRECT" ${(!app.mode || app.mode === 'DIRECT') ? 'selected' : ''}>⚡ Direct Bypass Mode (Default)</option>
+            <option value="PROXY" ${app.mode === 'PROXY' ? 'selected' : ''}>🛡️ Edge Proxy Mode</option>
+          </select>
+        </div>
+        <div class="form-group">
           <div class="toggle-wrapper">
             <span class="form-label">Featured</span>
             <label class="toggle-switch">
@@ -274,6 +281,7 @@ document.addEventListener('DOMContentLoaded', () => {
         logo: card.querySelector('.edit-logo').value.trim(),
         category: card.querySelector('.edit-category').value.trim(),
         order: parseInt(card.querySelector('.edit-order').value, 10) || 1,
+        mode: card.querySelector('.edit-mode').value,
         featured: card.querySelector('.edit-featured').checked
       };
 
@@ -309,6 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
       logo: document.getElementById('appLogo').value.trim(),
       category: document.getElementById('appCategory').value.trim(),
       order: parseInt(document.getElementById('appOrder').value, 10) || 1,
+      mode: document.getElementById('appMode') ? document.getElementById('appMode').value : 'DIRECT',
       featured: document.getElementById('appFeatured').checked
     };
 

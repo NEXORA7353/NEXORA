@@ -295,7 +295,7 @@ app.post('/api/apps', async (req, res) => {
 
     const parsedOrder = typeof order === 'number' && !isNaN(order) 
       ? order 
-      : (parseInt(order, 10) || (apps.length + 1))
+      : (parseInt(order, 10) || (apps.length + 1));
 
     const newItem = {
       id: uuidv4(),
@@ -303,6 +303,7 @@ app.post('/api/apps', async (req, res) => {
       url: url.trim(),
       logoUrl: logoUrl ? logoUrl.trim() : '',
       category: category ? category.trim() : 'GENERAL',
+      mode: req.body.mode ? String(req.body.mode).trim() : 'DIRECT',
       featured: Boolean(featured),
       order: parsedOrder,
       addedAt: new Date().toISOString()
@@ -346,9 +347,10 @@ app.put('/api/apps/:id', async (req, res) => {
       url: body.url !== undefined ? String(body.url).trim() : existing.url,
       logoUrl: body.logoUrl !== undefined ? String(body.logoUrl).trim() : (body.logo !== undefined ? String(body.logo).trim() : existing.logoUrl),
       category: body.category !== undefined ? String(body.category).trim() : existing.category,
+      mode: body.mode !== undefined ? String(body.mode).trim() : (existing.mode || 'DIRECT'),
       featured: body.featured !== undefined ? Boolean(body.featured) : existing.featured,
       order: body.order !== undefined ? (parseInt(body.order, 10) || existing.order) : existing.order
-      // Preserve original id and addedAt
+    }    // Preserve original id and addedAt
     }
 
     apps[index] = updatedItem
