@@ -233,7 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return name.substring(0, 2).toUpperCase();
   }
 
-  // In-App Browser Logic (Direct Iframe Mode — 100% Proxy Free)
+  // In-App Browser Logic (Anti-Framebuster & X-Frame-Options Stripping Edge Proxy)
   function openInAppBrowser(rawUrl, appName) {
     currentTargetUrl = rawUrl;
 
@@ -244,8 +244,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Display platform title instead of link URL
     browserDomain.textContent = appName || 'Platform';
 
-    // Load target URL directly inside in-app container (NO Proxy)
-    browserIframe.src = rawUrl || 'about:blank';
+    // Route via Edge Proxy to strip X-Frame-Options: DENY headers
+    const proxyUrl = `/proxy?url=${encodeURIComponent(rawUrl)}`;
+    browserIframe.src = proxyUrl;
 
     browserPanel.classList.add('open');
     browserPanel.setAttribute('aria-hidden', 'false');
@@ -261,7 +262,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // Reload browser
   browserReloadBtn.addEventListener('click', () => {
     if (currentTargetUrl) {
-      browserIframe.src = currentTargetUrl;
+      const proxyUrl = `/proxy?url=${encodeURIComponent(currentTargetUrl)}&t=${Date.now()}`;
+      browserIframe.src = proxyUrl;
     }
   });
 
