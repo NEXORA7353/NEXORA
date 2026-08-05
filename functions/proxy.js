@@ -236,8 +236,8 @@ function getFallbackResponse(targetUrl, reason) {
         <p class="desc">Target platform has Cloudflare security or bot protection active which prevents frame embedding.</p>
         ${reason ? `<div class="reason-box">${reason}</div>` : ''}
         <div class="btn-group">
-          <a href="${escapedUrl}" target="_blank" rel="noopener noreferrer" class="btn-primary">
-            🚀 Open Direct Platform (↗)
+          <a href="${escapedUrl}" target="_self" class="btn-primary">
+            🚀 Launch Platform (Same Tab)
           </a>
           <button onclick="window.location.reload()" class="btn-secondary">
             🔄 Retry Proxy Connection

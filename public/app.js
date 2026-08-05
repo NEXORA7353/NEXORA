@@ -308,6 +308,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Same Tab Direct Launcher handler (No proxy, zero error, same window)
+  const browserDirectBtn = document.getElementById('browserDirectBtn');
+  if (browserDirectBtn) {
+    browserDirectBtn.addEventListener('click', () => {
+      if (currentTargetUrl) {
+        window.location.href = currentTargetUrl;
+      }
+    });
+  }
+
   // Override window.open globally to keep popups inside NEXORA Standalone Container
   window.open = function(url, target, features) {
     if (url && typeof url === 'string' && url !== 'about:blank') {
