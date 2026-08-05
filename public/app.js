@@ -233,17 +233,12 @@ document.addEventListener('DOMContentLoaded', () => {
     return name.substring(0, 2).toUpperCase();
   }
 
-  const browserDirectBtn = document.getElementById('browserDirectBtn');
-
   // In-App Browser Logic
   function openInAppBrowser(rawUrl, appName) {
     currentTargetUrl = rawUrl;
 
     // Display platform title instead of link URL
     browserDomain.textContent = appName || 'Platform';
-    if (browserDirectBtn) {
-      browserDirectBtn.href = rawUrl || '#';
-    }
 
     const proxyUrl = `/proxy?url=${encodeURIComponent(rawUrl)}`;
     browserIframe.src = proxyUrl;

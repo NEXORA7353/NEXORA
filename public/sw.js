@@ -1,4 +1,4 @@
-const CACHE_NAME = 'nexora-v9';
+const CACHE_NAME = 'nexora-v10';
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
