@@ -233,9 +233,12 @@ document.addEventListener('DOMContentLoaded', () => {
     return name.substring(0, 2).toUpperCase();
   }
 
-  // In-App Browser Logic (Anti-Framebuster & X-Frame-Options Stripping Edge Proxy)
+  // Native Standalone History Router & WebView Container Engine
+  let isBrowserPanelActive = false;
+
   function openInAppBrowser(rawUrl, appName) {
-    if (rawUrl && !/^https?:\/\//i.test(rawUrl)) {
+    if (!rawUrl) return;
+    if (!/^https?:\/\//i.test(rawUrl)) {
       rawUrl = 'https://' + rawUrl;
     }
     currentTargetUrl = rawUrl;
@@ -255,22 +258,86 @@ document.addEventListener('DOMContentLoaded', () => {
 
     browserPanel.classList.add('open');
     browserPanel.setAttribute('aria-hidden', 'false');
+
+    // Push native Android history state for hardware back button navigation
+    if (!isBrowserPanelActive) {
+      isBrowserPanelActive = true;
+      try {
+        history.pushState({ modal: 'browser', url: rawUrl }, '', '#view=platform');
+      } catch (e) {}
+    }
   }
 
-  // Close browser
-  browserBackBtn.addEventListener('click', () => {
+  function closeBrowserPanel(triggerHistoryBack = true) {
+    if (!browserPanel) return;
     browserPanel.classList.remove('open');
     browserPanel.setAttribute('aria-hidden', 'true');
     browserIframe.src = 'about:blank';
-  });
 
-  // Reload browser
-  browserReloadBtn.addEventListener('click', () => {
-    if (currentTargetUrl) {
-      const proxyUrl = `/proxy?url=${encodeURIComponent(currentTargetUrl)}&t=${Date.now()}`;
-      browserIframe.src = proxyUrl;
+    if (isBrowserPanelActive) {
+      isBrowserPanelActive = false;
+      if (triggerHistoryBack && window.location.hash === '#view=platform') {
+        try {
+          history.back();
+        } catch(e) {}
+      }
+    }
+  }
+
+  // Native Android Hardware Back Button Listener (popstate)
+  window.addEventListener('popstate', (e) => {
+    if (isBrowserPanelActive || (browserPanel && browserPanel.classList.contains('open'))) {
+      closeBrowserPanel(false);
     }
   });
+
+  // Close button handler
+  if (browserBackBtn) {
+    browserBackBtn.addEventListener('click', () => {
+      closeBrowserPanel(true);
+    });
+  }
+
+  // Reload browser handler
+  if (browserReloadBtn) {
+    browserReloadBtn.addEventListener('click', () => {
+      if (currentTargetUrl) {
+        const proxyUrl = `/proxy?url=${encodeURIComponent(currentTargetUrl)}&t=${Date.now()}`;
+        browserIframe.src = proxyUrl;
+      }
+    });
+  }
+
+  // Override window.open globally to keep popups inside NEXORA Standalone Container
+  window.open = function(url, target, features) {
+    if (url && typeof url === 'string' && url !== 'about:blank') {
+      openInAppBrowser(url);
+    }
+    return window;
+  };
+
+  // Global Standalone Link & Form Interceptor — Prevent Chrome Custom Tabs or External Browser
+  document.addEventListener('click', (e) => {
+    const anchor = e.target.closest('a');
+    if (!anchor) return;
+
+    const href = anchor.getAttribute('href');
+    if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+
+    // Direct platform open button inside browser panel can open in new tab if user explicitly chooses
+    if (anchor.id === 'browserDirectBtn') return;
+
+    e.preventDefault();
+
+    // Check if link is internal route or external platform
+    const isInternal = href.startsWith('/') || href.startsWith(window.location.origin) || href.includes('.html');
+
+    if (isInternal) {
+      window.location.href = href;
+    } else {
+      openInAppBrowser(href, anchor.textContent.trim() || 'Platform');
+    }
+  }, true);
 
   // Register Service Worker
   if ('serviceWorker' in navigator) {

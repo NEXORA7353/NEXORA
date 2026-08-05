@@ -2,7 +2,7 @@
   "id": "/",
   "name": "NEXORA — Educational Launcher",
   "short_name": "NEXORA",
-  "description": "Mobile-first educational platform launcher app.",
+  "description": "Standalone Educational Operating System App.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -12,6 +12,10 @@
   "theme_color": "#0a0a0a",
   "lang": "en-US",
   "categories": ["education", "utilities"],
+  "handle_links": "preferred",
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
   "icons": [
     {
       "src": "/icons/icon-192.png",

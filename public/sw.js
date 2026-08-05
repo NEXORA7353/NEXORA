@@ -1,9 +1,11 @@
-const CACHE_NAME = 'nexora-v13';
+const CACHE_NAME = 'nexora-v14';
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
+  '/admin.html',
   '/style.css',
   '/app.js',
+  '/admin.js',
   '/manifest.json',
   '/icons/icon-192.png',
   '/icons/icon-512.png'
@@ -51,7 +53,7 @@ self.addEventListener('fetch', (event) => {
         }
         return networkResponse;
       }).catch(() => {
-        return caches.match(request).then((cached) => cached || new Response('Offline', { status: 503 }));
+        return caches.match(request).then((cached) => cached || caches.match('/index.html'));
       })
     );
     return;

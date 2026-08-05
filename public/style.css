@@ -27,6 +27,14 @@ html, body {
   min-height: 100vh;
   margin: 0;
   padding: 0;
+  overscroll-behavior-y: none;
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+input, textarea, [contenteditable="true"] {
+  -webkit-user-select: auto;
+  user-select: auto;
 }
 
 .mobile-wrapper {
