@@ -532,3 +532,207 @@ input:checked + .toggle-slider:before {
   color: var(--accent-orange);
   margin-top: 8px;
 }
+
+/* ==========================================================================
+   ANIMATED SPLASH SCREEN & LOADING ENGINE
+   ========================================================================== */
+.splash-screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: #0a0a0a;
+  z-index: 100000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.5s ease, visibility 0.5s ease;
+}
+
+.splash-screen.fade-out {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.splash-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 24px;
+}
+
+.logo-glow-wrapper {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  margin-bottom: 20px;
+}
+
+.nexora-brand-logo {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 2;
+  filter: drop-shadow(0 0 16px rgba(255, 122, 23, 0.4));
+}
+
+.pulse-ring {
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  border-radius: 32px;
+  border: 1px solid rgba(255, 122, 23, 0.4);
+  animation: pulseAura 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  z-index: 1;
+}
+
+@keyframes pulseAura {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 0.2; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.splash-title {
+  font-size: 26px;
+  font-weight: 600 !important;
+  letter-spacing: 2px;
+  background: linear-gradient(135deg, #ffffff 0%, #a855f7 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 4px;
+}
+
+.splash-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 1.6px;
+  color: #7d8187;
+  margin-bottom: 32px;
+}
+
+.loading-bar-container {
+  width: 180px;
+  height: 4px;
+  background: #1a1c20;
+  border-radius: 9999px;
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+
+.loading-bar-fill {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, #ff7a17, #a855f7);
+  border-radius: 9999px;
+  transition: width 0.3s ease;
+}
+
+.splash-status {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: #7d8187;
+}
+
+/* ==========================================================================
+   TOP BAR BRAND LOGO
+   ========================================================================== */
+.brand-header-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-header-logo {
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 8px rgba(255, 122, 23, 0.3));
+}
+
+/* ==========================================================================
+   ADVANCE LANDING HERO BANNER
+   ========================================================================== */
+.landing-hero {
+  padding: 20px 16px 16px 16px;
+  background: linear-gradient(180deg, rgba(255, 122, 23, 0.05) 0%, rgba(10, 10, 10, 0) 100%);
+  border-bottom: 1px solid var(--hairline);
+  margin-bottom: 16px;
+}
+
+.hero-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: rgba(255, 122, 23, 0.1);
+  border: 1px solid rgba(255, 122, 23, 0.25);
+  border-radius: 9999px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: #ff7a17;
+  letter-spacing: 0.8px;
+  margin-bottom: 12px;
+}
+
+.hero-badge-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #ff7a17;
+  box-shadow: 0 0 8px #ff7a17;
+  animation: blinkDot 1.5s infinite;
+}
+
+@keyframes blinkDot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.hero-headline {
+  font-size: 22px;
+  font-weight: 600 !important;
+  color: #ffffff;
+  margin-bottom: 6px;
+  letter-spacing: -0.3px;
+}
+
+.hero-subtext {
+  font-size: 13px;
+  color: var(--ink-mute);
+  line-height: 1.4;
+  margin-bottom: 16px;
+}
+
+.hero-stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.hero-stat-card {
+  background: var(--canvas-soft);
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  padding: 10px 8px;
+  text-align: center;
+}
+
+.hero-stat-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 15px;
+  color: #ff7a17;
+  margin-bottom: 2px;
+}
+
+.hero-stat-lbl {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: var(--ink-mute);
+  letter-spacing: 0.5px;
+}
+

@@ -10,13 +10,79 @@
   <meta name="description" content="Mobile-first educational platform launcher app.">
 </head>
 <body>
+  <!-- SCREEN 0 — ANIMATED SPLASH / LOADING SCREEN -->
+  <div class="splash-screen" id="splashScreen">
+    <div class="splash-content">
+      <div class="logo-glow-wrapper">
+        <svg class="nexora-brand-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="splashLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stop-color="#ff7a17" />
+              <stop offset="50%" stop-color="#a855f7" />
+              <stop offset="100%" stop-color="#3b82f6" />
+            </linearGradient>
+          </defs>
+          <rect x="10" y="10" width="80" height="80" rx="24" fill="#121316" stroke="url(#splashLogoGrad)" stroke-width="3"/>
+          <path d="M32 68V32L54 56V32M68 32V68L46 44V68" stroke="url(#splashLogoGrad)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <div class="pulse-ring"></div>
+      </div>
+      <div class="splash-title">NEXORA</div>
+      <div class="splash-tag">EDUCATIONAL OPERATING SYSTEM</div>
+      
+      <div class="loading-bar-container">
+        <div class="loading-bar-fill" id="splashProgress"></div>
+      </div>
+      <div class="splash-status" id="splashStatus">Initializing Engine...</div>
+    </div>
+  </div>
+
   <div class="mobile-wrapper">
     <div class="app-container" id="appGridScreen">
-      <!-- TOP BAR -->
+      <!-- TOP BAR WITH BRAND LOGO -->
       <header class="top-bar">
-        <h1 class="app-title">NEXORA</h1>
-        <div class="eyebrow" style="margin-top: 4px;">EDUCATIONAL PLATFORMS</div>
+        <div class="brand-header-group">
+          <svg class="brand-header-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="hdrGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ff7a17" />
+                <stop offset="100%" stop-color="#a855f7" />
+              </linearGradient>
+            </defs>
+            <rect x="10" y="10" width="80" height="80" rx="22" fill="#16181d" stroke="url(#hdrGrad)" stroke-width="4"/>
+            <path d="M32 68V32L54 56V32M68 32V68L46 44V68" stroke="url(#hdrGrad)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div>
+            <h1 class="app-title">NEXORA</h1>
+            <div class="eyebrow">EDUCATIONAL LAUNCHER</div>
+          </div>
+        </div>
       </header>
+
+      <!-- ADVANCE HERO LANDING BANNER -->
+      <section class="landing-hero">
+        <div class="hero-badge">
+          <span class="hero-badge-dot"></span>
+          <span>NEXORA v2.5 • LIVE EDGE ENGINE</span>
+        </div>
+        <h1 class="hero-headline">Unified Educational Hub</h1>
+        <p class="hero-subtext">Instant zero-lag access to your live classes, notes, and learning portals in a single secure environment.</p>
+        
+        <div class="hero-stats-row">
+          <div class="hero-stat-card">
+            <div class="hero-stat-val" id="statAppCount">0</div>
+            <div class="hero-stat-lbl">PLATFORMS</div>
+          </div>
+          <div class="hero-stat-card">
+            <div class="hero-stat-val" style="color: #10b981;">&lt; 15ms</div>
+            <div class="hero-stat-lbl">EDGE LATENCY</div>
+          </div>
+          <div class="hero-stat-card">
+            <div class="hero-stat-val" style="color: #a855f7;">100%</div>
+            <div class="hero-stat-lbl">PWA READY</div>
+          </div>
+        </div>
+      </section>
 
       <!-- SEARCH BAR -->
       <div class="search-section">
@@ -25,7 +91,7 @@
 
       <!-- CATEGORY FILTER -->
       <div class="category-tabs-container" id="categoryTabs">
-        <!-- Dynamic category tabs will be rendered here -->
+        <!-- Dynamic category tabs rendered here -->
       </div>
 
       <!-- SECTION HEADER -->
@@ -35,7 +101,7 @@
 
       <!-- PLATFORMS GRID -->
       <main class="apps-grid" id="appsGrid">
-        <!-- Dynamic platform cards will be rendered here -->
+        <!-- Dynamic platform cards rendered here -->
       </main>
 
       <!-- EMPTY STATE -->

@@ -14,9 +14,21 @@
       <!-- SCREEN A — PASSWORD GATE -->
       <div class="gate-container" id="gateScreen">
         <div class="gate-box">
-          <div>
-            <h1 class="app-title">NEXORA</h1>
-            <div class="eyebrow" style="margin-top: 4px;">ADMIN CONSOLE</div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <svg class="brand-header-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 44px; height: 44px;">
+              <defs>
+                <linearGradient id="admGateGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#ff7a17" />
+                  <stop offset="100%" stop-color="#a855f7" />
+                </linearGradient>
+              </defs>
+              <rect x="10" y="10" width="80" height="80" rx="22" fill="#16181d" stroke="url(#admGateGrad)" stroke-width="4"/>
+              <path d="M32 68V32L54 56V32M68 32V68L46 44V68" stroke="url(#admGateGrad)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div>
+              <h1 class="app-title">NEXORA</h1>
+              <div class="eyebrow" style="margin-top: 2px;">ADMIN CONSOLE</div>
+            </div>
           </div>
           <form id="gateForm" style="display: flex; flex-direction: column; gap: 12px;">
             <input type="password" id="gatePassword" class="admin-input" placeholder="Enter password..." autocomplete="current-password">
@@ -30,9 +42,21 @@
       <div class="dashboard-container" id="dashboardScreen" style="display: none;">
         <!-- TOP HEADER -->
         <div class="admin-header">
-          <div>
-            <h1 class="app-title" style="font-size: 24px;">NEXORA ADMIN</h1>
-            <div class="eyebrow" style="margin-top: 2px;">ADMIN CONSOLE</div>
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <svg class="brand-header-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 36px; height: 36px;">
+              <defs>
+                <linearGradient id="admDashGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#ff7a17" />
+                  <stop offset="100%" stop-color="#a855f7" />
+                </linearGradient>
+              </defs>
+              <rect x="10" y="10" width="80" height="80" rx="22" fill="#16181d" stroke="url(#admDashGrad)" stroke-width="4"/>
+              <path d="M32 68V32L54 56V32M68 32V68L46 44V68" stroke="url(#admDashGrad)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div>
+              <h1 class="app-title" style="font-size: 20px;">NEXORA ADMIN</h1>
+              <div class="eyebrow">ADMIN CONSOLE</div>
+            </div>
           </div>
           <button type="button" class="btn-outline btn-sm" id="logoutBtn">Logout</button>
         </div>

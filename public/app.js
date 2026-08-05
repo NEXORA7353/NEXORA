@@ -49,6 +49,28 @@ document.addEventListener('DOMContentLoaded', () => {
     return null;
   }
 
+  const splashScreen = document.getElementById('splashScreen');
+  const splashProgress = document.getElementById('splashProgress');
+  const splashStatus = document.getElementById('splashStatus');
+  const statAppCount = document.getElementById('statAppCount');
+
+  let progressVal = 0;
+  const progressInterval = setInterval(() => {
+    if (progressVal < 85) {
+      progressVal += 15;
+      if (splashProgress) splashProgress.style.width = progressVal + '%';
+    }
+  }, 80);
+
+  function hideSplashScreen() {
+    if (splashProgress) splashProgress.style.width = '100%';
+    if (splashStatus) splashStatus.textContent = 'Engine Ready';
+    clearInterval(progressInterval);
+    setTimeout(() => {
+      if (splashScreen) splashScreen.classList.add('fade-out');
+    }, 350);
+  }
+
   // Initial Fetch
   fetchApps();
 
@@ -111,6 +133,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Render Apps Grid
   function renderGrid() {
+    if (statAppCount) {
+      statAppCount.textContent = allApps.length;
+    }
+    hideSplashScreen();
+
     const filtered = allApps.filter(app => {
       const matchesCat = (activeCategory === 'ALL') || (app.category && app.category.trim().toUpperCase() === activeCategory);
       const matchesSearch = !searchQuery || 
