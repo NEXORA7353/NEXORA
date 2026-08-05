@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
       openBtn.className = 'btn-outline card-open-btn';
       openBtn.textContent = 'Open';
       openBtn.addEventListener('click', () => {
-        openInAppBrowser(app.url);
+        openInAppBrowser(app.url, app.name);
       });
 
       card.appendChild(logoWrapper);
@@ -168,23 +168,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // In-App Browser Logic
-  function openInAppBrowser(rawUrl) {
+  function openInAppBrowser(rawUrl, appName) {
     currentTargetUrl = rawUrl;
 
-    // Format domain for display
-    let domainStr = rawUrl;
-    try {
-      let fullUrl = rawUrl;
-      if (!/^https?:\/\//i.test(fullUrl)) {
-        fullUrl = 'https://' + fullUrl;
-      }
-      const urlObj = new URL(fullUrl);
-      domainStr = urlObj.hostname.replace(/^www\./i, '');
-    } catch (e) {
-      domainStr = rawUrl.replace(/^https?:\/\//i, '').replace(/^www\./i, '').split('/')[0];
-    }
-
-    browserDomain.textContent = domainStr;
+    // Display platform title instead of link URL
+    browserDomain.textContent = appName || 'Platform';
     const proxyUrl = `/proxy?url=${encodeURIComponent(rawUrl)}`;
     browserIframe.src = proxyUrl;
 
