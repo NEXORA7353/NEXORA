@@ -61,11 +61,41 @@ const ERROR_PAGE_HTML = `<!DOCTYPE html>
 </body>
 </html>`
 
-// Global In-Memory Store for Serverless Environments
+// Global In-Memory & Netlify Blobs Store
 let globalAppsStore = null;
 
+let getStore = null;
+try {
+  const blobs = require('@netlify/blobs');
+  getStore = blobs.getStore;
+} catch (e) {
+  // @netlify/blobs not loaded locally
+}
+
+function getNetlifyBlobStore() {
+  if (!getStore) return null;
+  try {
+    return getStore({ name: 'nexora-platforms', consistency: 'strong' });
+  } catch (e) {
+    return null;
+  }
+}
+
 // Helper Functions
-function readApps() {
+async function readApps() {
+  const store = getNetlifyBlobStore();
+  if (store) {
+    try {
+      const blobData = await store.get('apps', { type: 'json' });
+      if (blobData && Array.isArray(blobData)) {
+        globalAppsStore = blobData;
+        return globalAppsStore;
+      }
+    } catch (e) {
+      console.log('Netlify Blobs read notice:', e.message);
+    }
+  }
+
   if (globalAppsStore !== null && Array.isArray(globalAppsStore)) {
     return globalAppsStore;
   }
@@ -136,11 +166,26 @@ function readApps() {
   ];
 
   globalAppsStore = apps;
+
+  if (store) {
+    store.setJSON('apps', globalAppsStore).catch(() => {});
+  }
+
   return globalAppsStore;
 }
 
-function writeApps(data) {
+async function writeApps(data) {
   globalAppsStore = data;
+
+  const store = getNetlifyBlobStore();
+  if (store) {
+    try {
+      await store.setJSON('apps', data);
+    } catch (e) {
+      console.log('Netlify Blobs write notice:', e.message);
+    }
+  }
+
   try {
     const dir = path.dirname(DATA_FILE)
     if (!fs.existsSync(dir)) {
@@ -155,9 +200,9 @@ function writeApps(data) {
 // REST API ROUTES
 
 // GET /api/apps
-app.get('/api/apps', (req, res) => {
+app.get('/api/apps', async (req, res) => {
   try {
-    const apps = readApps()
+    const apps = await readApps()
 
     // Sort: featured items first, then by order ASC, then by addedAt DESC
     apps.sort((a, b) => {
@@ -187,7 +232,7 @@ app.get('/api/apps', (req, res) => {
 })
 
 // POST /api/apps
-app.post('/api/apps', (req, res) => {
+app.post('/api/apps', async (req, res) => {
   try {
     const { name, url, logoUrl, category, featured, order } = req.body
 
@@ -206,7 +251,7 @@ app.post('/api/apps', (req, res) => {
       })
     }
 
-    const apps = readApps()
+    const apps = await readApps()
 
     const parsedOrder = typeof order === 'number' && !isNaN(order) 
       ? order 
@@ -224,7 +269,7 @@ app.post('/api/apps', (req, res) => {
     }
 
     apps.push(newItem)
-    writeApps(apps)
+    await writeApps(apps)
 
     res.status(201).json({
       success: true,
@@ -239,10 +284,10 @@ app.post('/api/apps', (req, res) => {
 })
 
 // PUT /api/apps/:id
-app.put('/api/apps/:id', (req, res) => {
+app.put('/api/apps/:id', async (req, res) => {
   try {
     const { id } = req.params
-    const apps = readApps()
+    const apps = await readApps()
     const index = apps.findIndex(item => item.id === id)
 
     if (index === -1) {
@@ -267,7 +312,7 @@ app.put('/api/apps/:id', (req, res) => {
     }
 
     apps[index] = updatedItem
-    writeApps(apps)
+    await writeApps(apps)
 
     res.json({
       success: true,
@@ -282,10 +327,10 @@ app.put('/api/apps/:id', (req, res) => {
 })
 
 // DELETE /api/apps/:id
-app.delete('/api/apps/:id', (req, res) => {
+app.delete('/api/apps/:id', async (req, res) => {
   try {
     const { id } = req.params
-    let apps = readApps()
+    let apps = await readApps()
     const index = apps.findIndex(item => item.id === id)
 
     if (index === -1) {
@@ -296,7 +341,7 @@ app.delete('/api/apps/:id', (req, res) => {
     }
 
     apps = apps.filter(item => item.id !== id)
-    writeApps(apps)
+    await writeApps(apps)
 
     res.json({
       success: true,
