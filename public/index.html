@@ -50,7 +50,10 @@
       <div class="browser-top-bar">
         <button type="button" class="btn-outline browser-back-btn" id="browserBackBtn">Back</button>
         <div class="browser-domain" id="browserDomain">Platform</div>
-        <button type="button" class="btn-outline browser-reload-btn" id="browserReloadBtn">Reload</button>
+        <div style="display: flex; gap: 6px; align-items: center;">
+          <a href="#" target="_blank" rel="noopener noreferrer" class="btn-outline browser-direct-btn" id="browserDirectBtn" style="text-decoration: none; display: inline-flex; align-items: center;">Open Direct</a>
+          <button type="button" class="btn-outline browser-reload-btn" id="browserReloadBtn">Reload</button>
+        </div>
       </div>
       <iframe id="browserIframe" class="browser-iframe" src="about:blank" title="In-App Browser"></iframe>
     </div>

@@ -1,4 +1,16 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // Prevent nested NEXORA instances inside iframes
+  if (window.self !== window.top || window.frameElement) {
+    document.body.innerHTML = `
+      <div style="background:#0a0a0a; color:#ffffff; font-family:sans-serif; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; text-align:center; padding:24px;">
+        <p style="font-family:monospace; font-size:11px; color:#7d8187; letter-spacing:1.4px; margin-bottom:16px;">NEXORA — NOTICE</p>
+        <h2 style="font-weight:400; font-size:18px; margin-bottom:8px;">Target Platform Direct Launch</h2>
+        <p style="font-size:14px; color:#7d8187; font-weight:400; max-width:400px; margin-bottom:24px;">This platform blocks iframe embedding. Please open directly.</p>
+      </div>
+    `;
+    return;
+  }
+
   let allApps = [];
   let activeCategory = 'ALL';
   let searchQuery = '';
@@ -194,12 +206,18 @@ document.addEventListener('DOMContentLoaded', () => {
     return name.substring(0, 2).toUpperCase();
   }
 
+  const browserDirectBtn = document.getElementById('browserDirectBtn');
+
   // In-App Browser Logic
   function openInAppBrowser(rawUrl, appName) {
     currentTargetUrl = rawUrl;
 
     // Display platform title instead of link URL
     browserDomain.textContent = appName || 'Platform';
+    if (browserDirectBtn) {
+      browserDirectBtn.href = rawUrl || '#';
+    }
+
     const proxyUrl = `/proxy?url=${encodeURIComponent(rawUrl)}`;
     browserIframe.src = proxyUrl;
 
