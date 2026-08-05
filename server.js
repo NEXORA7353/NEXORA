@@ -407,10 +407,12 @@ app.get('/proxy', async (req, res) => {
       // b. Target origin
       const targetOrigin = new URL(targetUrl.trim()).origin
 
-      // c. Anti-Framebuster & Navigation Interceptor script
+      // c. Anti-Framebuster, History API Polyfill & Network Interceptor script
       const proxyScript = `
 <script>
 (function() {
+  var PROXY_PREFIX = '/proxy?url=';
+
   // 1. Anti-framebuster: Override window.top and window.parent to stay inside iframe
   try {
     Object.defineProperty(window, 'top', {
@@ -423,9 +425,74 @@ app.get('/proxy', async (req, res) => {
     });
   } catch(e) {}
 
-  var PROXY_PREFIX = '/proxy?url=';
+  // 2. Polyfill History API (pushState & replaceState) for cross-origin SPA routing
+  try {
+    var origPushState = history.pushState;
+    var origReplaceState = history.replaceState;
 
-  // 2. Intercept click on <a> links
+    history.pushState = function(state, title, url) {
+      if (url) {
+        try {
+          var parsed = new URL(url, window.location.href);
+          if (parsed.origin !== window.location.origin) {
+            url = parsed.pathname + parsed.search + parsed.hash;
+          }
+        } catch(e) {}
+      }
+      try {
+        return origPushState.call(history, state, title, url);
+      } catch(e) {}
+    };
+
+    history.replaceState = function(state, title, url) {
+      if (url) {
+        try {
+          var parsed = new URL(url, window.location.href);
+          if (parsed.origin !== window.location.origin) {
+            url = parsed.pathname + parsed.search + parsed.hash;
+          }
+        } catch(e) {}
+      }
+      try {
+        return origReplaceState.call(history, state, title, url);
+      } catch(e) {}
+    };
+  } catch(e) {}
+
+  // 3. Intercept fetch() calls to route cross-origin API requests through proxy
+  try {
+    var origFetch = window.fetch;
+    window.fetch = function(input, init) {
+      var urlStr = typeof input === 'string' ? input : (input && input.url ? input.url : '');
+      if (urlStr && !urlStr.startsWith('data:') && !urlStr.startsWith('blob:') && !urlStr.includes(PROXY_PREFIX)) {
+        var fullUrl = new URL(urlStr, window.location.href).href;
+        if (!fullUrl.startsWith(window.location.origin + '/proxy')) {
+          if (typeof input === 'string') {
+            input = PROXY_PREFIX + encodeURIComponent(fullUrl);
+          } else if (input && input.url) {
+            input = new Request(PROXY_PREFIX + encodeURIComponent(fullUrl), init);
+          }
+        }
+      }
+      return origFetch.call(this, input, init);
+    };
+  } catch(e) {}
+
+  // 4. Intercept XMLHttpRequest calls to route cross-origin API requests through proxy
+  try {
+    var origXhrOpen = XMLHttpRequest.prototype.open;
+    XMLHttpRequest.prototype.open = function(method, url, async, user, password) {
+      if (typeof url === 'string' && !url.startsWith('data:') && !url.startsWith('blob:') && !url.includes(PROXY_PREFIX)) {
+        var fullUrl = new URL(url, window.location.href).href;
+        if (!fullUrl.startsWith(window.location.origin + '/proxy')) {
+          url = PROXY_PREFIX + encodeURIComponent(fullUrl);
+        }
+      }
+      return origXhrOpen.call(this, method, url, async, user, password);
+    };
+  } catch(e) {}
+
+  // 5. Intercept click on <a> links
   document.addEventListener('click', function(e) {
     var a = e.target.closest('a');
     if (a && a.href && !a.href.startsWith('javascript:') && !a.href.startsWith('#')) {
@@ -440,7 +507,7 @@ app.get('/proxy', async (req, res) => {
     }
   }, true);
 
-  // 3. Intercept form submissions
+  // 6. Intercept form submissions
   document.addEventListener('submit', function(e) {
     var form = e.target;
     if (form && form.action) {
