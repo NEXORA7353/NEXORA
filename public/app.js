@@ -1,17 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // Prevent nested NEXORA instances inside iframes
-  if (window.self !== window.top || window.frameElement) {
-    document.body.innerHTML = `
-      <div style="background:#0a0a0a; color:#ffffff; font-family:sans-serif; display:flex; flex-direction:column; align-items:center; justify-content:center; height:100vh; text-align:center; padding:24px;">
-        <p style="font-family:monospace; font-size:11px; color:#7d8187; letter-spacing:1.4px; margin-bottom:16px;">NEXORA — NOTICE</p>
-        <h2 style="font-weight:400; font-size:18px; margin-bottom:8px;">Target Platform Direct Launch</h2>
-        <p style="font-size:14px; color:#7d8187; font-weight:400; max-width:400px; margin-bottom:24px;">This platform blocks iframe embedding. Please open directly.</p>
-      </div>
-    `;
-    return;
-  }
-
   let allApps = [];
+  let appSettings = {
+    telegramEnabled: true,
+    telegramLink: 'https://t.me/telegram',
+    telegramTitle: 'Join Official Channel',
+    telegramMessage: 'Get instant access to daily updates, live class links, and announcements!'
+  };
   let activeCategory = 'ALL';
   let searchQuery = '';
 
@@ -21,38 +15,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const emptyState = document.getElementById('emptyState');
   const sectionEyebrow = document.getElementById('sectionEyebrow');
 
-  // In-App Browser elements
-  const browserPanel = document.getElementById('browserPanel');
-  const browserBackBtn = document.getElementById('browserBackBtn');
-  const browserDomain = document.getElementById('browserDomain');
-  const browserReloadBtn = document.getElementById('browserReloadBtn');
-  const browserIframe = document.getElementById('browserIframe');
-
-  let currentTargetUrl = '';
-
-  const UPSTASH_URL = 'https://legible-loon-84378.upstash.io';
-  const UPSTASH_TOKEN = 'gQAAAAAAAUmaAAIgcDE5M2IwMjM4MTczZjA0ZWQ5YWUwYzYzNTU1YzIyYTQ3Mg';
-
-  async function fetchFromUpstash() {
-    try {
-      const res = await fetch(`${UPSTASH_URL}/get/nexora_apps`, {
-        headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` }
-      });
-      const data = await res.json();
-      if (data && data.result) {
-        const parsed = typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
-        if (Array.isArray(parsed)) return parsed;
-      }
-    } catch (e) {
-      console.warn('Upstash direct fetch error:', e.message);
-    }
-    return null;
-  }
-
   const splashScreen = document.getElementById('splashScreen');
   const splashProgress = document.getElementById('splashProgress');
   const splashStatus = document.getElementById('splashStatus');
   const statAppCount = document.getElementById('statAppCount');
+
+  // Telegram Modal elements
+  const telegramModal = document.getElementById('telegramModal');
+  const telegramModalClose = document.getElementById('telegramModalClose');
+  const telegramModalTitle = document.getElementById('telegramModalTitle');
+  const telegramModalMsg = document.getElementById('telegramModalMsg');
+  const telegramJoinBtn = document.getElementById('telegramJoinBtn');
+  const telegramDismissBtn = document.getElementById('telegramDismissBtn');
+
+  const UPSTASH_URL = 'https://legible-loon-84378.upstash.io';
+  const UPSTASH_TOKEN = 'gQAAAAAAAUmaAAIgcDE5M2IwMjM4MTczZjA0ZWQ5YWUwYzYzNTU1YzIyYTQ3Mg';
 
   let progressVal = 0;
   const progressInterval = setInterval(() => {
@@ -71,11 +48,28 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 350);
   }
 
-  // Initial Fetch
-  fetchApps();
+  // Fetch data
+  initApp();
+
+  async function initApp() {
+    await Promise.all([fetchApps(), fetchSettings()]);
+    setupTelegramModal();
+  }
+
+  async function fetchFromUpstash(key) {
+    try {
+      const res = await fetch(`${UPSTASH_URL}/get/${key}`, {
+        headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` }
+      });
+      const data = await res.json();
+      if (data && data.result) {
+        return typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
+      }
+    } catch (e) {}
+    return null;
+  }
 
   async function fetchApps() {
-    // 1. Primary: Server API route (/api/apps) - handles Cloudflare KV & Upstash server-side
     try {
       const res = await fetch('/api/apps', { cache: 'no-store' });
       if (res.ok) {
@@ -87,18 +81,53 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
       }
-    } catch (e) {
-      console.warn('/api/apps route fetch notice:', e.message);
-    }
+    } catch (e) {}
 
-    // 2. Secondary: Upstash Redis Direct REST (Full Browser CORS support)
-    const upstashApps = await fetchFromUpstash();
+    const upstashApps = await fetchFromUpstash('nexora_apps');
     allApps = upstashApps || [];
     renderCategoryTabs();
     renderGrid();
   }
 
-  // Extract unique categories & render tabs
+  async function fetchSettings() {
+    try {
+      const res = await fetch('/api/settings', { cache: 'no-store' });
+      if (res.ok) {
+        const resData = await res.json();
+        if (resData && resData.data) {
+          appSettings = { ...appSettings, ...resData.data };
+          return;
+        }
+      }
+    } catch (e) {}
+
+    const upstashSettings = await fetchFromUpstash('nexora_settings');
+    if (upstashSettings) {
+      appSettings = { ...appSettings, ...upstashSettings };
+    }
+  }
+
+  function setupTelegramModal() {
+    if (!appSettings || !appSettings.telegramEnabled) return;
+    if (sessionStorage.getItem('telegram_dismissed') === 'true') return;
+
+    if (telegramModalTitle) telegramModalTitle.textContent = appSettings.telegramTitle || 'Join Official Channel';
+    if (telegramModalMsg) telegramModalMsg.textContent = appSettings.telegramMessage || 'Get live updates and direct links.';
+    if (telegramJoinBtn) telegramJoinBtn.href = appSettings.telegramLink || 'https://t.me/telegram';
+
+    setTimeout(() => {
+      if (telegramModal) telegramModal.style.display = 'flex';
+    }, 1200);
+
+    const closeHandler = () => {
+      if (telegramModal) telegramModal.style.display = 'none';
+      sessionStorage.setItem('telegram_dismissed', 'true');
+    };
+
+    if (telegramModalClose) telegramModalClose.addEventListener('click', closeHandler);
+    if (telegramDismissBtn) telegramDismissBtn.addEventListener('click', closeHandler);
+  }
+
   function renderCategoryTabs() {
     const categories = ['ALL'];
     allApps.forEach(app => {
@@ -125,13 +154,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Real-time search listener
-  searchInput.addEventListener('input', (e) => {
-    searchQuery = e.target.value.trim().toLowerCase();
-    renderGrid();
-  });
+  if (searchInput) {
+    searchInput.addEventListener('input', (e) => {
+      searchQuery = e.target.value.trim().toLowerCase();
+      renderGrid();
+    });
+  }
 
-  // Render Apps Grid
+  // Render Platforms Grid
   function renderGrid() {
     if (statAppCount) {
       statAppCount.textContent = allApps.length;
@@ -146,8 +176,9 @@ document.addEventListener('DOMContentLoaded', () => {
       return matchesCat && matchesSearch;
     });
 
-    // Update section eyebrow
-    sectionEyebrow.textContent = activeCategory === 'ALL' ? 'PLATFORMS' : activeCategory;
+    if (sectionEyebrow) {
+      sectionEyebrow.textContent = activeCategory === 'ALL' ? 'PLATFORMS' : activeCategory;
+    }
 
     appsGrid.innerHTML = '';
 
@@ -158,13 +189,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     emptyState.style.display = 'none';
-    appsGrid.style.display = 'grid';
+    appsGrid.style.display = 'flex';
 
     filtered.forEach(app => {
       const card = document.createElement('article');
-      card.className = `app-card ${app.featured ? 'featured' : ''}`;
+      card.className = `platform-card ${app.featured ? 'featured' : ''}`;
 
-      // Logo or Fallback Initials
+      // Header
+      const header = document.createElement('div');
+      header.className = 'platform-header';
+
       const logoWrapper = document.createElement('div');
       logoWrapper.className = 'logo-container';
 
@@ -174,58 +208,178 @@ document.addEventListener('DOMContentLoaded', () => {
         img.src = logoSrc;
         img.alt = app.name;
         img.className = 'logo-img';
-        img.onerror = () => {
-          renderLogoFallback(logoWrapper, app.name);
-        };
+        img.onerror = () => renderLogoFallback(logoWrapper, app.name);
         logoWrapper.appendChild(img);
       } else {
         renderLogoFallback(logoWrapper, app.name);
       }
 
-      // App info
       const infoDiv = document.createElement('div');
-      infoDiv.className = 'app-info';
+      infoDiv.className = 'platform-info';
 
       const titleEl = document.createElement('h2');
-      titleEl.className = 'card-title';
+      titleEl.className = 'platform-title';
       titleEl.textContent = app.name;
 
       const catEl = document.createElement('div');
-      catEl.className = 'card-category';
+      catEl.className = 'platform-category';
       catEl.textContent = (app.category || 'GENERAL').toUpperCase();
 
       infoDiv.appendChild(titleEl);
       infoDiv.appendChild(catEl);
 
-      // Open button
-      const openBtn = document.createElement('button');
-      openBtn.type = 'button';
-      openBtn.className = 'btn-outline card-open-btn';
-      openBtn.textContent = 'Open';
-      openBtn.addEventListener('click', () => {
-        openInAppBrowser(app.url, app.name);
+      header.appendChild(logoWrapper);
+      header.appendChild(infoDiv);
+      card.appendChild(header);
+
+      // Links Section
+      const linksContainer = document.createElement('div');
+      linksContainer.className = 'platform-links-list';
+
+      let links = Array.isArray(app.links) && app.links.length > 0 ? app.links : [];
+      if (links.length === 0 && app.url) {
+        links = [{
+          id: 'link_1',
+          title: 'Main Access Portal',
+          url: app.url,
+          statusMode: 'auto',
+          keyRequirement: 'without_key',
+          loginRequirement: 'login_not_required'
+        }];
+      }
+
+      links.forEach(link => {
+        const linkItem = document.createElement('div');
+        linkItem.className = 'link-item';
+
+        const linkDetails = document.createElement('div');
+        linkDetails.className = 'link-details';
+
+        const linkTitle = document.createElement('div');
+        linkTitle.className = 'link-title';
+        linkTitle.textContent = link.title || 'Access Portal';
+
+        const badgesRow = document.createElement('div');
+        badgesRow.className = 'link-badges';
+
+        // Status Badge
+        const statusBadge = document.createElement('span');
+        statusBadge.className = 'status-badge checking';
+        statusBadge.innerHTML = `<span class="status-dot"></span><span class="status-lbl">Checking...</span>`;
+        badgesRow.appendChild(statusBadge);
+
+        // Auto or Manual Status Check
+        if (link.statusMode === 'online') {
+          setStatusBadge(statusBadge, true);
+        } else if (link.statusMode === 'offline') {
+          setStatusBadge(statusBadge, false);
+        } else {
+          // Auto Detect
+          checkLinkStatus(link.url, (isOnline) => {
+            setStatusBadge(statusBadge, isOnline);
+          });
+        }
+
+        // Key Gen Requirement Badge
+        const keyBadge = document.createElement('span');
+        keyBadge.className = `attr-badge ${link.keyRequirement === 'with_key' ? 'key-req' : ''}`;
+        keyBadge.textContent = link.keyRequirement === 'with_key' ? 'Key Required' : 'Without Key';
+        badgesRow.appendChild(keyBadge);
+
+        // Login Requirement Badge
+        const loginBadge = document.createElement('span');
+        loginBadge.className = `attr-badge ${link.loginRequirement === 'login_required' ? 'login-req' : ''}`;
+        loginBadge.textContent = link.loginRequirement === 'login_required' ? 'Login Required' : 'No Login';
+        badgesRow.appendChild(loginBadge);
+
+        linkDetails.appendChild(linkTitle);
+        linkDetails.appendChild(badgesRow);
+
+        // Access Button with SVG Open Icon (Same Tab Launcher)
+        const openBtn = document.createElement('a');
+        openBtn.href = link.url || '#';
+        openBtn.target = '_self';
+        openBtn.className = 'link-access-btn';
+        openBtn.innerHTML = `
+          <span>Access</span>
+          <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+            <polyline points="15 3 21 3 21 9"></polyline>
+            <line x1="10" y1="14" x2="21" y2="3"></line>
+          </svg>
+        `;
+        openBtn.addEventListener('click', (e) => {
+          if (!link.url) {
+            e.preventDefault();
+            return;
+          }
+          window.location.href = link.url;
+        });
+
+        linkItem.appendChild(linkDetails);
+        linkItem.appendChild(openBtn);
+        linksContainer.appendChild(linkItem);
       });
 
-      card.appendChild(logoWrapper);
-      card.appendChild(infoDiv);
-      card.appendChild(openBtn);
-
+      card.appendChild(linksContainer);
       appsGrid.appendChild(card);
     });
   }
 
-  // Render initials fallback logo
+  function setStatusBadge(element, isOnline) {
+    if (!element) return;
+    if (isOnline) {
+      element.className = 'status-badge online';
+      element.innerHTML = `<span class="status-dot"></span><span class="status-lbl">Online</span>`;
+    } else {
+      element.className = 'status-badge offline';
+      element.innerHTML = `<span class="status-dot"></span><span class="status-lbl">Offline</span>`;
+    }
+  }
+
+  // Automatic Link Health Detector
+  function checkLinkStatus(targetUrl, callback) {
+    if (!targetUrl) {
+      callback(false);
+      return;
+    }
+    let safeUrl = targetUrl;
+    if (!/^https?:\/\//i.test(safeUrl)) safeUrl = 'https://' + safeUrl;
+
+    let controller = new AbortController();
+    let timeoutId = setTimeout(() => controller.abort(), 4000);
+
+    fetch(safeUrl, { method: 'HEAD', mode: 'no-cors', signal: controller.signal })
+      .then(() => {
+        clearTimeout(timeoutId);
+        callback(true);
+      })
+      .catch(() => {
+        clearTimeout(timeoutId);
+        // Fallback favicon ping test
+        try {
+          const origin = new URL(safeUrl).origin;
+          const img = new Image();
+          let timer = setTimeout(() => callback(false), 3000);
+          img.onload = () => { clearTimeout(timer); callback(true); };
+          img.onerror = () => { clearTimeout(timer); callback(true); }; // Reachable domain responding
+          img.src = `${origin}/favicon.ico?t=${Date.now()}`;
+        } catch (e) {
+          callback(false);
+        }
+      });
+  }
+
   function renderLogoFallback(container, name) {
     container.innerHTML = '';
     const fallbackDiv = document.createElement('div');
     fallbackDiv.className = 'logo-fallback';
-    const initials = getInitials(name);
-    fallbackDiv.textContent = initials;
+    fallbackDiv.textContent = getInitials(name);
     container.appendChild(fallbackDiv);
   }
 
   function getInitials(name) {
-    if (!name) return 'NX';
+    if (!name) return 'ED';
     const parts = name.trim().split(/\s+/);
     if (parts.length >= 2) {
       return (parts[0][0] + parts[1][0]).toUpperCase();
@@ -233,154 +387,11 @@ document.addEventListener('DOMContentLoaded', () => {
     return name.substring(0, 2).toUpperCase();
   }
 
-  // Native Standalone History Router & Edge Proxy Container Engine
-  let isBrowserPanelActive = false;
-
-  function openInAppBrowser(rawUrl, appName) {
-    if (!rawUrl) return;
-    if (!/^https?:\/\//i.test(rawUrl)) {
-      rawUrl = 'https://' + rawUrl;
-    }
-    currentTargetUrl = rawUrl;
-
-    // Display platform title instead of link URL
-    browserDomain.textContent = appName || 'Platform';
-
-    // Set direct browser tab link URL
-    const browserDirectBtn = document.getElementById('browserDirectBtn');
-    if (browserDirectBtn) {
-      browserDirectBtn.href = rawUrl;
-    }
-
-    // Route via True Reverse Proxy Engine to strip X-Frame-Options & bypass cross-origin blocks
-    const proxyUrl = `/r?url=${encodeURIComponent(rawUrl)}`;
-    browserIframe.src = proxyUrl;
-
-    browserPanel.classList.add('open');
-    browserPanel.setAttribute('aria-hidden', 'false');
-
-    // Push native Android history state for hardware back button navigation
-    if (!isBrowserPanelActive) {
-      isBrowserPanelActive = true;
-      try {
-        history.pushState({ modal: 'browser', url: rawUrl }, '', '#view=platform');
-      } catch (e) {}
-    }
-  }
-
-  function closeBrowserPanel(triggerHistoryBack = true) {
-    if (!browserPanel) return;
-    browserPanel.classList.remove('open');
-    browserPanel.setAttribute('aria-hidden', 'true');
-    browserIframe.src = 'about:blank';
-
-    if (isBrowserPanelActive) {
-      isBrowserPanelActive = false;
-      if (triggerHistoryBack && window.location.hash === '#view=platform') {
-        try {
-          history.back();
-        } catch(e) {}
-      }
-    }
-  }
-
-  // Native Android Hardware Back Button Listener (popstate)
-  window.addEventListener('popstate', (e) => {
-    if (isBrowserPanelActive || (browserPanel && browserPanel.classList.contains('open'))) {
-      closeBrowserPanel(false);
-    }
-  });
-
-  // Close button handler
-  if (browserBackBtn) {
-    browserBackBtn.addEventListener('click', () => {
-      closeBrowserPanel(true);
-    });
-  }
-
-  // Reload browser handler
-  if (browserReloadBtn) {
-    browserReloadBtn.addEventListener('click', () => {
-      if (currentTargetUrl) {
-        const proxyUrl = `/proxy?url=${encodeURIComponent(currentTargetUrl)}&t=${Date.now()}`;
-        browserIframe.src = proxyUrl;
-      }
-    });
-  }
-
-  // Same Tab Direct Launcher handler (No proxy, zero error, same window)
-  const browserDirectBtn = document.getElementById('browserDirectBtn');
-  if (browserDirectBtn) {
-    browserDirectBtn.addEventListener('click', () => {
-      if (currentTargetUrl) {
-        window.location.href = currentTargetUrl;
-      }
-    });
-  }
-
-  // Override window.open globally to keep popups inside NEXORA Standalone Container
-  window.open = function(url, target, features) {
-    if (url && typeof url === 'string' && url !== 'about:blank') {
-      openInAppBrowser(url);
-    }
-    return window;
-  };
-
-  // Global Standalone Link & Form Interceptor — Prevent Chrome Custom Tabs or External Browser
-  document.addEventListener('click', (e) => {
-    const anchor = e.target.closest('a');
-    if (!anchor) return;
-
-    const href = anchor.getAttribute('href');
-    if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
-
-    // Direct platform open button inside browser panel can open in new tab if user explicitly chooses
-    if (anchor.id === 'browserDirectBtn') return;
-
-    e.preventDefault();
-
-    // Check if link is internal route or external platform
-    const isInternal = href.startsWith('/') || href.startsWith(window.location.origin) || href.includes('.html');
-
-    if (isInternal) {
-      window.location.href = href;
-    } else {
-      openInAppBrowser(href, anchor.textContent.trim() || 'Platform');
-    }
-  }, true);
-
   // Register Service Worker
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js')
-        .then(reg => console.log('ServiceWorker registered:', reg.scope))
         .catch(err => console.error('ServiceWorker registration failed:', err));
-    });
-  }
-
-  // PWA Install Prompt Handler
-  let deferredPrompt = null;
-  const pwaInstallBtn = document.getElementById('pwaInstallBtn');
-
-  window.addEventListener('beforeinstallprompt', (e) => {
-    deferredPrompt = e;
-    if (pwaInstallBtn) {
-      pwaInstallBtn.style.display = 'inline-flex';
-    }
-  });
-
-  if (pwaInstallBtn) {
-    pwaInstallBtn.addEventListener('click', async () => {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-          pwaInstallBtn.style.display = 'none';
-        }
-        deferredPrompt = null;
-      } else {
-        alert('To Install NEXORA Android App / APK:\n\nOption A (Instant Direct Install):\n1. Open Chrome menu (⋮)\n2. Tap "Install app" or "Add to Home screen"\n\nOption B (Build Standalone APK):\n1. Visit PWABuilder.com\n2. Paste URL: https://nexora-6ag.pages.dev\n3. Click "Build Android Package" to download APK!');
-      }
     });
   }
 });

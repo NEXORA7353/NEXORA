@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>NEXORA — Admin Console</title>
+  <title>Admin Console</title>
   <link rel="manifest" href="/manifest.json">
   <link rel="stylesheet" href="/style.css">
   <meta name="theme-color" content="#0a0a0a">
@@ -26,15 +26,15 @@
               <path d="M32 68V32L54 56V32M68 32V68L46 44V68" stroke="url(#admGateGrad)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
             <div>
-              <h1 class="app-title">NEXORA</h1>
-              <div class="eyebrow" style="margin-top: 2px;">ADMIN CONSOLE</div>
+              <h1 class="app-title" style="font-size: 22px;">Admin Console</h1>
+              <div class="eyebrow" style="margin-top: 2px;">AUTHENTICATION</div>
             </div>
           </div>
           <form id="gateForm" style="display: flex; flex-direction: column; gap: 12px;">
-            <input type="password" id="gatePassword" class="admin-input" placeholder="Enter password..." autocomplete="current-password">
-            <button type="submit" class="btn-primary" style="height: 44px; margin-top: 4px;">Enter</button>
+            <input type="password" id="gatePassword" class="admin-input" placeholder="Enter password..." autocomplete="current-password" required>
+            <button type="submit" class="btn-primary" style="height: 44px; margin-top: 4px;">Enter Dashboard</button>
           </form>
-          <div id="gateError" class="error-message" style="display: none;">Access denied</div>
+          <div id="gateError" style="color: #ef4444; font-size: 13px; text-align: center; display: none;">Access denied</div>
         </div>
       </div>
 
@@ -54,27 +54,55 @@
               <path d="M32 68V32L54 56V32M68 32V68L46 44V68" stroke="url(#admDashGrad)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
             <div>
-              <h1 class="app-title" style="font-size: 20px;">NEXORA ADMIN</h1>
-              <div class="eyebrow">ADMIN CONSOLE</div>
+              <h1 class="app-title" style="font-size: 18px;">Admin Console</h1>
+              <div class="eyebrow">CONTROL PANEL</div>
             </div>
           </div>
           <div style="display: flex; gap: 8px; align-items: center;">
-            <a href="/" class="btn-outline btn-sm" id="backToAppBtn" style="text-decoration: none; display: inline-flex; align-items: center;">← Launcher</a>
+            <a href="/" class="btn-outline btn-sm" id="backToAppBtn" style="text-decoration: none; display: inline-flex; align-items: center;">Launcher</a>
             <button type="button" class="btn-outline btn-sm" id="logoutBtn">Logout</button>
           </div>
         </div>
 
-        <!-- ADD PLATFORM FORM -->
-        <section style="margin-bottom: 32px;">
-          <div class="eyebrow" style="margin-bottom: 12px;">ADD PLATFORM</div>
-          <form id="addPlatformForm" class="admin-form">
+        <!-- TELEGRAM POPUP CONFIGURATION SECTION -->
+        <section style="margin-bottom: 28px;">
+          <div class="eyebrow" style="margin-bottom: 12px;">TELEGRAM POPUP CONTROL</div>
+          <form id="telegramSettingsForm" class="admin-form">
             <div class="form-group">
-              <label class="form-label" for="appName">App Name</label>
-              <input type="text" id="appName" class="admin-input" placeholder="e.g. Physics Wallah" required>
+              <div class="toggle-wrapper">
+                <span class="form-label">Enable Telegram Join Popup</span>
+                <label class="toggle-switch">
+                  <input type="checkbox" id="tgEnabled" checked>
+                  <span class="toggle-slider"></span>
+                </label>
+              </div>
             </div>
             <div class="form-group">
-              <label class="form-label" for="appUrl">App URL</label>
-              <input type="url" id="appUrl" class="admin-input" placeholder="https://www.pw.live" required>
+              <label class="form-label" for="tgLink">Telegram Channel Link</label>
+              <input type="url" id="tgLink" class="admin-input" placeholder="https://t.me/your_channel" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="tgTitle">Popup Title</label>
+              <input type="text" id="tgTitle" class="admin-input" placeholder="Join Official Channel" required>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="tgMessage">Popup Message</label>
+              <input type="text" id="tgMessage" class="admin-input" placeholder="Join our channel for daily live class updates & direct links!" required>
+            </div>
+            <button type="submit" class="btn-primary" style="margin-top: 4px;">Save Telegram Settings</button>
+            <div id="tgStatusMsg" style="font-size: 12px; color: #10b981; display: none; margin-top: 4px;">Settings saved successfully!</div>
+          </form>
+        </section>
+
+        <div class="hairline" style="margin-bottom: 28px;"></div>
+
+        <!-- ADD PLATFORM FORM -->
+        <section style="margin-bottom: 32px;">
+          <div class="eyebrow" style="margin-bottom: 12px;">ADD NEW PLATFORM</div>
+          <form id="addPlatformForm" class="admin-form">
+            <div class="form-group">
+              <label class="form-label" for="appName">Platform Main Name</label>
+              <input type="text" id="appName" class="admin-input" placeholder="e.g. Physics Wallah" required>
             </div>
             <div class="form-group">
               <label class="form-label" for="appLogo">Logo URL</label>
@@ -89,13 +117,6 @@
               <input type="number" id="appOrder" class="admin-input" placeholder="1" value="1" min="1" required>
             </div>
             <div class="form-group">
-              <label class="form-label" for="appMode">Container Engine Mode</label>
-              <select id="appMode" class="admin-input" style="background: var(--canvas); color: var(--ink);">
-                <option value="DIRECT">⚡ Direct Bypass Mode (Default - High Speed)</option>
-                <option value="PROXY">🛡️ Edge Proxy Mode (Strip X-Frame-Options)</option>
-              </select>
-            </div>
-            <div class="form-group">
               <div class="toggle-wrapper">
                 <span class="form-label">Featured Platform</span>
                 <label class="toggle-switch">
@@ -104,7 +125,19 @@
                 </label>
               </div>
             </div>
-            <button type="submit" class="btn-primary btn-add-platform">Add Platform</button>
+
+            <!-- PLATFORM LINKS BUILDER -->
+            <div class="form-group" style="margin-top: 8px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <label class="form-label">Platform Links</label>
+                <button type="button" class="btn-outline btn-sm" id="addLinkBtn">+ Add Link</button>
+              </div>
+              <div id="linksBuilderList" style="display: flex; flex-direction: column; gap: 12px;">
+                <!-- Links items rendered here -->
+              </div>
+            </div>
+
+            <button type="submit" class="btn-primary" style="margin-top: 8px;">Save Platform</button>
           </form>
         </section>
 

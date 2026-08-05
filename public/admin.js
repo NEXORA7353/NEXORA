@@ -1,10 +1,6 @@
 document.addEventListener('DOMContentLoaded', () => {
   const ADMIN_PASSWORD = 'nexora2024';
 
-  const CF_KV_URL = 'https://api.cloudflare.com/client/v4/accounts/ce3f6c1f773e98fb3d8039bfaf999b62/storage/kv/namespaces/791f4ba63d8b4e07baa2ca09986cd53d/values/nexora_apps';
-  const CF_KV_TOKEN = atob('Y2ZhdF83anlsVHRaSEYyNlZwRnNudW94QmdnMHdwSEVsdVJBVnRxZjI5VGY1MjA2YmU4MmE=');
-  const IMGBB_API_KEY = 'e36ea0961f05f9e63dad66e798bf6101';
-
   const UPSTASH_URL = 'https://legible-loon-84378.upstash.io';
   const UPSTASH_TOKEN = 'gQAAAAAAAUmaAAIgcDE5M2IwMjM4MTczZjA0ZWQ5YWUwYzYzNTU1YzIyYTQ3Mg';
 
@@ -15,20 +11,31 @@ document.addEventListener('DOMContentLoaded', () => {
   const gateError = document.getElementById('gateError');
   const logoutBtn = document.getElementById('logoutBtn');
 
+  // Telegram settings form elements
+  const telegramSettingsForm = document.getElementById('telegramSettingsForm');
+  const tgEnabled = document.getElementById('tgEnabled');
+  const tgLink = document.getElementById('tgLink');
+  const tgTitle = document.getElementById('tgTitle');
+  const tgMessage = document.getElementById('tgMessage');
+  const tgStatusMsg = document.getElementById('tgStatusMsg');
+
+  // Platform form elements
   const addPlatformForm = document.getElementById('addPlatformForm');
+  const linksBuilderList = document.getElementById('linksBuilderList');
+  const addLinkBtn = document.getElementById('addLinkBtn');
   const adminList = document.getElementById('adminList');
   const platformCount = document.getElementById('platformCount');
 
   let platforms = [];
+  let tempLinks = [];
 
-  // Check auth session
+  // Authentication check
   if (sessionStorage.getItem('nexora_auth') === 'true') {
     showDashboard();
   } else {
     showGate();
   }
 
-  // Gate login submit
   gateForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const entered = gatePassword.value;
@@ -42,7 +49,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // Logout
   logoutBtn.addEventListener('click', () => {
     sessionStorage.removeItem('nexora_auth');
     showGate();
@@ -56,40 +62,173 @@ document.addEventListener('DOMContentLoaded', () => {
   function showDashboard() {
     gateScreen.style.display = 'none';
     dashboardScreen.style.display = 'block';
+    loadTelegramSettings();
     loadPlatforms();
+    resetLinksBuilder();
   }
 
-  async function fetchFromUpstash() {
+  // Upstash Direct Fallbacks
+  async function fetchFromUpstash(key) {
     try {
-      const res = await fetch(`${UPSTASH_URL}/get/nexora_apps`, {
+      const res = await fetch(`${UPSTASH_URL}/get/${key}`, {
         headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` }
       });
       const data = await res.json();
       if (data && data.result) {
-        const parsed = typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
-        if (Array.isArray(parsed)) return parsed;
+        return typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
       }
-    } catch (e) {
-      console.warn('Upstash direct fetch notice:', e.message);
-    }
+    } catch (e) {}
     return null;
   }
 
-  async function saveToUpstash(appsList) {
+  async function saveToUpstash(key, payload) {
     try {
-      await fetch(`${UPSTASH_URL}/set/nexora_apps`, {
+      await fetch(`${UPSTASH_URL}/set/${key}`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` },
-        body: JSON.stringify(appsList)
+        body: JSON.stringify(payload)
       });
       return true;
-    } catch (e) {
-      console.warn('Upstash direct save notice:', e.message);
-    }
+    } catch (e) {}
     return false;
   }
 
-  // Load platforms from Server API route (/api/apps) or Upstash Cloud DB
+  // Telegram Settings Handler
+  async function loadTelegramSettings() {
+    try {
+      const res = await fetch('/api/settings', { cache: 'no-store' });
+      if (res.ok) {
+        const resData = await res.json();
+        if (resData && resData.data) {
+          applyTelegramFields(resData.data);
+          return;
+        }
+      }
+    } catch (e) {}
+
+    const upstashSettings = await fetchFromUpstash('nexora_settings');
+    if (upstashSettings) {
+      applyTelegramFields(upstashSettings);
+    }
+  }
+
+  function applyTelegramFields(data) {
+    if (tgEnabled) tgEnabled.checked = data.telegramEnabled !== false;
+    if (tgLink) tgLink.value = data.telegramLink || '';
+    if (tgTitle) tgTitle.value = data.telegramTitle || '';
+    if (tgMessage) tgMessage.value = data.telegramMessage || '';
+  }
+
+  telegramSettingsForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const payload = {
+      telegramEnabled: tgEnabled.checked,
+      telegramLink: tgLink.value.trim(),
+      telegramTitle: tgTitle.value.trim(),
+      telegramMessage: tgMessage.value.trim()
+    };
+
+    fetch('/api/settings', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    })
+      .then(res => res.json())
+      .then(() => showTgStatus('Saved successfully!'))
+      .catch(async () => {
+        await saveToUpstash('nexora_settings', payload);
+        showTgStatus('Saved successfully!');
+      });
+  });
+
+  function showTgStatus(msg) {
+    if (tgStatusMsg) {
+      tgStatusMsg.textContent = msg;
+      tgStatusMsg.style.display = 'block';
+      setTimeout(() => { tgStatusMsg.style.display = 'none'; }, 3000);
+    }
+  }
+
+  // Links Builder in Add Form
+  function resetLinksBuilder() {
+    tempLinks = [
+      { id: 'link_1', title: 'Main Portal Link', url: '', statusMode: 'auto', keyRequirement: 'without_key', loginRequirement: 'login_not_required' }
+    ];
+    renderLinksBuilder();
+  }
+
+  if (addLinkBtn) {
+    addLinkBtn.addEventListener('click', () => {
+      tempLinks.push({
+        id: 'link_' + Date.now() + '_' + tempLinks.length,
+        title: `Link #${tempLinks.length + 1}`,
+        url: '',
+        statusMode: 'auto',
+        keyRequirement: 'without_key',
+        loginRequirement: 'login_not_required'
+      });
+      renderLinksBuilder();
+    });
+  }
+
+  function renderLinksBuilder() {
+    linksBuilderList.innerHTML = '';
+    tempLinks.forEach((link, idx) => {
+      const box = document.createElement('div');
+      box.className = 'link-builder-box';
+
+      box.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span style="font-size: 11px; font-family: monospace; color: var(--ink-mute);">LINK #${idx + 1}</span>
+          ${tempLinks.length > 1 ? `<button type="button" class="btn-danger btn-sm remove-link-btn" data-idx="${idx}">Remove</button>` : ''}
+        </div>
+        <input type="text" class="admin-input link-title-input" placeholder="Link Title (e.g. PW Thor Batch)" value="${escapeHtml(link.title)}" required>
+        <input type="url" class="admin-input link-url-input" placeholder="Platform Target URL (https://...)" value="${escapeHtml(link.url)}" required>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+          <div>
+            <label class="form-label" style="font-size: 9px;">Status</label>
+            <select class="admin-input link-status-select" style="font-size: 11px; padding: 6px 8px;">
+              <option value="auto" ${link.statusMode === 'auto' ? 'selected' : ''}>Auto Detect</option>
+              <option value="online" ${link.statusMode === 'online' ? 'selected' : ''}>Force Online</option>
+              <option value="offline" ${link.statusMode === 'offline' ? 'selected' : ''}>Force Offline</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label" style="font-size: 9px;">Key Gen</label>
+            <select class="admin-input link-key-select" style="font-size: 11px; padding: 6px 8px;">
+              <option value="without_key" ${link.keyRequirement === 'without_key' ? 'selected' : ''}>Without Key</option>
+              <option value="with_key" ${link.keyRequirement === 'with_key' ? 'selected' : ''}>Key Required</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label" style="font-size: 9px;">Login</label>
+            <select class="admin-input link-login-select" style="font-size: 11px; padding: 6px 8px;">
+              <option value="login_not_required" ${link.loginRequirement === 'login_not_required' ? 'selected' : ''}>No Login</option>
+              <option value="login_required" ${link.loginRequirement === 'login_required' ? 'selected' : ''}>Login Required</option>
+            </select>
+          </div>
+        </div>
+      `;
+
+      box.querySelector('.link-title-input').addEventListener('input', (e) => { link.title = e.target.value; });
+      box.querySelector('.link-url-input').addEventListener('input', (e) => { link.url = e.target.value; });
+      box.querySelector('.link-status-select').addEventListener('change', (e) => { link.statusMode = e.target.value; });
+      box.querySelector('.link-key-select').addEventListener('change', (e) => { link.keyRequirement = e.target.value; });
+      box.querySelector('.link-login-select').addEventListener('change', (e) => { link.loginRequirement = e.target.value; });
+
+      const removeBtn = box.querySelector('.remove-link-btn');
+      if (removeBtn) {
+        removeBtn.addEventListener('click', () => {
+          tempLinks.splice(idx, 1);
+          renderLinksBuilder();
+        });
+      }
+
+      linksBuilderList.appendChild(box);
+    });
+  }
+
+  // Load platforms
   async function loadPlatforms() {
     try {
       const res = await fetch('/api/apps', { cache: 'no-store' });
@@ -101,16 +240,13 @@ document.addEventListener('DOMContentLoaded', () => {
           return;
         }
       }
-    } catch (e) {
-      console.warn('/api/apps route fetch notice:', e.message);
-    }
+    } catch (e) {}
 
-    const upstashApps = await fetchFromUpstash();
+    const upstashApps = await fetchFromUpstash('nexora_apps');
     platforms = upstashApps || [];
     renderPlatformList();
   }
 
-  // Render platform list
   function renderPlatformList() {
     platformCount.textContent = `Platform count: ${platforms.length}`;
     adminList.innerHTML = '';
@@ -119,7 +255,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const card = document.createElement('article');
       card.className = 'admin-item-card';
       card.id = `card_${app.id}`;
-
       renderCardNormalState(card, app);
       adminList.appendChild(card);
     });
@@ -131,7 +266,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const header = document.createElement('div');
     header.className = 'admin-item-header';
 
-    // Logo wrapper
     const logoWrapper = document.createElement('div');
     logoWrapper.className = 'admin-logo-container';
 
@@ -143,15 +277,12 @@ document.addEventListener('DOMContentLoaded', () => {
       img.style.width = '100%';
       img.style.height = '100%';
       img.style.objectFit = 'cover';
-      img.onerror = () => {
-        renderAdminLogoFallback(logoWrapper, app.name);
-      };
+      img.onerror = () => renderAdminLogoFallback(logoWrapper, app.name);
       logoWrapper.appendChild(img);
     } else {
       renderAdminLogoFallback(logoWrapper, app.name);
     }
 
-    // Info details
     const details = document.createElement('div');
     details.className = 'admin-item-details';
 
@@ -161,20 +292,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const catEl = document.createElement('div');
     catEl.className = 'admin-item-cat';
-    catEl.textContent = (app.category || 'GENERAL').toUpperCase();
-
-    const urlEl = document.createElement('div');
-    urlEl.className = 'admin-item-url';
-    urlEl.textContent = app.url;
+    catEl.textContent = `${(app.category || 'GENERAL').toUpperCase()} • ${app.links ? app.links.length : 0} LINK(S)`;
 
     details.appendChild(nameEl);
     details.appendChild(catEl);
-    details.appendChild(urlEl);
 
     header.appendChild(logoWrapper);
     header.appendChild(details);
 
-    // Actions
     const actions = document.createElement('div');
     actions.className = 'admin-item-actions';
 
@@ -182,17 +307,13 @@ document.addEventListener('DOMContentLoaded', () => {
     editBtn.type = 'button';
     editBtn.className = 'btn-outline btn-sm';
     editBtn.textContent = 'Edit';
-    editBtn.addEventListener('click', () => {
-      renderCardEditState(card, app);
-    });
+    editBtn.addEventListener('click', () => renderCardEditState(card, app));
 
     const deleteBtn = document.createElement('button');
     deleteBtn.type = 'button';
     deleteBtn.className = 'btn-danger btn-sm';
     deleteBtn.textContent = 'Delete';
-    deleteBtn.addEventListener('click', () => {
-      deletePlatform(app.id);
-    });
+    deleteBtn.addEventListener('click', () => deletePlatform(app.id));
 
     actions.appendChild(editBtn);
     actions.appendChild(deleteBtn);
@@ -204,31 +325,30 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderAdminLogoFallback(container, name) {
     container.innerHTML = '';
     const fallback = document.createElement('div');
-    fallback.className = 'admin-logo-fallback';
+    fallback.style.fontFamily = 'monospace';
+    fallback.style.color = 'var(--ink-mute)';
     fallback.textContent = getInitials(name);
     container.appendChild(fallback);
   }
 
   function getInitials(name) {
-    if (!name) return 'NX';
+    if (!name) return 'ED';
     const parts = name.trim().split(/\s+/);
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
-    }
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
     return name.substring(0, 2).toUpperCase();
   }
 
-  // Inline Edit Mode
+  // Inline Platform Edit Mode
   function renderCardEditState(card, app) {
+    let editLinks = Array.isArray(app.links) && app.links.length > 0 ? JSON.parse(JSON.stringify(app.links)) : [
+      { id: 'link_1', title: app.name + ' Portal', url: app.url || '', statusMode: 'auto', keyRequirement: 'without_key', loginRequirement: 'login_not_required' }
+    ];
+
     card.innerHTML = `
       <form class="inline-edit-form" style="display: flex; flex-direction: column; gap: 10px;">
         <div class="form-group">
-          <label class="form-label">App Name</label>
+          <label class="form-label">Platform Name</label>
           <input type="text" class="admin-input edit-name" value="${escapeHtml(app.name)}" required>
-        </div>
-        <div class="form-group">
-          <label class="form-label">App URL</label>
-          <input type="url" class="admin-input edit-url" value="${escapeHtml(app.url)}" required>
         </div>
         <div class="form-group">
           <label class="form-label">Logo URL</label>
@@ -243,13 +363,6 @@ document.addEventListener('DOMContentLoaded', () => {
           <input type="number" class="admin-input edit-order" value="${app.order || 1}" min="1" required>
         </div>
         <div class="form-group">
-          <label class="form-label">Container Engine Mode</label>
-          <select class="admin-input edit-mode" style="background: var(--canvas); color: var(--ink);">
-            <option value="DIRECT" ${(!app.mode || app.mode === 'DIRECT') ? 'selected' : ''}>⚡ Direct Bypass Mode (Default)</option>
-            <option value="PROXY" ${app.mode === 'PROXY' ? 'selected' : ''}>🛡️ Edge Proxy Mode</option>
-          </select>
-        </div>
-        <div class="form-group">
           <div class="toggle-wrapper">
             <span class="form-label">Featured</span>
             <label class="toggle-switch">
@@ -258,31 +371,90 @@ document.addEventListener('DOMContentLoaded', () => {
             </label>
           </div>
         </div>
+        
+        <div class="form-group">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <label class="form-label">Platform Links</label>
+            <button type="button" class="btn-outline btn-sm add-edit-link-btn">+ Add Link</button>
+          </div>
+          <div class="edit-links-container" style="display: flex; flex-direction: column; gap: 8px;"></div>
+        </div>
+
         <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px;">
           <button type="button" class="btn-outline btn-sm cancel-edit-btn">Cancel</button>
-          <button type="submit" class="btn-primary btn-sm">Save</button>
+          <button type="submit" class="btn-primary btn-sm">Save Platform</button>
         </div>
       </form>
     `;
 
-    const form = card.querySelector('.inline-edit-form');
-    const cancelBtn = card.querySelector('.cancel-edit-btn');
+    const editLinksContainer = card.querySelector('.edit-links-container');
 
-    cancelBtn.addEventListener('click', () => {
-      renderCardNormalState(card, app);
+    function renderEditLinks() {
+      editLinksContainer.innerHTML = '';
+      editLinks.forEach((l, i) => {
+        const itemBox = document.createElement('div');
+        itemBox.className = 'link-builder-box';
+        itemBox.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 10px; font-family: monospace; color: var(--ink-mute);">LINK #${i + 1}</span>
+            ${editLinks.length > 1 ? `<button type="button" class="btn-danger btn-sm remove-edit-link-btn">Remove</button>` : ''}
+          </div>
+          <input type="text" class="admin-input edit-link-title" value="${escapeHtml(l.title)}" placeholder="Title" required>
+          <input type="url" class="admin-input edit-link-url" value="${escapeHtml(l.url)}" placeholder="Target URL" required>
+          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px;">
+            <select class="admin-input edit-link-status" style="font-size: 10px; padding: 4px;">
+              <option value="auto" ${l.statusMode === 'auto' ? 'selected' : ''}>Auto Detect</option>
+              <option value="online" ${l.statusMode === 'online' ? 'selected' : ''}>Force Online</option>
+              <option value="offline" ${l.statusMode === 'offline' ? 'selected' : ''}>Force Offline</option>
+            </select>
+            <select class="admin-input edit-link-key" style="font-size: 10px; padding: 4px;">
+              <option value="without_key" ${l.keyRequirement === 'without_key' ? 'selected' : ''}>Without Key</option>
+              <option value="with_key" ${l.keyRequirement === 'with_key' ? 'selected' : ''}>Key Required</option>
+            </select>
+            <select class="admin-input edit-link-login" style="font-size: 10px; padding: 4px;">
+              <option value="login_not_required" ${l.loginRequirement === 'login_not_required' ? 'selected' : ''}>No Login</option>
+              <option value="login_required" ${l.loginRequirement === 'login_required' ? 'selected' : ''}>Login Required</option>
+            </select>
+          </div>
+        `;
+
+        itemBox.querySelector('.edit-link-title').addEventListener('input', e => l.title = e.target.value);
+        itemBox.querySelector('.edit-link-url').addEventListener('input', e => l.url = e.target.value);
+        itemBox.querySelector('.edit-link-status').addEventListener('change', e => l.statusMode = e.target.value);
+        itemBox.querySelector('.edit-link-key').addEventListener('change', e => l.keyRequirement = e.target.value);
+        itemBox.querySelector('.edit-link-login').addEventListener('change', e => l.loginRequirement = e.target.value);
+
+        const rmBtn = itemBox.querySelector('.remove-edit-link-btn');
+        if (rmBtn) {
+          rmBtn.addEventListener('click', () => {
+            editLinks.splice(i, 1);
+            renderEditLinks();
+          });
+        }
+
+        editLinksContainer.appendChild(itemBox);
+      });
+    }
+
+    renderEditLinks();
+
+    card.querySelector('.add-edit-link-btn').addEventListener('click', () => {
+      editLinks.push({ id: 'link_' + Date.now(), title: `Link #${editLinks.length + 1}`, url: '', statusMode: 'auto', keyRequirement: 'without_key', loginRequirement: 'login_not_required' });
+      renderEditLinks();
     });
 
-    form.addEventListener('submit', (e) => {
+    card.querySelector('.cancel-edit-btn').addEventListener('click', () => renderCardNormalState(card, app));
+
+    card.querySelector('.inline-edit-form').addEventListener('submit', (e) => {
       e.preventDefault();
       const updatedPayload = {
         name: card.querySelector('.edit-name').value.trim(),
-        url: card.querySelector('.edit-url').value.trim(),
         logoUrl: card.querySelector('.edit-logo').value.trim(),
         logo: card.querySelector('.edit-logo').value.trim(),
         category: card.querySelector('.edit-category').value.trim(),
         order: parseInt(card.querySelector('.edit-order').value, 10) || 1,
-        mode: card.querySelector('.edit-mode').value,
-        featured: card.querySelector('.edit-featured').checked
+        featured: card.querySelector('.edit-featured').checked,
+        links: editLinks
       };
 
       fetch(`/api/apps/${app.id}`, {
@@ -290,35 +462,31 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedPayload)
       })
-        .then(res => {
-          if (!res.ok) throw new Error('HTTP ' + res.status);
-          return res.json();
-        })
+        .then(res => res.json())
         .then(() => loadPlatforms())
         .catch(async () => {
-          let currentApps = (await fetchFromUpstash()) || platforms || [];
+          let currentApps = (await fetchFromUpstash('nexora_apps')) || platforms || [];
           const idx = currentApps.findIndex(p => p.id === app.id);
           if (idx !== -1) {
             currentApps[idx] = { ...currentApps[idx], ...updatedPayload };
           }
-          await saveToUpstash(currentApps);
+          await saveToUpstash('nexora_apps', currentApps);
           loadPlatforms();
         });
     });
   }
 
-  // Add platform form handler
+  // Add platform form submit
   addPlatformForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const payload = {
       name: document.getElementById('appName').value.trim(),
-      url: document.getElementById('appUrl').value.trim(),
       logoUrl: document.getElementById('appLogo').value.trim(),
       logo: document.getElementById('appLogo').value.trim(),
       category: document.getElementById('appCategory').value.trim(),
       order: parseInt(document.getElementById('appOrder').value, 10) || 1,
-      mode: document.getElementById('appMode') ? document.getElementById('appMode').value : 'DIRECT',
-      featured: document.getElementById('appFeatured').checked
+      featured: document.getElementById('appFeatured').checked,
+      links: tempLinks
     };
 
     fetch('/api/apps', {
@@ -326,49 +494,42 @@ document.addEventListener('DOMContentLoaded', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     })
-      .then(res => {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return res.json();
-      })
+      .then(res => res.json())
       .then(() => {
         addPlatformForm.reset();
         document.getElementById('appOrder').value = 1;
+        resetLinksBuilder();
         loadPlatforms();
       })
       .catch(async () => {
-        let currentApps = (await fetchFromUpstash()) || platforms || [];
+        let currentApps = (await fetchFromUpstash('nexora_apps')) || platforms || [];
         const newItem = {
           id: 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
           name: payload.name,
-          url: payload.url,
           logoUrl: payload.logoUrl,
           category: payload.category || 'GENERAL',
           order: payload.order || (currentApps.length + 1),
           featured: payload.featured,
-          addedAt: new Date().toISOString()
+          addedAt: new Date().toISOString(),
+          links: payload.links
         };
         currentApps.push(newItem);
-        await saveToUpstash(currentApps);
+        await saveToUpstash('nexora_apps', currentApps);
         addPlatformForm.reset();
         document.getElementById('appOrder').value = 1;
+        resetLinksBuilder();
         loadPlatforms();
       });
   });
 
-  // Delete platform handler
   function deletePlatform(id) {
-    fetch(`/api/apps/${id}`, {
-      method: 'DELETE'
-    })
-      .then(res => {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return res.json();
-      })
+    fetch(`/api/apps/${id}`, { method: 'DELETE' })
+      .then(res => res.json())
       .then(() => loadPlatforms())
       .catch(async () => {
-        let currentApps = (await fetchFromUpstash()) || platforms || [];
+        let currentApps = (await fetchFromUpstash('nexora_apps')) || platforms || [];
         currentApps = currentApps.filter(p => p.id !== id);
-        await saveToUpstash(currentApps);
+        await saveToUpstash('nexora_apps', currentApps);
         loadPlatforms();
       });
   }

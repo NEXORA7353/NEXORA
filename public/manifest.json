@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "NEXORA — Educational Launcher",
-  "short_name": "NEXORA",
-  "description": "Standalone Educational Operating System App.",
+  "name": "Educational Hub",
+  "short_name": "Hub",
+  "description": "Unified Educational Platform Launcher.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -40,22 +40,6 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
-    }
-  ],
-  "screenshots": [
-    {
-      "src": "/icons/screenshot-narrow.png",
-      "sizes": "540x960",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "NEXORA Mobile Screen"
-    },
-    {
-      "src": "/icons/screenshot-wide.png",
-      "sizes": "960x540",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "NEXORA Desktop Screen"
     }
   ],
   "shortcuts": [
