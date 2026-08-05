@@ -18,26 +18,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let currentTargetUrl = '';
 
-  const CF_KV_URL = 'https://api.cloudflare.com/client/v4/accounts/ce3f6c1f773e98fb3d8039bfaf999b62/storage/kv/namespaces/791f4ba63d8b4e07baa2ca09986cd53d/values/nexora_apps';
-  const CF_KV_TOKEN = atob('Y2ZhdF83anlsVHRaSEYyNlZwRnNudW94QmdnMHdwSEVsdVJBVnRxZjI5VGY1MjA2YmU4MmE=');
-
   const UPSTASH_URL = 'https://legible-loon-84378.upstash.io';
   const UPSTASH_TOKEN = 'gQAAAAAAAUmaAAIgcDE5M2IwMjM4MTczZjA0ZWQ5YWUwYzYzNTU1YzIyYTQ3Mg';
-
-  async function fetchFromCloudflareKV() {
-    try {
-      const res = await fetch(CF_KV_URL, {
-        headers: { Authorization: `Bearer ${CF_KV_TOKEN}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data)) return data;
-      }
-    } catch (e) {
-      console.warn('CF KV fetch notice:', e.message);
-    }
-    return null;
-  }
 
   async function fetchFromUpstash() {
     try {
@@ -59,40 +41,27 @@ document.addEventListener('DOMContentLoaded', () => {
   fetchApps();
 
   async function fetchApps() {
-    // 1. Primary: Cloudflare KV
-    const cfApps = await fetchFromCloudflareKV();
-    if (cfApps && Array.isArray(cfApps)) {
-      allApps = cfApps;
-      renderCategoryTabs();
-      renderGrid();
-      return;
+    // 1. Primary: Server API route (/api/apps) - handles Cloudflare KV & Upstash server-side
+    try {
+      const res = await fetch('/api/apps');
+      if (res.ok) {
+        const resData = await res.json();
+        if (resData && (Array.isArray(resData) || Array.isArray(resData.data))) {
+          allApps = Array.isArray(resData) ? resData : (resData.data || []);
+          renderCategoryTabs();
+          renderGrid();
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('/api/apps route fetch notice:', e.message);
     }
 
-    // 2. Secondary: Upstash Redis
+    // 2. Secondary: Upstash Redis Direct REST (Full Browser CORS support)
     const upstashApps = await fetchFromUpstash();
-    if (upstashApps && Array.isArray(upstashApps)) {
-      allApps = upstashApps;
-      renderCategoryTabs();
-      renderGrid();
-      return;
-    }
-
-    // 3. Fallback: /api/apps route
-    fetch('/api/apps')
-      .then(res => {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return res.json();
-      })
-      .then(resData => {
-        allApps = Array.isArray(resData) ? resData : (resData.data || []);
-        renderCategoryTabs();
-        renderGrid();
-      })
-      .catch(() => {
-        allApps = [];
-        renderCategoryTabs();
-        renderGrid();
-      });
+    allApps = upstashApps || [];
+    renderCategoryTabs();
+    renderGrid();
   }
 
   // Extract unique categories & render tabs

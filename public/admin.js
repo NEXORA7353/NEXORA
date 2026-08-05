@@ -59,41 +59,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadPlatforms();
   }
 
-  async function fetchFromCloudflareKV() {
-    try {
-      const res = await fetch(CF_KV_URL, {
-        headers: { Authorization: `Bearer ${CF_KV_TOKEN}` }
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (Array.isArray(data)) return data;
-      }
-    } catch (e) {
-      console.warn('CF KV fetch notice:', e.message);
-    }
-    return null;
-  }
-
-  async function saveToCloudflareKV(appsList) {
-    try {
-      const res = await fetch(CF_KV_URL, {
-        method: 'PUT',
-        headers: {
-          Authorization: `Bearer ${CF_KV_TOKEN}`,
-          'Content-Type': 'text/plain'
-        },
-        body: JSON.stringify(appsList)
-      });
-      if (res.ok) {
-        saveToUpstash(appsList).catch(() => {});
-        return true;
-      }
-    } catch (e) {
-      console.warn('CF KV save notice:', e.message);
-    }
-    return saveToUpstash(appsList);
-  }
-
   async function fetchFromUpstash() {
     try {
       const res = await fetch(`${UPSTASH_URL}/get/nexora_apps`, {
@@ -124,38 +89,25 @@ document.addEventListener('DOMContentLoaded', () => {
     return false;
   }
 
-  // Load platforms from Cloudflare KV, Upstash, or Backend API
+  // Load platforms from Server API route (/api/apps) or Upstash Cloud DB
   async function loadPlatforms() {
-    // 1. Primary: Cloudflare KV
-    const cfApps = await fetchFromCloudflareKV();
-    if (cfApps && Array.isArray(cfApps)) {
-      platforms = cfApps;
-      renderPlatformList();
-      return;
+    try {
+      const res = await fetch('/api/apps');
+      if (res.ok) {
+        const resData = await res.json();
+        if (resData && (Array.isArray(resData) || Array.isArray(resData.data))) {
+          platforms = Array.isArray(resData) ? resData : (resData.data || []);
+          renderPlatformList();
+          return;
+        }
+      }
+    } catch (e) {
+      console.warn('/api/apps route fetch notice:', e.message);
     }
 
-    // 2. Secondary: Upstash Redis
     const upstashApps = await fetchFromUpstash();
-    if (upstashApps && Array.isArray(upstashApps)) {
-      platforms = upstashApps;
-      renderPlatformList();
-      return;
-    }
-
-    // 3. Fallback: /api/apps route
-    fetch('/api/apps')
-      .then(res => {
-        if (!res.ok) throw new Error('HTTP ' + res.status);
-        return res.json();
-      })
-      .then(resData => {
-        platforms = Array.isArray(resData) ? resData : (resData.data || []);
-        renderPlatformList();
-      })
-      .catch(() => {
-        platforms = [];
-        renderPlatformList();
-      });
+    platforms = upstashApps || [];
+    renderPlatformList();
   }
 
   // Render platform list
@@ -336,12 +288,12 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .then(() => loadPlatforms())
         .catch(async () => {
-          let currentApps = (await fetchFromCloudflareKV()) || (await fetchFromUpstash()) || platforms || [];
+          let currentApps = (await fetchFromUpstash()) || platforms || [];
           const idx = currentApps.findIndex(p => p.id === app.id);
           if (idx !== -1) {
             currentApps[idx] = { ...currentApps[idx], ...updatedPayload };
           }
-          await saveToCloudflareKV(currentApps);
+          await saveToUpstash(currentApps);
           loadPlatforms();
         });
     });
@@ -375,7 +327,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loadPlatforms();
       })
       .catch(async () => {
-        let currentApps = (await fetchFromCloudflareKV()) || (await fetchFromUpstash()) || platforms || [];
+        let currentApps = (await fetchFromUpstash()) || platforms || [];
         const newItem = {
           id: 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
           name: payload.name,
@@ -387,7 +339,7 @@ document.addEventListener('DOMContentLoaded', () => {
           addedAt: new Date().toISOString()
         };
         currentApps.push(newItem);
-        await saveToCloudflareKV(currentApps);
+        await saveToUpstash(currentApps);
         addPlatformForm.reset();
         document.getElementById('appOrder').value = 1;
         loadPlatforms();
@@ -405,9 +357,9 @@ document.addEventListener('DOMContentLoaded', () => {
       })
       .then(() => loadPlatforms())
       .catch(async () => {
-        let currentApps = (await fetchFromCloudflareKV()) || (await fetchFromUpstash()) || platforms || [];
+        let currentApps = (await fetchFromUpstash()) || platforms || [];
         currentApps = currentApps.filter(p => p.id !== id);
-        await saveToCloudflareKV(currentApps);
+        await saveToUpstash(currentApps);
         loadPlatforms();
       });
   }
