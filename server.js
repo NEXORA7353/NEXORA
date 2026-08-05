@@ -66,7 +66,7 @@ let globalAppsStore = null;
 
 // Helper Functions
 function readApps() {
-  if (globalAppsStore !== null && Array.isArray(globalAppsStore) && globalAppsStore.length > 0) {
+  if (globalAppsStore !== null && Array.isArray(globalAppsStore)) {
     return globalAppsStore;
   }
 
@@ -75,65 +75,65 @@ function readApps() {
     if (fs.existsSync(DATA_FILE)) {
       const content = fs.readFileSync(DATA_FILE, 'utf8')
       apps = JSON.parse(content || '[]')
+      globalAppsStore = apps;
+      return globalAppsStore;
     }
   } catch (err) {
     console.error('Error reading apps.json:', err.message)
   }
 
-  if (!Array.isArray(apps) || apps.length === 0) {
-    apps = [
-      {
-        "id": "110ec44a-0941-4b77-88d0-e37784013401",
-        "name": "Khan Academy",
-        "url": "https://www.khanacademy.org",
-        "logoUrl": "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=150&auto=format&fit=crop&q=80",
-        "category": "Live Class",
-        "featured": true,
-        "order": 1,
-        "addedAt": "2024-01-01T00:00:00.000Z"
-      },
-      {
-        "id": "220ec44a-0941-4b77-88d0-e37784013402",
-        "name": "Coursera",
-        "url": "https://www.coursera.org",
-        "logoUrl": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=150&auto=format&fit=crop&q=80",
-        "category": "Coaching",
-        "featured": true,
-        "order": 2,
-        "addedAt": "2024-01-02T00:00:00.000Z"
-      },
-      {
-        "id": "330ec44a-0941-4b77-88d0-e37784013403",
-        "name": "Physics Wallah",
-        "url": "https://www.pw.live",
-        "logoUrl": "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=150&auto=format&fit=crop&q=80",
-        "category": "Live Class",
-        "featured": false,
-        "order": 3,
-        "addedAt": "2024-01-03T00:00:00.000Z"
-      },
-      {
-        "id": "440ec44a-0941-4b77-88d0-e37784013404",
-        "name": "NPTEL Courses",
-        "url": "https://nptel.ac.in",
-        "logoUrl": "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=150&auto=format&fit=crop&q=80",
-        "category": "Test Series",
-        "featured": false,
-        "order": 4,
-        "addedAt": "2024-01-04T00:00:00.000Z"
-      },
-      {
-        "id": "550ec44a-0941-4b77-88d0-e37784013405",
-        "name": "GeeksforGeeks",
-        "url": "https://www.geeksforgeeks.org",
-        "logoUrl": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=150&auto=format&fit=crop&q=80",
-        "category": "Notes",
-        "featured": true,
-        "order": 5,
-        "addedAt": "2024-01-05T00:00:00.000Z"
-      }
-    ];
-  }
+  apps = [
+    {
+      "id": "110ec44a-0941-4b77-88d0-e37784013401",
+      "name": "Khan Academy",
+      "url": "https://www.khanacademy.org",
+      "logoUrl": "https://images.unsplash.com/photo-1503676260728-1c00da094a0b?w=150&auto=format&fit=crop&q=80",
+      "category": "Live Class",
+      "featured": true,
+      "order": 1,
+      "addedAt": "2024-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "220ec44a-0941-4b77-88d0-e37784013402",
+      "name": "Coursera",
+      "url": "https://www.coursera.org",
+      "logoUrl": "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=150&auto=format&fit=crop&q=80",
+      "category": "Coaching",
+      "featured": true,
+      "order": 2,
+      "addedAt": "2024-01-02T00:00:00.000Z"
+    },
+    {
+      "id": "330ec44a-0941-4b77-88d0-e37784013403",
+      "name": "Physics Wallah",
+      "url": "https://www.pw.live",
+      "logoUrl": "https://images.unsplash.com/photo-1532094349884-543bc11b234d?w=150&auto=format&fit=crop&q=80",
+      "category": "Live Class",
+      "featured": false,
+      "order": 3,
+      "addedAt": "2024-01-03T00:00:00.000Z"
+    },
+    {
+      "id": "440ec44a-0941-4b77-88d0-e37784013404",
+      "name": "NPTEL Courses",
+      "url": "https://nptel.ac.in",
+      "logoUrl": "https://images.unsplash.com/photo-1497633762265-9d179a990aa6?w=150&auto=format&fit=crop&q=80",
+      "category": "Test Series",
+      "featured": false,
+      "order": 4,
+      "addedAt": "2024-01-04T00:00:00.000Z"
+    },
+    {
+      "id": "550ec44a-0941-4b77-88d0-e37784013405",
+      "name": "GeeksforGeeks",
+      "url": "https://www.geeksforgeeks.org",
+      "logoUrl": "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=150&auto=format&fit=crop&q=80",
+      "category": "Notes",
+      "featured": true,
+      "order": 5,
+      "addedAt": "2024-01-05T00:00:00.000Z"
+    }
+  ];
 
   globalAppsStore = apps;
   return globalAppsStore;
@@ -330,10 +330,9 @@ app.get('/proxy', async (req, res) => {
       responseType: 'arraybuffer',
       timeout: 15000,
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Linux; Android 11) AppleWebKit/537.36 Chrome/120',
-        'Accept': 'text/html,application/xhtml+xml,*/*',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Accept-Encoding': 'gzip, deflate, br'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9'
       },
       maxRedirects: 5
     })
@@ -452,7 +451,7 @@ app.get('/proxy', async (req, res) => {
     } else {
       console.error(`Proxy request error: ${error.message}`)
     }
-    return res.status(500).send(ERROR_PAGE_HTML)
+    return res.status(200).send(ERROR_PAGE_HTML)
   }
 })
 
