@@ -252,8 +252,8 @@ document.addEventListener('DOMContentLoaded', () => {
       browserDirectBtn.href = rawUrl;
     }
 
-    // Always route via Edge Proxy to strip X-Frame-Options: DENY headers
-    const proxyUrl = `/proxy?url=${encodeURIComponent(rawUrl)}`;
+    // Route via True Reverse Proxy Engine to strip X-Frame-Options & bypass cross-origin blocks
+    const proxyUrl = `/r?url=${encodeURIComponent(rawUrl)}`;
     browserIframe.src = proxyUrl;
 
     browserPanel.classList.add('open');
