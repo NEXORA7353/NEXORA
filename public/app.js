@@ -279,7 +279,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const pwaInstallBtn = document.getElementById('pwaInstallBtn');
 
   window.addEventListener('beforeinstallprompt', (e) => {
-    e.preventDefault();
     deferredPrompt = e;
     if (pwaInstallBtn) {
       pwaInstallBtn.style.display = 'inline-flex';
