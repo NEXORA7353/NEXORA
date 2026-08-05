@@ -233,21 +233,26 @@ document.addEventListener('DOMContentLoaded', () => {
     return name.substring(0, 2).toUpperCase();
   }
 
-  // Native Standalone History Router & Hybrid WebView Container Engine
+  // Native Standalone History Router & Multi-Engine Container Engine
   let isBrowserPanelActive = false;
-  let currentEngineMode = localStorage.getItem('nexora_preferred_engine') || 'DIRECT';
+  let currentEngineMode = localStorage.getItem('nexora_preferred_engine') || 'CLIENT';
   const browserEngineBtn = document.getElementById('browserEngineBtn');
 
   function updateEngineBtnUI() {
     if (!browserEngineBtn) return;
-    if (currentEngineMode === 'DIRECT') {
-      browserEngineBtn.textContent = '⚡ Direct';
-      browserEngineBtn.title = 'Current Engine: Direct Bypass (Tap to switch to Proxy)';
+    if (currentEngineMode === 'CLIENT') {
+      browserEngineBtn.textContent = '⚡ SW Engine';
+      browserEngineBtn.title = 'Engine: Client Service Worker Header Stripping Engine';
       browserEngineBtn.style.color = '#10b981';
       browserEngineBtn.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+    } else if (currentEngineMode === 'DIRECT') {
+      browserEngineBtn.textContent = '🚀 Direct';
+      browserEngineBtn.title = 'Engine: Direct Bypass Mode';
+      browserEngineBtn.style.color = '#3b82f6';
+      browserEngineBtn.style.borderColor = 'rgba(59, 130, 246, 0.4)';
     } else {
-      browserEngineBtn.textContent = '🛡️ Proxy';
-      browserEngineBtn.title = 'Current Engine: Edge Proxy (Tap to switch to Direct Bypass)';
+      browserEngineBtn.textContent = '🛡️ Edge Proxy';
+      browserEngineBtn.title = 'Engine: Server Edge Proxy';
       browserEngineBtn.style.color = '#a855f7';
       browserEngineBtn.style.borderColor = 'rgba(168, 85, 247, 0.4)';
     }
@@ -255,11 +260,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function loadContainerUrl(rawUrl) {
     if (!rawUrl) return;
-    if (currentEngineMode === 'PROXY') {
-      const proxyUrl = `/proxy?url=${encodeURIComponent(rawUrl)}`;
-      browserIframe.src = proxyUrl;
+    if (currentEngineMode === 'CLIENT') {
+      // Client Service Worker Header Stripping Engine
+      browserIframe.src = `/sw-proxy?url=${encodeURIComponent(rawUrl)}`;
+    } else if (currentEngineMode === 'PROXY') {
+      // Server Edge Proxy
+      browserIframe.src = `/proxy?url=${encodeURIComponent(rawUrl)}`;
     } else {
-      // DIRECT mode: bypass proxy completely
+      // Direct Bypass
       browserIframe.src = rawUrl;
     }
   }
@@ -271,8 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     currentTargetUrl = rawUrl;
 
-    // Use platform-specific mode preference if set, otherwise currentEngineMode
-    if (appMode === 'DIRECT' || appMode === 'PROXY') {
+    if (appMode === 'CLIENT' || appMode === 'DIRECT' || appMode === 'PROXY') {
       currentEngineMode = appMode;
     }
 
@@ -300,10 +307,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Toggle Direct vs Proxy Mode handler
+  // Toggle Client SW vs Direct vs Edge Proxy Mode handler
   if (browserEngineBtn) {
     browserEngineBtn.addEventListener('click', () => {
-      currentEngineMode = currentEngineMode === 'DIRECT' ? 'PROXY' : 'DIRECT';
+      if (currentEngineMode === 'CLIENT') {
+        currentEngineMode = 'DIRECT';
+      } else if (currentEngineMode === 'DIRECT') {
+        currentEngineMode = 'PROXY';
+      } else {
+        currentEngineMode = 'CLIENT';
+      }
       localStorage.setItem('nexora_preferred_engine', currentEngineMode);
       updateEngineBtnUI();
       if (currentTargetUrl) {
