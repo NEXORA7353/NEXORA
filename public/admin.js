@@ -1,6 +1,13 @@
 document.addEventListener('DOMContentLoaded', () => {
   const ADMIN_PASSWORD = 'nexora2024';
 
+  const CF_KV_URL = 'https://api.cloudflare.com/client/v4/accounts/ce3f6c1f773e98fb3d8039bfaf999b62/storage/kv/namespaces/791f4ba63d8b4e07baa2ca09986cd53d/values/nexora_apps';
+  const CF_KV_TOKEN = atob('Y2ZhdF83anlsVHRaSEYyNlZwRnNudW94QmdnMHdwSEVsdVJBVnRxZjI5VGY1MjA2YmU4MmE=');
+  const IMGBB_API_KEY = 'e36ea0961f05f9e63dad66e798bf6101';
+
+  const UPSTASH_URL = 'https://legible-loon-84378.upstash.io';
+  const UPSTASH_TOKEN = 'gQAAAAAAAUmaAAIgcDE5M2IwMjM4MTczZjA0ZWQ5YWUwYzYzNTU1YzIyYTQ3Mg';
+
   const gateScreen = document.getElementById('gateScreen');
   const dashboardScreen = document.getElementById('dashboardScreen');
   const gateForm = document.getElementById('gateForm');
@@ -51,13 +58,6 @@ document.addEventListener('DOMContentLoaded', () => {
     dashboardScreen.style.display = 'block';
     loadPlatforms();
   }
-
-  const CF_KV_URL = 'https://api.cloudflare.com/client/v4/accounts/ce3f6c1f773e98fb3d8039bfaf999b62/storage/kv/namespaces/791f4ba63d8b4e07baa2ca09986cd53d/values/nexora_apps';
-  const CF_KV_TOKEN = atob('Y2ZhdF83anlsVHRaSEYyNlZwRnNudW94QmdnMHdwSEVsdVJBVnRxZjI5VGY1MjA2YmU4MmE=');
-  const IMGBB_API_KEY = 'e36ea0961f05f9e63dad66e798bf6101';
-
-  const UPSTASH_URL = 'https://legible-loon-84378.upstash.io';
-  const UPSTASH_TOKEN = 'gQAAAAAAAUmaAAIgcDE5M2IwMjM4MTczZjA0ZWQ5YWUwYzYzNTU1YzIyYTQ3Mg';
 
   async function fetchFromCloudflareKV() {
     try {
