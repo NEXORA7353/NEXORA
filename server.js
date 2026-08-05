@@ -281,7 +281,89 @@ async function writeSettings(data) {
 
 // REST API ROUTES
 
-// GET /api/apps
+// Feedback Data File
+const FEEDBACK_FILE = path.join(__dirname, 'data', 'feedback.json');
+let globalFeedbackStore = null;
+
+async function readFeedback() {
+  if (globalFeedbackStore !== null) return globalFeedbackStore;
+  try {
+    if (fs.existsSync(FEEDBACK_FILE)) {
+      const content = fs.readFileSync(FEEDBACK_FILE, 'utf8');
+      globalFeedbackStore = JSON.parse(content || '[]');
+      return globalFeedbackStore;
+    }
+  } catch (e) {}
+  globalFeedbackStore = [];
+  return globalFeedbackStore;
+}
+
+async function writeFeedback(data) {
+  globalFeedbackStore = data;
+  try {
+    const dir = path.dirname(FEEDBACK_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(FEEDBACK_FILE, JSON.stringify(data, null, 2), 'utf8');
+  } catch (e) {}
+}
+
+// API Routes
+app.get('/api/apps', async (req, res) => {
+  const apps = await readApps();
+  res.json(apps);
+});
+
+app.get('/api/feedback', async (req, res) => {
+  const list = await readFeedback();
+  res.json(list);
+});
+
+app.post('/api/feedback', async (req, res) => {
+  try {
+    const body = req.body || {};
+    const current = await readFeedback();
+
+    if (body.action === 'reply') {
+      const { id, adminReply } = body;
+      const index = current.findIndex(f => f.id === id);
+      if (index !== -1) {
+        current[index].adminReply = adminReply;
+        current[index].status = 'REPLIED';
+        current[index].repliedAt = new Date().toISOString();
+        await writeFeedback(current);
+        return res.json({ success: true, item: current[index] });
+      }
+      return res.status(404).json({ error: 'Item not found' });
+    }
+
+    if (body.action === 'delete') {
+      const { id } = body;
+      const filtered = current.filter(f => f.id !== id);
+      await writeFeedback(filtered);
+      return res.json({ success: true });
+    }
+
+    const newItem = {
+      id: 'fb_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+      type: body.type || 'QUESTION',
+      userName: body.userName || 'Student',
+      userEmail: body.userEmail || '',
+      message: body.message || '',
+      status: 'PENDING',
+      createdAt: new Date().toISOString(),
+      adminReply: '',
+      repliedAt: ''
+    };
+
+    const updated = [newItem, ...current];
+    await writeFeedback(updated);
+    res.json({ success: true, item: newItem });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// GET /api/apps (Main list)
 app.get('/api/apps', async (req, res) => {
   try {
     const apps = await readApps()

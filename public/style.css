@@ -1117,3 +1117,81 @@ input:checked + .toggle-slider:before {
   color: var(--ink-mute);
   text-align: center;
 }
+
+/* Notification Bell & Badge */
+.notif-bell-btn {
+  position: relative;
+  background: var(--canvas-soft);
+  border: 1px solid var(--hairline);
+  color: #ffffff;
+  border-radius: 9999px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.notif-bell-btn:hover {
+  border-color: var(--accent-orange);
+  color: var(--accent-orange);
+}
+
+.notif-badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 700;
+  border-radius: 9999px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--canvas);
+}
+
+.notif-item-card {
+  background: var(--canvas-soft);
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.notif-item-card.unread {
+  border-left: 3px solid var(--accent-orange);
+  background: rgba(255, 122, 23, 0.05);
+}
+
+.notif-type-badge {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.notif-type-badge.error {
+  background: rgba(239, 68, 68, 0.15);
+  color: #ef4444;
+}
+
+.notif-type-badge.improvement {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+
+.notif-type-badge.question {
+  background: rgba(168, 85, 247, 0.15);
+  color: #a855f7;
+}

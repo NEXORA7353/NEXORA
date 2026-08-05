@@ -394,4 +394,147 @@ document.addEventListener('DOMContentLoaded', () => {
         .catch(err => console.error('ServiceWorker registration failed:', err));
     });
   }
+
+  // FEEDBACK & NOTIFICATION SYSTEM
+  const openFeedbackModalBtn = document.getElementById('openFeedbackModalBtn');
+  const feedbackModal = document.getElementById('feedbackModal');
+  const feedbackModalClose = document.getElementById('feedbackModalClose');
+  const feedbackForm = document.getElementById('feedbackForm');
+  const fbStatusMsg = document.getElementById('fbStatusMsg');
+
+  const notifBellBtn = document.getElementById('notifBellBtn');
+  const notifBadge = document.getElementById('notifBadge');
+  const notifModal = document.getElementById('notifModal');
+  const notifModalClose = document.getElementById('notifModalClose');
+  const notifList = document.getElementById('notifList');
+
+  let allNotifications = [];
+
+  if (openFeedbackModalBtn && feedbackModal) {
+    openFeedbackModalBtn.addEventListener('click', () => {
+      feedbackModal.style.display = 'flex';
+    });
+  }
+
+  if (feedbackModalClose) {
+    feedbackModalClose.addEventListener('click', () => {
+      feedbackModal.style.display = 'none';
+    });
+  }
+
+  if (feedbackForm) {
+    feedbackForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const type = document.getElementById('fbType').value;
+      const userName = document.getElementById('fbName').value;
+      const userEmail = document.getElementById('fbEmail').value;
+      const message = document.getElementById('fbMessage').value;
+
+      try {
+        const res = await fetch('/api/feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type, userName, userEmail, message })
+        });
+        if (res.ok) {
+          if (fbStatusMsg) fbStatusMsg.style.display = 'block';
+          feedbackForm.reset();
+          setTimeout(() => {
+            if (fbStatusMsg) fbStatusMsg.style.display = 'none';
+            if (feedbackModal) feedbackModal.style.display = 'none';
+          }, 2000);
+          loadNotifications();
+        }
+      } catch (err) {
+        alert('Failed to submit. Please try again.');
+      }
+    });
+  }
+
+  if (notifBellBtn && notifModal) {
+    notifBellBtn.addEventListener('click', () => {
+      notifModal.style.display = 'flex';
+      markNotificationsRead();
+    });
+  }
+
+  if (notifModalClose) {
+    notifModalClose.addEventListener('click', () => {
+      notifModal.style.display = 'none';
+    });
+  }
+
+  async function loadNotifications() {
+    try {
+      const res = await fetch('/api/feedback', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          allNotifications = data.filter(item => item.status === 'REPLIED' || item.adminReply);
+          renderNotifications();
+        }
+      }
+    } catch (e) {}
+  }
+
+  function renderNotifications() {
+    if (!notifList) return;
+    notifList.innerHTML = '';
+
+    const readIds = JSON.parse(localStorage.getItem('nexora_read_notifs') || '[]');
+    const unread = allNotifications.filter(n => !readIds.includes(n.id));
+
+    if (notifBadge) {
+      if (unread.length > 0) {
+        notifBadge.textContent = unread.length;
+        notifBadge.style.display = 'flex';
+      } else {
+        notifBadge.style.display = 'none';
+      }
+    }
+
+    if (allNotifications.length === 0) {
+      notifList.innerHTML = `
+        <div style="text-align: center; color: var(--ink-mute); padding: 24px; font-size: 13px;">
+          No notifications yet. Submit a question or issue report to receive admin replies here!
+        </div>`;
+      return;
+    }
+
+    allNotifications.forEach(item => {
+      const isUnread = !readIds.includes(item.id);
+      const card = document.createElement('div');
+      card.className = `notif-item-card ${isUnread ? 'unread' : ''}`;
+      
+      const typeClass = item.type === 'ERROR' ? 'error' : (item.type === 'IMPROVEMENT' ? 'improvement' : 'question');
+      
+      card.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <span class="notif-type-badge ${typeClass}">${item.type || 'QUERY'}</span>
+          <span style="font-size: 11px; color: var(--ink-mute);">${new Date(item.repliedAt || item.createdAt).toLocaleDateString()}</span>
+        </div>
+        <div style="font-size: 13px; color: #fff; font-weight: 500;">Q: ${escapeHtml(item.message)}</div>
+        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px; padding: 10px; margin-top: 4px;">
+          <div style="font-size: 11px; font-weight: 700; color: #10b981; margin-bottom: 2px;">ADMIN REPLY:</div>
+          <div style="font-size: 13px; color: var(--ink-body); line-height: 1.4;">${escapeHtml(item.adminReply)}</div>
+        </div>
+      `;
+      notifList.appendChild(card);
+    });
+  }
+
+  function markNotificationsRead() {
+    const ids = allNotifications.map(n => n.id);
+    localStorage.setItem('nexora_read_notifs', JSON.stringify(ids));
+    if (notifBadge) notifBadge.style.display = 'none';
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  // Initial notification check
+  loadNotifications();
+  setInterval(loadNotifications, 30000);
 });

@@ -64,6 +64,24 @@
             <div class="eyebrow">PLATFORM PORTAL</div>
           </div>
         </div>
+
+        <!-- HEADER ACTION BUTTONS -->
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <!-- REPORT / IMPROVE BUTTON -->
+          <button type="button" class="btn-outline btn-sm" id="openFeedbackModalBtn" title="Report Error / Ask Question" style="display: inline-flex; align-items: center; gap: 4px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            <span>Ask / Report</span>
+          </button>
+
+          <!-- NOTIFICATION BELL BUTTON -->
+          <button type="button" class="notif-bell-btn" id="notifBellBtn" title="Admin Notifications & Replies" aria-label="Notifications">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            <span class="notif-badge" id="notifBadge" style="display: none;">0</span>
+          </button>
+        </div>
       </header>
 
       <!-- NAVIGATION MENU -->
@@ -204,6 +222,66 @@
       <div class="telegram-modal-actions">
         <a href="#" target="_blank" rel="noopener" class="btn-primary telegram-join-btn" id="telegramJoinBtn">Join Channel</a>
         <button type="button" class="btn-outline telegram-dismiss-btn" id="telegramDismissBtn">Later</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FEEDBACK / REPORT ERROR MODAL -->
+  <div class="telegram-modal-overlay" id="feedbackModal" style="display: none;">
+    <div class="telegram-modal-card" style="max-width: 440px;">
+      <button class="telegram-modal-close" id="feedbackModalClose" aria-label="Close">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+      <div class="eyebrow" style="margin-bottom: 6px;">SUPPORT & IMPROVEMENT</div>
+      <h3 style="font-size: 18px; color: #fff; margin-bottom: 12px;">Report Issue / Ask Question</h3>
+      <form id="feedbackForm" style="display: flex; flex-direction: column; gap: 12px; text-align: left;">
+        <div class="form-group">
+          <label class="form-label" for="fbType">Select Category</label>
+          <select id="fbType" class="form-input" style="background: var(--canvas-soft); color: #fff;" required>
+            <option value="ERROR">Report Page / Link Error</option>
+            <option value="IMPROVEMENT">Suggest Improvement</option>
+            <option value="QUESTION" selected>Ask a Question / Help</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="fbName">Your Name (Optional)</label>
+          <input type="text" id="fbName" class="form-input" placeholder="e.g. Rahul">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="fbEmail">Your Email (Optional for Admin Reply)</label>
+          <input type="email" id="fbEmail" class="form-input" placeholder="name@example.com">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="fbMessage">Details / Question *</label>
+          <textarea id="fbMessage" class="form-textarea" style="min-height: 80px;" placeholder="Describe what error occurred, suggestion, or question..." required></textarea>
+        </div>
+        <button type="submit" class="btn-primary" style="height: 44px; margin-top: 4px; font-weight: 600;">Submit to Admin</button>
+        <div id="fbStatusMsg" style="display: none; color: #10b981; font-size: 13px; text-align: center; margin-top: 4px;">Submitted successfully! Admin will review and reply.</div>
+      </form>
+    </div>
+  </div>
+
+  <!-- NOTIFICATIONS MODAL / DRAWER -->
+  <div class="telegram-modal-overlay" id="notifModal" style="display: none;">
+    <div class="telegram-modal-card" style="max-width: 460px; text-align: left;">
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff7a17" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+          <h3 style="font-size: 17px; color: #fff; margin: 0;">Admin Notifications & Replies</h3>
+        </div>
+        <button class="telegram-modal-close" id="notifModalClose" aria-label="Close" style="position: static;">
+          <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <div id="notifList" style="display: flex; flex-direction: column; gap: 10px; max-height: 360px; overflow-y: auto; padding-right: 4px;">
+        <!-- Notification cards rendered here -->
       </div>
     </div>
   </div>

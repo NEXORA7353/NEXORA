@@ -1,0 +1,13 @@
+[
+  {
+    "id": "fb_sample_1",
+    "type": "SUGGESTION",
+    "userName": "Student User",
+    "userEmail": "student@example.com",
+    "message": "Please add Physics Wallah and Unacademy direct portal links.",
+    "status": "REPLIED",
+    "createdAt": "2026-08-05T12:00:00.000Z",
+    "adminReply": "Thank you! Physics Wallah and Unacademy platforms have been added to the main launcher.",
+    "repliedAt": "2026-08-05T14:30:00.000Z"
+  }
+]

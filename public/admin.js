@@ -63,6 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
     gateScreen.style.display = 'none';
     dashboardScreen.style.display = 'block';
     loadTelegramSettings();
+    loadFeedback();
     loadPlatforms();
     resetLinksBuilder();
   }
@@ -542,4 +543,111 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;');
   }
+
+  // USER FEEDBACK & REPORTS MANAGEMENT
+  let feedbackItems = [];
+  const adminFeedbackList = document.getElementById('adminFeedbackList');
+  const feedbackCount = document.getElementById('feedbackCount');
+
+  async function loadFeedback() {
+    try {
+      const res = await fetch('/api/feedback', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          feedbackItems = data;
+          renderFeedbackList();
+        }
+      }
+    } catch (e) {}
+  }
+
+  function renderFeedbackList() {
+    if (!adminFeedbackList) return;
+    adminFeedbackList.innerHTML = '';
+    if (feedbackCount) feedbackCount.textContent = `${feedbackItems.length} submissions`;
+
+    if (feedbackItems.length === 0) {
+      adminFeedbackList.innerHTML = `
+        <div style="text-align: center; color: var(--ink-mute); padding: 20px; font-size: 13px; background: var(--canvas-card); border-radius: 12px; border: 1px solid var(--hairline);">
+          No user feedback or error reports submitted yet.
+        </div>`;
+      return;
+    }
+
+    feedbackItems.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'admin-item-card';
+      const isReplied = item.status === 'REPLIED';
+
+      card.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <span class="notif-type-badge ${item.type === 'ERROR' ? 'error' : (item.type === 'IMPROVEMENT' ? 'improvement' : 'question')}">${item.type || 'QUESTION'}</span>
+            <span style="font-size: 13px; font-weight: 600; color: #fff;">${escapeHtml(item.userName || 'Student')}</span>
+            ${item.userEmail ? `<span style="font-size: 12px; color: var(--ink-mute);">(${escapeHtml(item.userEmail)})</span>` : ''}
+          </div>
+          <span style="font-size: 11px; color: var(--ink-mute);">${new Date(item.createdAt).toLocaleString()}</span>
+        </div>
+        
+        <div style="font-size: 14px; color: var(--ink-body); line-height: 1.4; background: var(--canvas-soft); padding: 10px; border-radius: 8px;">
+          ${escapeHtml(item.message)}
+        </div>
+
+        ${isReplied ? `
+          <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px; padding: 10px; margin-top: 4px;">
+            <div style="font-size: 11px; font-weight: 700; color: #10b981;">CURRENT ADMIN REPLY:</div>
+            <div style="font-size: 13px; color: #fff; margin-top: 2px;">${escapeHtml(item.adminReply)}</div>
+          </div>
+        ` : ''}
+
+        <div style="margin-top: 8px; display: flex; flex-direction: column; gap: 8px;">
+          <textarea id="replyText_${item.id}" class="admin-input" placeholder="Type reply for user..." style="min-height: 60px; font-size: 13px;">${escapeHtml(item.adminReply || '')}</textarea>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <button type="button" class="btn-primary btn-sm" onclick="sendAdminReply('${item.id}')">
+              ${isReplied ? 'Update Reply' : 'Send Reply'}
+            </button>
+            <button type="button" class="btn-danger btn-sm" onclick="deleteFeedbackItem('${item.id}')">Delete</button>
+          </div>
+        </div>
+      `;
+      adminFeedbackList.appendChild(card);
+    });
+  }
+
+  window.sendAdminReply = async function(id) {
+    const textarea = document.getElementById(`replyText_${id}`);
+    if (!textarea || !textarea.value.trim()) {
+      alert('Please type a reply before sending.');
+      return;
+    }
+    const adminReply = textarea.value.trim();
+    try {
+      const res = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'reply', id, adminReply })
+      });
+      if (res.ok) {
+        alert('Reply sent successfully! User will receive a notification.');
+        loadFeedback();
+      }
+    } catch (e) {
+      alert('Failed to send reply.');
+    }
+  };
+
+  window.deleteFeedbackItem = async function(id) {
+    if (!confirm('Are you sure you want to delete this submission?')) return;
+    try {
+      const res = await fetch('/api/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'delete', id })
+      });
+      if (res.ok) {
+        loadFeedback();
+      }
+    } catch (e) {}
+  };
 });
