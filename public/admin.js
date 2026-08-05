@@ -52,17 +52,55 @@ document.addEventListener('DOMContentLoaded', () => {
     loadPlatforms();
   }
 
-  // Load platforms from backend
+  const UPSTASH_URL = 'https://legible-loon-84378.upstash.io';
+  const UPSTASH_TOKEN = 'gQAAAAAAAUmaAAIgcDE5M2IwMjM4MTczZjA0ZWQ5YWUwYzYzNTU1YzIyYTQ3Mg';
+
+  async function fetchFromUpstash() {
+    try {
+      const res = await fetch(`${UPSTASH_URL}/get/nexora_apps`, {
+        headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` }
+      });
+      const data = await res.json();
+      if (data && data.result) {
+        const parsed = typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.warn('Upstash direct fetch notice:', e.message);
+    }
+    return null;
+  }
+
+  async function saveToUpstash(appsList) {
+    try {
+      await fetch(`${UPSTASH_URL}/set/nexora_apps`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` },
+        body: JSON.stringify(appsList)
+      });
+      return true;
+    } catch (e) {
+      console.warn('Upstash direct save notice:', e.message);
+    }
+    return false;
+  }
+
+  // Load platforms from backend or Upstash Cloud DB
   function loadPlatforms() {
     fetch('/api/apps')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
       .then(resData => {
+        if (!resData || (resData.success === false)) throw new Error('Invalid response');
         platforms = Array.isArray(resData) ? resData : (resData.data || []);
         renderPlatformList();
       })
-      .catch(err => {
-        console.error('Failed to load platforms:', err);
-        platforms = [];
+      .catch(async (err) => {
+        console.warn('Backend API route unavailable, fetching directly from Upstash Cloud DB:', err.message);
+        const upstashApps = await fetchFromUpstash();
+        platforms = upstashApps || [];
         renderPlatformList();
       });
   }
@@ -239,16 +277,20 @@ document.addEventListener('DOMContentLoaded', () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedPayload)
       })
-        .then(res => res.json())
-        .then(updated => {
-          // Update local memory & re-render
-          const idx = platforms.findIndex(p => p.id === app.id);
-          if (idx !== -1) {
-            platforms[idx] = updated;
-          }
-          loadPlatforms();
+        .then(res => {
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          return res.json();
         })
-        .catch(err => console.error('Error updating platform:', err));
+        .then(() => loadPlatforms())
+        .catch(async () => {
+          let currentApps = (await fetchFromUpstash()) || platforms || [];
+          const idx = currentApps.findIndex(p => p.id === app.id);
+          if (idx !== -1) {
+            currentApps[idx] = { ...currentApps[idx], ...updatedPayload };
+          }
+          await saveToUpstash(currentApps);
+          loadPlatforms();
+        });
     });
   }
 
@@ -270,13 +312,33 @@ document.addEventListener('DOMContentLoaded', () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     })
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
       .then(() => {
         addPlatformForm.reset();
         document.getElementById('appOrder').value = 1;
         loadPlatforms();
       })
-      .catch(err => console.error('Error adding platform:', err));
+      .catch(async () => {
+        let currentApps = (await fetchFromUpstash()) || platforms || [];
+        const newItem = {
+          id: 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+          name: payload.name,
+          url: payload.url,
+          logoUrl: payload.logoUrl,
+          category: payload.category || 'GENERAL',
+          order: payload.order || (currentApps.length + 1),
+          featured: payload.featured,
+          addedAt: new Date().toISOString()
+        };
+        currentApps.push(newItem);
+        await saveToUpstash(currentApps);
+        addPlatformForm.reset();
+        document.getElementById('appOrder').value = 1;
+        loadPlatforms();
+      });
   });
 
   // Delete platform handler
@@ -284,11 +346,17 @@ document.addEventListener('DOMContentLoaded', () => {
     fetch(`/api/apps/${id}`, {
       method: 'DELETE'
     })
-      .then(res => res.json())
-      .then(() => {
-        loadPlatforms();
+      .then(res => {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
       })
-      .catch(err => console.error('Error deleting platform:', err));
+      .then(() => loadPlatforms())
+      .catch(async () => {
+        let currentApps = (await fetchFromUpstash()) || platforms || [];
+        currentApps = currentApps.filter(p => p.id !== id);
+        await saveToUpstash(currentApps);
+        loadPlatforms();
+      });
   }
 
   function escapeHtml(str) {

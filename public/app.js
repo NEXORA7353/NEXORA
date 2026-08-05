@@ -18,20 +18,45 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let currentTargetUrl = '';
 
+  const UPSTASH_URL = 'https://legible-loon-84378.upstash.io';
+  const UPSTASH_TOKEN = 'gQAAAAAAAUmaAAIgcDE5M2IwMjM4MTczZjA0ZWQ5YWUwYzYzNTU1YzIyYTQ3Mg';
+
+  async function fetchFromUpstash() {
+    try {
+      const res = await fetch(`${UPSTASH_URL}/get/nexora_apps`, {
+        headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` }
+      });
+      const data = await res.json();
+      if (data && data.result) {
+        const parsed = typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch (e) {
+      console.warn('Upstash direct fetch error:', e.message);
+    }
+    return null;
+  }
+
   // Initial Fetch
   fetchApps();
 
   function fetchApps() {
     fetch('/api/apps')
-      .then(res => res.json())
+      .then(res => {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
       .then(resData => {
+        if (!resData || (resData.success === false)) throw new Error('Invalid response');
         allApps = Array.isArray(resData) ? resData : (resData.data || []);
         renderCategoryTabs();
         renderGrid();
       })
-      .catch(err => {
-        console.error('Failed to fetch platforms:', err);
-        allApps = [];
+      .catch(async (err) => {
+        console.warn('Backend API unavailable, fetching directly from Upstash Cloud DB:', err.message);
+        const upstashApps = await fetchFromUpstash();
+        allApps = upstashApps || [];
+        renderCategoryTabs();
         renderGrid();
       });
   }
