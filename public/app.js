@@ -203,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
       openBtn.className = 'btn-outline card-open-btn';
       openBtn.textContent = 'Open';
       openBtn.addEventListener('click', () => {
-        openInAppBrowser(app.url, app.name, app.mode);
+        openInAppBrowser(app.url, app.name);
       });
 
       card.appendChild(logoWrapper);
@@ -233,55 +233,15 @@ document.addEventListener('DOMContentLoaded', () => {
     return name.substring(0, 2).toUpperCase();
   }
 
-  // Native Standalone History Router & Multi-Engine Container Engine
+  // Native Standalone History Router & Edge Proxy Container Engine
   let isBrowserPanelActive = false;
-  let currentEngineMode = localStorage.getItem('nexora_preferred_engine') || 'CLIENT';
-  const browserEngineBtn = document.getElementById('browserEngineBtn');
 
-  function updateEngineBtnUI() {
-    if (!browserEngineBtn) return;
-    if (currentEngineMode === 'CLIENT') {
-      browserEngineBtn.textContent = '⚡ SW Engine';
-      browserEngineBtn.title = 'Engine: Client Service Worker Header Stripping Engine';
-      browserEngineBtn.style.color = '#10b981';
-      browserEngineBtn.style.borderColor = 'rgba(16, 185, 129, 0.4)';
-    } else if (currentEngineMode === 'DIRECT') {
-      browserEngineBtn.textContent = '🚀 Direct';
-      browserEngineBtn.title = 'Engine: Direct Bypass Mode';
-      browserEngineBtn.style.color = '#3b82f6';
-      browserEngineBtn.style.borderColor = 'rgba(59, 130, 246, 0.4)';
-    } else {
-      browserEngineBtn.textContent = '🛡️ Edge Proxy';
-      browserEngineBtn.title = 'Engine: Server Edge Proxy';
-      browserEngineBtn.style.color = '#a855f7';
-      browserEngineBtn.style.borderColor = 'rgba(168, 85, 247, 0.4)';
-    }
-  }
-
-  function loadContainerUrl(rawUrl) {
-    if (!rawUrl) return;
-    if (currentEngineMode === 'CLIENT') {
-      // Client Service Worker Header Stripping Engine
-      browserIframe.src = `/sw-proxy?url=${encodeURIComponent(rawUrl)}`;
-    } else if (currentEngineMode === 'PROXY') {
-      // Server Edge Proxy
-      browserIframe.src = `/proxy?url=${encodeURIComponent(rawUrl)}`;
-    } else {
-      // Direct Bypass
-      browserIframe.src = rawUrl;
-    }
-  }
-
-  function openInAppBrowser(rawUrl, appName, appMode) {
+  function openInAppBrowser(rawUrl, appName) {
     if (!rawUrl) return;
     if (!/^https?:\/\//i.test(rawUrl)) {
       rawUrl = 'https://' + rawUrl;
     }
     currentTargetUrl = rawUrl;
-
-    if (appMode === 'CLIENT' || appMode === 'DIRECT' || appMode === 'PROXY') {
-      currentEngineMode = appMode;
-    }
 
     // Display platform title instead of link URL
     browserDomain.textContent = appName || 'Platform';
@@ -292,8 +252,9 @@ document.addEventListener('DOMContentLoaded', () => {
       browserDirectBtn.href = rawUrl;
     }
 
-    updateEngineBtnUI();
-    loadContainerUrl(rawUrl);
+    // Always route via Edge Proxy to strip X-Frame-Options: DENY headers
+    const proxyUrl = `/proxy?url=${encodeURIComponent(rawUrl)}`;
+    browserIframe.src = proxyUrl;
 
     browserPanel.classList.add('open');
     browserPanel.setAttribute('aria-hidden', 'false');
@@ -305,24 +266,6 @@ document.addEventListener('DOMContentLoaded', () => {
         history.pushState({ modal: 'browser', url: rawUrl }, '', '#view=platform');
       } catch (e) {}
     }
-  }
-
-  // Toggle Client SW vs Direct vs Edge Proxy Mode handler
-  if (browserEngineBtn) {
-    browserEngineBtn.addEventListener('click', () => {
-      if (currentEngineMode === 'CLIENT') {
-        currentEngineMode = 'DIRECT';
-      } else if (currentEngineMode === 'DIRECT') {
-        currentEngineMode = 'PROXY';
-      } else {
-        currentEngineMode = 'CLIENT';
-      }
-      localStorage.setItem('nexora_preferred_engine', currentEngineMode);
-      updateEngineBtnUI();
-      if (currentTargetUrl) {
-        loadContainerUrl(currentTargetUrl);
-      }
-    });
   }
 
   function closeBrowserPanel(triggerHistoryBack = true) {
