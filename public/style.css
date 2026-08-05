@@ -881,3 +881,239 @@ input:checked + .toggle-slider:before {
   flex-direction: column;
   gap: 10px;
 }
+
+/* Navigation & Header Links */
+.nav-menu {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-top: 1px solid var(--hairline);
+  border-bottom: 1px solid var(--hairline);
+  scrollbar-width: none;
+}
+
+.nav-link {
+  color: var(--ink-mute);
+  text-decoration: none;
+  font-size: 13px;
+  white-space: nowrap;
+  padding: 6px 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.nav-link:hover, .nav-link.active {
+  color: var(--ink);
+  background: var(--canvas-soft);
+  border: 1px solid var(--hairline);
+}
+
+/* Breadcrumb Navigation */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px 16px 8px 16px;
+  font-size: 12px;
+  color: var(--ink-mute);
+}
+
+.breadcrumb a {
+  color: var(--accent-orange);
+  text-decoration: none;
+}
+
+.breadcrumb span {
+  color: var(--ink-mute);
+}
+
+/* Legal Page Content Styling */
+.page-container {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.content-card {
+  background: var(--canvas-card);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.content-card h2 {
+  font-size: 18px;
+  color: #ffffff;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.content-card h3 {
+  font-size: 15px;
+  color: #ffffff;
+  margin-top: 10px;
+}
+
+.content-card p {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-body);
+}
+
+.content-card ul, .content-card ol {
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  color: var(--ink-body);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Form Styling for Contact Us */
+.form-card {
+  background: var(--canvas-card);
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.form-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--ink-body);
+}
+
+.form-input, .form-textarea {
+  width: 100%;
+  background: var(--canvas-soft);
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  color: var(--ink);
+  padding: 12px 16px;
+  font-size: 14px;
+  transition: border-color 0.2s;
+}
+
+.form-input:focus, .form-textarea:focus {
+  border-color: var(--accent-orange);
+}
+
+.form-textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+/* FAQ Items */
+.faq-item {
+  background: var(--canvas-card);
+  border: 1px solid var(--hairline);
+  border-radius: 12px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: border-color 0.2s ease;
+}
+
+.faq-item:hover {
+  border-color: rgba(255, 122, 23, 0.4);
+}
+
+.faq-question {
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.faq-answer {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-body);
+  padding-left: 28px;
+}
+
+/* Footer Section */
+.site-footer {
+  margin-top: 40px;
+  background: #111215;
+  border-top: 1px solid var(--hairline);
+  padding: 24px 16px 32px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.footer-desc {
+  font-size: 13px;
+  color: var(--ink-mute);
+  line-height: 1.5;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 16px;
+}
+
+.footer-col-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--ink-mute);
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+}
+
+.footer-links {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.footer-links a {
+  color: var(--ink-body);
+  text-decoration: none;
+  font-size: 13px;
+  transition: color 0.2s ease;
+}
+
+.footer-links a:hover {
+  color: var(--accent-orange);
+}
+
+.footer-bottom {
+  border-top: 1px solid var(--hairline);
+  padding-top: 16px;
+  font-size: 12px;
+  color: var(--ink-mute);
+  text-align: center;
+}

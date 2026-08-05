@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Contact Us | NEXORA Educational Portal</title>
+  <meta name="description" content="Get in touch with NEXORA support team. Send your inquiries, feedback, or portal listing requests. We respond within 24-48 hours.">
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5451638891460185" crossorigin="anonymous"></script>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="/style.css">
+  <meta name="theme-color" content="#0a0a0a">
+
+  <!-- Schema.org Structured Data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ContactPage",
+    "name": "Contact NEXORA Support",
+    "description": "Contact form and official support channels for NEXORA Educational Platform.",
+    "url": "https://nexora.pages.dev/contact.html",
+    "mainEntity": {
+      "@type": "Organization",
+      "name": "NEXORA",
+      "email": "support@nexora.pages.dev"
+    }
+  }
+  </script>
+</head>
+<body>
+  <div class="mobile-wrapper">
+    <div class="app-container">
+      <!-- TOP BAR HEADER -->
+      <header class="top-bar" style="display: flex; align-items: center; justify-content: space-between;">
+        <div class="brand-header-group">
+          <a href="/" style="text-decoration: none; display: flex; align-items: center; gap: 10px;">
+            <svg class="brand-header-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="contactHdrGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#ff7a17" />
+                  <stop offset="100%" stop-color="#a855f7" />
+                </linearGradient>
+              </defs>
+              <rect x="10" y="10" width="80" height="80" rx="22" fill="#16181d" stroke="url(#contactHdrGrad)" stroke-width="4"/>
+              <path d="M32 68V32L54 56V32M68 32V68L46 44V68" stroke="url(#contactHdrGrad)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div>
+              <h1 class="app-title" style="font-size: 20px;">NEXORA</h1>
+              <div class="eyebrow">EDUCATIONAL HUB</div>
+            </div>
+          </a>
+        </div>
+        <a href="/admin.html" class="btn-outline btn-sm">Admin</a>
+      </header>
+
+      <!-- NAVIGATION MENU -->
+      <nav class="nav-menu">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/about.html" class="nav-link">About Us</a>
+        <a href="/contact.html" class="nav-link active">Contact</a>
+        <a href="/faq.html" class="nav-link">FAQ</a>
+        <a href="/privacy.html" class="nav-link">Privacy Policy</a>
+        <a href="/terms.html" class="nav-link">Terms</a>
+        <a href="/disclaimer.html" class="nav-link">Disclaimer</a>
+      </nav>
+
+      <!-- BREADCRUMB -->
+      <div class="breadcrumb">
+        <a href="/">Home</a>
+        <span>/</span>
+        <span>Contact Us</span>
+      </div>
+
+      <!-- HERO BANNER -->
+      <section class="landing-hero" style="margin-bottom: 20px;">
+        <div class="hero-badge">
+          <span class="hero-badge-dot"></span>
+          <span>GET IN TOUCH</span>
+        </div>
+        <h1 class="hero-headline">We're Here to Help You</h1>
+        <p class="hero-subtext">Have a question, feedback, or platform suggestion? Fill out the contact form below or reach us via official channels.</p>
+      </section>
+
+      <!-- MAIN PAGE CONTENT -->
+      <main class="page-container">
+        <!-- CONTACT INFO CARD -->
+        <div class="content-card">
+          <h2>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ff7a17" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Direct Contact Information
+          </h2>
+          <p><strong>Official Email:</strong> <a href="mailto:support@nexora.pages.dev" style="color: var(--accent-orange); text-decoration: none;">support@nexora.pages.dev</a></p>
+          <p><strong>Expected Response Time:</strong> 24 to 48 hours (Monday to Saturday).</p>
+          <p><strong>Office Hours:</strong> 09:00 AM – 06:00 PM (IST)</p>
+        </div>
+
+        <!-- CONTACT FORM -->
+        <form class="form-card" id="contactForm" onsubmit="event.preventDefault(); handleFormSubmit();">
+          <h2>Send Us a Message</h2>
+          <div class="form-group">
+            <label class="form-label" for="userName">Full Name *</label>
+            <input type="text" id="userName" class="form-input" placeholder="e.g. Rahul Sharma" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="userEmail">Email Address *</label>
+            <input type="email" id="userEmail" class="form-input" placeholder="name@example.com" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="userSubject">Subject *</label>
+            <input type="text" id="userSubject" class="form-input" placeholder="e.g. Platform Suggestion / Issue Report" required>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="userMessage">Message *</label>
+            <textarea id="userMessage" class="form-textarea" placeholder="Type your detailed inquiry or feedback here..." required></textarea>
+          </div>
+          <button type="submit" class="btn-primary" style="height: 48px; font-weight: 600;">Send Message</button>
+          <div id="contactSuccessMsg" style="display: none; color: #10b981; font-size: 14px; text-align: center; margin-top: 8px;">
+            Thank you! Your message has been submitted. Our team will get back to you within 24-48 hours.
+          </div>
+        </form>
+
+        <!-- SOCIAL MEDIA SECTION -->
+        <div class="content-card">
+          <h2>Connect on Social Media</h2>
+          <p>Stay updated with our latest platform additions, exam news, and release updates:</p>
+          <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px;">
+            <a href="https://t.me" target="_blank" rel="noopener" class="btn-outline btn-sm">Telegram Channel</a>
+            <a href="https://twitter.com" target="_blank" rel="noopener" class="btn-outline btn-sm">Twitter / X</a>
+            <a href="https://youtube.com" target="_blank" rel="noopener" class="btn-outline btn-sm">YouTube</a>
+            <a href="https://linkedin.com" target="_blank" rel="noopener" class="btn-outline btn-sm">LinkedIn</a>
+          </div>
+        </div>
+
+        <!-- QUICK FAQ -->
+        <div class="content-card">
+          <h2>Frequently Asked Questions</h2>
+          <p>Have a common technical question? Check our comprehensive <a href="/faq.html" style="color: var(--accent-orange); text-decoration: none;">FAQ Page</a> for instant answers on platform access, account settings, and mock test features.</p>
+        </div>
+      </main>
+
+      <!-- FOOTER -->
+      <footer class="site-footer">
+        <div class="footer-brand">
+          <svg class="brand-header-logo" viewBox="0 0 100 100" fill="none" width="32" height="32">
+            <rect x="10" y="10" width="80" height="80" rx="22" fill="#16181d" stroke="#ff7a17" stroke-width="4"/>
+            <path d="M32 68V32L54 56V32M68 32V68L46 44V68" stroke="#ff7a17" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div>
+            <div style="font-weight: 600; color: #fff; font-size: 15px;">NEXORA</div>
+            <div class="eyebrow" style="font-size: 9px;">EDUCATIONAL HUB</div>
+          </div>
+        </div>
+        <p class="footer-desc">NEXORA is a modern educational portal providing direct access to study materials, exam prep, and verified learning tools.</p>
+        
+        <div class="footer-grid">
+          <div>
+            <div class="footer-col-title">Navigation</div>
+            <ul class="footer-links">
+              <li><a href="/">Home</a></li>
+              <li><a href="/about.html">About Us</a></li>
+              <li><a href="/contact.html">Contact Us</a></li>
+              <li><a href="/faq.html">FAQ</a></li>
+            </ul>
+          </div>
+          <div>
+            <div class="footer-col-title">Legal</div>
+            <ul class="footer-links">
+              <li><a href="/privacy.html">Privacy Policy</a></li>
+              <li><a href="/terms.html">Terms & Conditions</a></li>
+              <li><a href="/disclaimer.html">Disclaimer</a></li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="footer-bottom">
+          &copy; 2026 NEXORA Educational Hub. All rights reserved.
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script>
+    function handleFormSubmit() {
+      const msg = document.getElementById('contactSuccessMsg');
+      msg.style.display = 'block';
+      document.getElementById('contactForm').reset();
+      setTimeout(() => {
+        msg.style.display = 'none';
+      }, 6000);
+    }
+  </script>
+</body>
+</html>
