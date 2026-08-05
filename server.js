@@ -486,6 +486,21 @@ app.get('/proxy', async (req, res) => {
     });
   } catch(e) {}
 
+  // 2. Intercept window.open to keep popups inside iframe proxy
+  try {
+    var origWindowOpen = window.open;
+    window.open = function(url, target, features) {
+      if (url && typeof url === 'string') {
+        var fullUrl = new URL(url, window.location.href).href;
+        if (!fullUrl.includes(PROXY_PREFIX)) {
+          window.location.href = PROXY_PREFIX + encodeURIComponent(fullUrl);
+          return window;
+        }
+      }
+      return origWindowOpen ? origWindowOpen.apply(window, arguments) : null;
+    };
+  } catch(e) {}
+
   // 2. Polyfill History API (pushState & replaceState) for cross-origin SPA routing
   try {
     var origPushState = history.pushState;

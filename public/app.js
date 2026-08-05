@@ -14,7 +14,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const browserBackBtn = document.getElementById('browserBackBtn');
   const browserDomain = document.getElementById('browserDomain');
   const browserReloadBtn = document.getElementById('browserReloadBtn');
-  const browserDirectBtn = document.getElementById('browserDirectBtn');
   const browserIframe = document.getElementById('browserIframe');
 
   let currentTargetUrl = '';
@@ -194,19 +193,6 @@ document.addEventListener('DOMContentLoaded', () => {
       browserIframe.src = proxyUrl;
     }
   });
-
-  // Direct Open button handler
-  if (browserDirectBtn) {
-    browserDirectBtn.addEventListener('click', () => {
-      if (currentTargetUrl) {
-        let fullUrl = currentTargetUrl;
-        if (!/^https?:\/\//i.test(fullUrl)) {
-          fullUrl = 'https://' + fullUrl;
-        }
-        window.open(fullUrl, '_blank', 'noopener,noreferrer');
-      }
-    });
-  }
 
   // Register Service Worker
   if ('serviceWorker' in navigator) {
