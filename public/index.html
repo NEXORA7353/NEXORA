@@ -122,9 +122,12 @@
     <!-- SCREEN B — IN-APP BROWSER PANEL -->
     <div class="browser-panel" id="browserPanel" aria-hidden="true">
       <div class="browser-top-bar">
-        <button type="button" class="btn-outline browser-back-btn" id="browserBackBtn">Back</button>
+        <button type="button" class="btn-outline browser-back-btn" id="browserBackBtn">✕ Close</button>
         <div class="browser-domain" id="browserDomain">Platform</div>
-        <button type="button" class="btn-outline browser-reload-btn" id="browserReloadBtn">Reload</button>
+        <div class="browser-actions" style="display: flex; gap: 6px; align-items: center;">
+          <a class="btn-outline browser-direct-btn" id="browserDirectBtn" target="_blank" rel="noopener noreferrer" title="Open Direct in Browser Tab" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; padding: 6px 12px; font-size: 12px; font-weight: 600; color: #ff7a17; border-color: rgba(255, 122, 23, 0.4);">↗ Direct</a>
+          <button type="button" class="btn-outline browser-reload-btn" id="browserReloadBtn" title="Reload Frame">🔄</button>
+        </div>
       </div>
       <iframe id="browserIframe" class="browser-iframe" src="about:blank" title="In-App Browser"></iframe>
     </div>

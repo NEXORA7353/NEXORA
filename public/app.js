@@ -235,14 +235,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // In-App Browser Logic (Anti-Framebuster & X-Frame-Options Stripping Edge Proxy)
   function openInAppBrowser(rawUrl, appName) {
-    currentTargetUrl = rawUrl;
-
     if (rawUrl && !/^https?:\/\//i.test(rawUrl)) {
       rawUrl = 'https://' + rawUrl;
     }
+    currentTargetUrl = rawUrl;
 
     // Display platform title instead of link URL
     browserDomain.textContent = appName || 'Platform';
+
+    // Set direct browser tab link URL
+    const browserDirectBtn = document.getElementById('browserDirectBtn');
+    if (browserDirectBtn) {
+      browserDirectBtn.href = rawUrl;
+    }
 
     // Route via Edge Proxy to strip X-Frame-Options: DENY headers
     const proxyUrl = `/proxy?url=${encodeURIComponent(rawUrl)}`;
