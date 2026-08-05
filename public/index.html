@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>NEXORA — Educational Platform Launcher</title>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="/style.css">
+  <meta name="theme-color" content="#0a0a0a">
+  <meta name="description" content="Mobile-first educational platform launcher app.">
+</head>
+<body>
+  <div class="mobile-wrapper">
+    <div class="app-container" id="appGridScreen">
+      <!-- TOP BAR -->
+      <header class="top-bar">
+        <h1 class="app-title">NEXORA</h1>
+        <div class="eyebrow" style="margin-top: 4px;">EDUCATIONAL PLATFORMS</div>
+      </header>
+
+      <!-- SEARCH BAR -->
+      <div class="search-section">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search platforms..." autocomplete="off">
+      </div>
+
+      <!-- CATEGORY FILTER -->
+      <div class="category-tabs-container" id="categoryTabs">
+        <!-- Dynamic category tabs will be rendered here -->
+      </div>
+
+      <!-- SECTION HEADER -->
+      <div class="section-header">
+        <div class="eyebrow" id="sectionEyebrow">PLATFORMS</div>
+      </div>
+
+      <!-- PLATFORMS GRID -->
+      <main class="apps-grid" id="appsGrid">
+        <!-- Dynamic platform cards will be rendered here -->
+      </main>
+
+      <!-- EMPTY STATE -->
+      <div class="empty-state" id="emptyState" style="display: none;">
+        <div class="empty-title">No platforms configured</div>
+        <div class="empty-sub">Contact administrator</div>
+      </div>
+    </div>
+
+    <!-- SCREEN B — IN-APP BROWSER PANEL -->
+    <div class="browser-panel" id="browserPanel" aria-hidden="true">
+      <div class="browser-top-bar">
+        <button type="button" class="btn-outline browser-back-btn" id="browserBackBtn">Back</button>
+        <div class="browser-domain" id="browserDomain">platform.com</div>
+        <button type="button" class="btn-outline browser-reload-btn" id="browserReloadBtn">Reload</button>
+      </div>
+      <iframe id="browserIframe" class="browser-iframe" src="about:blank" title="In-App Browser"></iframe>
+    </div>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
