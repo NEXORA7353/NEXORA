@@ -313,6 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             return;
           }
+          trackLinkClick(app.name, link.title || app.name, link.url);
           window.location.href = link.url;
         });
 
@@ -533,6 +534,56 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!str) return '';
     return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
   }
+
+  // LINK CLICK TRACKING
+  function trackLinkClick(appName, linkTitle, linkUrl) {
+    try {
+      // 1. Local Storage tracking
+      const clicks = JSON.parse(localStorage.getItem('nexora_link_clicks') || '{}');
+      const key = linkUrl || appName;
+      clicks[key] = (clicks[key] || 0) + 1;
+      localStorage.setItem('nexora_link_clicks', JSON.stringify(clicks));
+
+      // 2. Server API tracking
+      fetch('/api/track-click', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appName, linkTitle, linkUrl, timestamp: new Date().toISOString() })
+      }).catch(() => {});
+    } catch (e) {}
+  }
+
+  // DARK / LIGHT THEME TOGGLE
+  const themeToggleBtn = document.getElementById('themeToggleBtn');
+  const themeSunIcon = document.getElementById('themeSunIcon');
+  const themeMoonIcon = document.getElementById('themeMoonIcon');
+
+  function initTheme() {
+    const savedTheme = localStorage.getItem('nexora_theme') || 'dark';
+    setTheme(savedTheme);
+  }
+
+  function setTheme(theme) {
+    if (theme === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+      if (themeSunIcon) themeSunIcon.style.display = 'block';
+      if (themeMoonIcon) themeMoonIcon.style.display = 'none';
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      if (themeSunIcon) themeSunIcon.style.display = 'none';
+      if (themeMoonIcon) themeMoonIcon.style.display = 'block';
+    }
+    localStorage.setItem('nexora_theme', theme);
+  }
+
+  if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+      setTheme(current === 'light' ? 'dark' : 'light');
+    });
+  }
+
+  initTheme();
 
   // Initial notification check
   loadNotifications();

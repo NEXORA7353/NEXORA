@@ -307,7 +307,61 @@ async function writeFeedback(data) {
   } catch (e) {}
 }
 
+// Click Analytics Storage
+const CLICKS_FILE = path.join(__dirname, 'data', 'clicks.json');
+let globalClicksStore = null;
+
+async function readClicks() {
+  if (globalClicksStore !== null) return globalClicksStore;
+  try {
+    if (fs.existsSync(CLICKS_FILE)) {
+      const content = fs.readFileSync(CLICKS_FILE, 'utf8');
+      globalClicksStore = JSON.parse(content || '{}');
+      return globalClicksStore;
+    }
+  } catch (e) {}
+  globalClicksStore = {};
+  return globalClicksStore;
+}
+
+async function writeClicks(data) {
+  globalClicksStore = data;
+  try {
+    const dir = path.dirname(CLICKS_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(CLICKS_FILE, JSON.stringify(data, null, 2), 'utf8');
+  } catch (e) {}
+}
+
 // API Routes
+app.get('/api/track-click', async (req, res) => {
+  const clicks = await readClicks();
+  res.json(clicks);
+});
+
+app.post('/api/track-click', async (req, res) => {
+  try {
+    const { appName, linkTitle, linkUrl } = req.body || {};
+    const key = linkUrl || appName || 'unknown';
+    const clicks = await readClicks();
+    if (!clicks[key]) {
+      clicks[key] = {
+        appName: appName || 'Platform',
+        linkTitle: linkTitle || 'Access Link',
+        url: linkUrl || '#',
+        count: 0,
+        lastClicked: new Date().toISOString()
+      };
+    }
+    clicks[key].count = (clicks[key].count || 0) + 1;
+    clicks[key].lastClicked = new Date().toISOString();
+    await writeClicks(clicks);
+    res.json({ success: true, count: clicks[key].count });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 app.get('/api/apps', async (req, res) => {
   const apps = await readApps();
   res.json(apps);

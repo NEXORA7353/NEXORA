@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Admin Console</title>
+  <title>Admin Console | NEXORA</title>
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5451638891460185"
      crossorigin="anonymous"></script>
   <link rel="manifest" href="/manifest.json">
@@ -61,45 +61,71 @@
             </div>
           </div>
           <div style="display: flex; gap: 8px; align-items: center;">
-            <a href="/" class="btn-outline btn-sm" id="backToAppBtn" style="text-decoration: none; display: inline-flex; align-items: center;">Launcher</a>
+            <button type="button" class="theme-toggle-btn" id="adminThemeToggleBtn" title="Toggle Theme">
+              <svg id="admSunIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+              <svg id="admMoonIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+            </button>
+            <a href="/" class="btn-outline btn-sm" id="backToAppBtn" style="text-decoration: none;">Launcher</a>
             <button type="button" class="btn-outline btn-sm" id="logoutBtn">Logout</button>
           </div>
         </div>
 
-        <!-- TELEGRAM POPUP CONFIGURATION SECTION -->
-        <section style="margin-bottom: 28px;">
-          <div class="eyebrow" style="margin-bottom: 12px;">TELEGRAM POPUP CONTROL</div>
-          <form id="telegramSettingsForm" class="admin-form">
-            <div class="form-group">
-              <div class="toggle-wrapper">
-                <span class="form-label">Enable Telegram Join Popup</span>
-                <label class="toggle-switch">
-                  <input type="checkbox" id="tgEnabled" checked>
-                  <span class="toggle-slider"></span>
-                </label>
-              </div>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="tgLink">Telegram Channel Link</label>
-              <input type="url" id="tgLink" class="admin-input" placeholder="https://t.me/your_channel" required>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="tgTitle">Popup Title</label>
-              <input type="text" id="tgTitle" class="admin-input" placeholder="Join Official Channel" required>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="tgMessage">Popup Message</label>
-              <input type="text" id="tgMessage" class="admin-input" placeholder="Join our channel for daily live class updates & direct links!" required>
-            </div>
-            <button type="submit" class="btn-primary" style="margin-top: 4px;">Save Telegram Settings</button>
-            <div id="tgStatusMsg" style="font-size: 12px; color: #10b981; display: none; margin-top: 4px;">Settings saved successfully!</div>
-          </form>
-        </section>
+        <!-- SIDEBAR / NAVIGATION TABS -->
+        <nav class="admin-tabs-nav">
+          <button type="button" class="admin-tab-btn active" data-tab="tab-overview">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Overview
+          </button>
+          <button type="button" class="admin-tab-btn" data-tab="tab-analytics">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Click Analytics
+          </button>
+          <button type="button" class="admin-tab-btn" data-tab="tab-feedback">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            User Feedback
+          </button>
+          <button type="button" class="admin-tab-btn" data-tab="tab-platforms">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Platforms
+          </button>
+          <button type="button" class="admin-tab-btn" data-tab="tab-telegram">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2L2 9.5l7.5 3L18 5.5l-6 8.5v5l3.5-3.5L20 18.5 21.5 2z"/></svg>
+            Telegram Popup
+          </button>
+        </nav>
 
-        <div class="hairline" style="margin-bottom: 28px;"></div>
+        <!-- TAB 1: OVERVIEW METRICS -->
+        <div class="tab-content" id="tab-overview">
+          <div class="eyebrow" style="margin-bottom: 12px;">SYSTEM METRICS OVERVIEW</div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 24px;">
+            <div class="content-card" style="padding: 16px;">
+              <div class="eyebrow">TOTAL PLATFORMS</div>
+              <div style="font-size: 28px; font-weight: 700; color: var(--accent-orange);" id="metricPlatformCount">0</div>
+            </div>
+            <div class="content-card" style="padding: 16px;">
+              <div class="eyebrow">TOTAL LINK CLICKS</div>
+              <div style="font-size: 28px; font-weight: 700; color: #10b981;" id="metricClickCount">0</div>
+            </div>
+            <div class="content-card" style="padding: 16px;">
+              <div class="eyebrow">PENDING REPORTS</div>
+              <div style="font-size: 28px; font-weight: 700; color: #a855f7;" id="metricPendingCount">0</div>
+            </div>
+          </div>
+        </div>
 
-        <!-- USER FEEDBACK & REPORTS MANAGEMENT SECTION -->
-        <section style="margin-bottom: 32px;">
+        <!-- TAB 2: LINK CLICK ANALYTICS -->
+        <div class="tab-content" id="tab-analytics" style="display: none;">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <div class="eyebrow">LINK CLICK ANALYTICS BY PLATFORM</div>
+            <button type="button" class="btn-outline btn-sm" id="refreshAnalyticsBtn">Refresh Hits</button>
+          </div>
+          <div id="analyticsList" class="admin-list">
+            <!-- Click tracking stats rendered here -->
+          </div>
+        </div>
+
+        <!-- TAB 3: USER FEEDBACK & REPORTS -->
+        <div class="tab-content" id="tab-feedback" style="display: none;">
           <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
             <div class="eyebrow">USER FEEDBACK & REPORTED ISSUES</div>
             <div class="mono" style="font-size: 12px; color: var(--ink-mute);" id="feedbackCount">0 submissions</div>
@@ -107,67 +133,100 @@
           <div id="adminFeedbackList" class="admin-list">
             <!-- Feedback cards rendered here -->
           </div>
-        </section>
+        </div>
 
-        <div class="hairline" style="margin-bottom: 28px;"></div>
-
-        <!-- ADD PLATFORM FORM -->
-        <section style="margin-bottom: 32px;">
-          <div class="eyebrow" style="margin-bottom: 12px;">ADD NEW PLATFORM</div>
-          <form id="addPlatformForm" class="admin-form">
-            <div class="form-group">
-              <label class="form-label" for="appName">Platform Main Name</label>
-              <input type="text" id="appName" class="admin-input" placeholder="e.g. Physics Wallah" required>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="appLogo">Logo URL</label>
-              <input type="url" id="appLogo" class="admin-input" placeholder="https://example.com/logo.png">
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="appCategory">Category</label>
-              <input type="text" id="appCategory" class="admin-input" placeholder="e.g. Live Class" required>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="appOrder">Display Order</label>
-              <input type="number" id="appOrder" class="admin-input" placeholder="1" value="1" min="1" required>
-            </div>
-            <div class="form-group">
-              <div class="toggle-wrapper">
-                <span class="form-label">Featured Platform</span>
-                <label class="toggle-switch">
-                  <input type="checkbox" id="appFeatured">
-                  <span class="toggle-slider"></span>
-                </label>
+        <!-- TAB 4: PLATFORMS MANAGER -->
+        <div class="tab-content" id="tab-platforms" style="display: none;">
+          <!-- ADD PLATFORM FORM -->
+          <section style="margin-bottom: 32px;">
+            <div class="eyebrow" style="margin-bottom: 12px;">ADD NEW PLATFORM</div>
+            <form id="addPlatformForm" class="admin-form">
+              <div class="form-group">
+                <label class="form-label" for="appName">Platform Main Name</label>
+                <input type="text" id="appName" class="admin-input" placeholder="e.g. Physics Wallah" required>
               </div>
-            </div>
-
-            <!-- PLATFORM LINKS BUILDER -->
-            <div class="form-group" style="margin-top: 8px;">
-              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                <label class="form-label">Platform Links</label>
-                <button type="button" class="btn-outline btn-sm" id="addLinkBtn">+ Add Link</button>
+              <div class="form-group">
+                <label class="form-label" for="appLogo">Logo URL</label>
+                <input type="url" id="appLogo" class="admin-input" placeholder="https://example.com/logo.png">
               </div>
-              <div id="linksBuilderList" style="display: flex; flex-direction: column; gap: 12px;">
-                <!-- Links items rendered here -->
+              <div class="form-group">
+                <label class="form-label" for="appCategory">Category</label>
+                <input type="text" id="appCategory" class="admin-input" placeholder="e.g. Live Class" required>
               </div>
+              <div class="form-group">
+                <label class="form-label" for="appOrder">Display Order</label>
+                <input type="number" id="appOrder" class="admin-input" placeholder="1" value="1" min="1" required>
+              </div>
+              <div class="form-group">
+                <div class="toggle-wrapper">
+                  <span class="form-label">Featured Platform</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="appFeatured">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- PLATFORM LINKS BUILDER -->
+              <div class="form-group" style="margin-top: 8px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                  <label class="form-label">Platform Links</label>
+                  <button type="button" class="btn-outline btn-sm" id="addLinkBtn">+ Add Link</button>
+                </div>
+                <div id="linksBuilderList" style="display: flex; flex-direction: column; gap: 12px;">
+                  <!-- Links items rendered here -->
+                </div>
+              </div>
+
+              <button type="submit" class="btn-primary" style="margin-top: 8px;">Save Platform</button>
+            </form>
+          </section>
+
+          <div class="hairline" style="margin-bottom: 24px;"></div>
+
+          <!-- CONFIGURED PLATFORMS LIST -->
+          <section>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+              <div class="eyebrow">CONFIGURED PLATFORMS</div>
+              <div class="mono" style="font-size: 12px; color: var(--ink-mute);" id="platformCount">Platform count: 0</div>
             </div>
+            <div class="admin-list" id="adminList">
+              <!-- Configured platforms rendered here -->
+            </div>
+          </section>
+        </div>
 
-            <button type="submit" class="btn-primary" style="margin-top: 8px;">Save Platform</button>
-          </form>
-        </section>
-
-        <div class="hairline" style="margin-bottom: 24px;"></div>
-
-        <!-- CONFIGURED PLATFORMS LIST -->
-        <section>
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-            <div class="eyebrow">CONFIGURED PLATFORMS</div>
-            <div class="mono" style="font-size: 12px; color: var(--ink-mute);" id="platformCount">Platform count: 0</div>
-          </div>
-          <div class="admin-list" id="adminList">
-            <!-- Configured platforms rendered here -->
-          </div>
-        </section>
+        <!-- TAB 5: TELEGRAM POPUP SETTINGS -->
+        <div class="tab-content" id="tab-telegram" style="display: none;">
+          <section>
+            <div class="eyebrow" style="margin-bottom: 12px;">TELEGRAM POPUP CONTROL</div>
+            <form id="telegramSettingsForm" class="admin-form">
+              <div class="form-group">
+                <div class="toggle-wrapper">
+                  <span class="form-label">Enable Telegram Join Popup</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="tgEnabled" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="tgLink">Telegram Channel Link</label>
+                <input type="url" id="tgLink" class="admin-input" placeholder="https://t.me/your_channel" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="tgTitle">Popup Title</label>
+                <input type="text" id="tgTitle" class="admin-input" placeholder="Join Official Channel" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="tgMessage">Popup Message</label>
+                <input type="text" id="tgMessage" class="admin-input" placeholder="Join our channel for daily live class updates & direct links!" required>
+              </div>
+              <button type="submit" class="btn-primary" style="margin-top: 4px;">Save Telegram Settings</button>
+              <div id="tgStatusMsg" style="font-size: 12px; color: #10b981; display: none; margin-top: 4px;">Settings saved successfully!</div>
+            </form>
+          </section>
+        </div>
       </div>
     </div>
   </div>

@@ -65,8 +65,27 @@ document.addEventListener('DOMContentLoaded', () => {
     loadTelegramSettings();
     loadFeedback();
     loadPlatforms();
+    loadAnalytics();
     resetLinksBuilder();
+    initAdminTheme();
   }
+
+  // ADMIN TAB NAVIGATION
+  const tabBtns = document.querySelectorAll('.admin-tab-btn');
+  const tabContents = document.querySelectorAll('.tab-content');
+
+  tabBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const targetTab = btn.getAttribute('data-tab');
+      tabBtns.forEach(b => b.classList.remove('active'));
+      tabContents.forEach(c => c.style.display = 'none');
+      btn.classList.add('active');
+      const targetEl = document.getElementById(targetTab);
+      if (targetEl) targetEl.style.display = 'block';
+      if (targetTab === 'tab-analytics') loadAnalytics();
+      if (targetTab === 'tab-feedback') loadFeedback();
+    });
+  });
 
   // Upstash Direct Fallbacks
   async function fetchFromUpstash(key) {
@@ -650,4 +669,112 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (e) {}
   };
+
+  // LINK CLICK ANALYTICS & STATS METRICS
+  const analyticsList = document.getElementById('analyticsList');
+  const refreshAnalyticsBtn = document.getElementById('refreshAnalyticsBtn');
+  const metricPlatformCount = document.getElementById('metricPlatformCount');
+  const metricClickCount = document.getElementById('metricClickCount');
+  const metricPendingCount = document.getElementById('metricPendingCount');
+
+  if (refreshAnalyticsBtn) {
+    refreshAnalyticsBtn.addEventListener('click', () => loadAnalytics());
+  }
+
+  async function loadAnalytics() {
+    let clickData = {};
+    try {
+      const res = await fetch('/api/track-click', { cache: 'no-store' });
+      if (res.ok) {
+        clickData = await res.json();
+      }
+    } catch (e) {}
+
+    // Combine with local storage clicks
+    const localClicks = JSON.parse(localStorage.getItem('nexora_link_clicks') || '{}');
+    Object.keys(localClicks).forEach(k => {
+      if (!clickData[k]) {
+        clickData[k] = { appName: k, linkTitle: 'Access Link', url: k, count: localClicks[k], lastClicked: new Date().toISOString() };
+      }
+    });
+
+    renderAnalytics(clickData);
+    updateMetrics(clickData);
+  }
+
+  function renderAnalytics(clickData) {
+    if (!analyticsList) return;
+    analyticsList.innerHTML = '';
+
+    const items = Object.values(clickData).sort((a, b) => (b.count || 0) - (a.count || 0));
+
+    if (items.length === 0) {
+      analyticsList.innerHTML = `
+        <div style="text-align: center; color: var(--ink-mute); padding: 20px; font-size: 13px; background: var(--canvas-card); border-radius: 12px; border: 1px solid var(--hairline);">
+          No link clicks tracked yet. Clicks will appear here in real-time as users open platforms.
+        </div>`;
+      return;
+    }
+
+    items.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'admin-item-card';
+      card.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div style="font-size: 15px; font-weight: 600; color: #fff;">${escapeHtml(item.appName || item.linkTitle || 'Platform Link')}</div>
+          <span style="font-size: 14px; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.15); padding: 4px 10px; border-radius: 999px;">
+            ${item.count || 0} CLICKS
+          </span>
+        </div>
+        <div style="font-size: 12px; color: var(--ink-mute); word-break: break-all;">URL: ${escapeHtml(item.url || '#')}</div>
+        ${item.lastClicked ? `<div style="font-size: 11px; color: var(--ink-mute);">Last Clicked: ${new Date(item.lastClicked).toLocaleString()}</div>` : ''}
+      `;
+      analyticsList.appendChild(card);
+    });
+  }
+
+  function updateMetrics(clickData) {
+    if (metricPlatformCount) metricPlatformCount.textContent = platforms ? platforms.length : 0;
+    
+    let totalClicks = 0;
+    if (clickData) {
+      Object.values(clickData).forEach(v => {
+        totalClicks += (v.count || 0);
+      });
+    }
+    if (metricClickCount) metricClickCount.textContent = totalClicks;
+
+    const pending = (feedbackItems || []).filter(f => f.status === 'PENDING').length;
+    if (metricPendingCount) metricPendingCount.textContent = pending;
+  }
+
+  // ADMIN THEME TOGGLE
+  const adminThemeToggleBtn = document.getElementById('adminThemeToggleBtn');
+  const admSunIcon = document.getElementById('admSunIcon');
+  const admMoonIcon = document.getElementById('admMoonIcon');
+
+  function initAdminTheme() {
+    const saved = localStorage.getItem('nexora_theme') || 'dark';
+    setAdminTheme(saved);
+  }
+
+  function setAdminTheme(theme) {
+    if (theme === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+      if (admSunIcon) admSunIcon.style.display = 'block';
+      if (admMoonIcon) admMoonIcon.style.display = 'none';
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+      if (admSunIcon) admSunIcon.style.display = 'none';
+      if (admMoonIcon) admMoonIcon.style.display = 'block';
+    }
+    localStorage.setItem('nexora_theme', theme);
+  }
+
+  if (adminThemeToggleBtn) {
+    adminThemeToggleBtn.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+      setAdminTheme(current === 'light' ? 'dark' : 'light');
+    });
+  }
 });

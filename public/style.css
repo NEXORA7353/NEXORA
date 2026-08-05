@@ -12,6 +12,18 @@
   --accent-violet: #7c3aed;
 }
 
+[data-theme="light"] {
+  --canvas:        #f4f5f8;
+  --canvas-soft:   #ffffff;
+  --canvas-card:   #ffffff;
+  --hairline:      #e2e8f0;
+  --ink:           #0f172a;
+  --ink-body:      #334155;
+  --ink-mute:      #64748b;
+  --accent-orange: #ea580c;
+  --accent-violet: #7c3aed;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -1194,4 +1206,57 @@ input:checked + .toggle-slider:before {
 .notif-type-badge.question {
   background: rgba(168, 85, 247, 0.15);
   color: #a855f7;
+}
+
+/* Theme Toggle Button */
+.theme-toggle-btn {
+  background: var(--canvas-soft);
+  border: 1px solid var(--hairline);
+  color: var(--ink);
+  border-radius: 9999px;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.theme-toggle-btn:hover {
+  border-color: var(--accent-orange);
+  color: var(--accent-orange);
+}
+
+/* Admin Sidebar Layout */
+.admin-tabs-nav {
+  display: flex;
+  overflow-x: auto;
+  gap: 8px;
+  padding-bottom: 12px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--hairline);
+  scrollbar-width: none;
+}
+
+.admin-tab-btn {
+  background: var(--canvas-card);
+  border: 1px solid var(--hairline);
+  color: var(--ink-mute);
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.admin-tab-btn:hover, .admin-tab-btn.active {
+  color: var(--ink);
+  background: var(--canvas-soft);
+  border-color: var(--accent-orange);
 }
