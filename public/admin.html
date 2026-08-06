@@ -109,13 +109,21 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Platforms
           </button>
-          <button type="button" class="admin-tab-btn" data-tab="tab-backup">
+          <button type="button" class="admin-tab-btn" data-tab="tab-appdownloads">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            App Downloads
+          </button>
+          <button type="button" class="admin-tab-btn" data-tab="tab-backup">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/><path d="M14 9h4"/></svg>
             Backup & Restore
           </button>
           <button type="button" class="admin-tab-btn" data-tab="tab-telegram">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2L2 9.5l7.5 3L18 5.5l-6 8.5v5l3.5-3.5L20 18.5 21.5 2z"/></svg>
             Telegram Popup
+          </button>
+          <button type="button" class="admin-tab-btn" data-tab="tab-announcement">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            Announcement Broadcast
           </button>
         </nav>
 
@@ -360,18 +368,21 @@
               <div id="tgStatusMsg" style="display: none; color: #10b981; font-size: 13px;">Saved successfully!</div>
             </form>
           </section>
+        </div>
 
-          <div class="hairline" style="margin: 24px 0;"></div>
-
-          <!-- ANDROID APK & WINDOWS EXE DOWNLOAD MANAGER -->
+        <!-- TAB: APP DOWNLOADS MANAGER -->
+        <div class="tab-content" id="tab-appdownloads" style="display: none;">
           <section>
-            <div class="eyebrow" style="margin-bottom: 12px;">📱 ANDROID APK & 💻 WINDOWS EXE DOWNLOAD MANAGER</div>
+            <div class="eyebrow" style="margin-bottom: 12px;">ANDROID APK & WINDOWS EXE DOWNLOAD MANAGER</div>
             <form id="appDownloadSettingsForm" class="admin-form">
               <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
                 <!-- ANDROID APK SECTION -->
                 <div style="background: var(--canvas-soft); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px;">
                   <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                    <div style="font-weight: 700; color: #10b981; font-size: 15px;">🤖 Android App (.apk)</div>
+                    <div style="font-weight: 700; color: #10b981; font-size: 15px; display: inline-flex; align-items: center; gap: 6px;">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                      <span>Android App (.apk)</span>
+                    </div>
                     <label class="toggle-switch">
                       <input type="checkbox" id="apkEnabled" checked>
                       <span class="toggle-slider"></span>
@@ -395,7 +406,10 @@
                 <!-- WINDOWS EXE SECTION -->
                 <div style="background: var(--canvas-soft); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px;">
                   <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                    <div style="font-weight: 700; color: #a855f7; font-size: 15px;">💻 Windows App (.exe)</div>
+                    <div style="font-weight: 700; color: #a855f7; font-size: 15px; display: inline-flex; align-items: center; gap: 6px;">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                      <span>Windows App (.exe)</span>
+                    </div>
                     <label class="toggle-switch">
                       <input type="checkbox" id="exeEnabled" checked>
                       <span class="toggle-slider"></span>
@@ -417,36 +431,68 @@
                 </div>
               </div>
 
-              <button type="submit" class="btn-primary" style="height: 44px; font-weight: 700; width: 100%;">💾 Save App Download Settings</button>
+              <button type="submit" class="btn-primary" style="height: 44px; font-weight: 700; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                <span>Save App Download Settings</span>
+              </button>
               <div id="appDownloadStatusMsg" style="display: none; color: #10b981; font-size: 13px; margin-top: 8px; font-weight: 700;">App Download Links Updated Live!</div>
             </form>
           </section>
+        </div>
 
-          <div class="hairline" style="margin: 24px 0;"></div>
-
-          <!-- ANNOUNCEMENT BROADCAST CONTROL -->
+        <!-- TAB: ANNOUNCEMENT BROADCAST MANAGER -->
+        <div class="tab-content" id="tab-announcement" style="display: none;">
           <section>
-            <div class="eyebrow" style="margin-bottom: 12px;">ANNOUNCEMENT TICKER BROADCAST</div>
+            <div class="eyebrow" style="margin-bottom: 12px;">ANNOUNCEMENT TICKER & POPUP BANNER BROADCAST</div>
             <form id="announcementForm" class="admin-form">
-              <div class="form-group full-width">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
                 <div class="toggle-wrapper" style="padding: 12px 16px; background: var(--canvas-soft); border: 1px solid var(--hairline); border-radius: 12px;">
-                  <span class="form-label" style="margin: 0;">Show Live Announcement Ticker Bar</span>
+                  <span class="form-label" style="margin: 0;">Show Live Ticker Bar</span>
                   <label class="toggle-switch">
                     <input type="checkbox" id="announcementEnabled">
                     <span class="toggle-slider"></span>
                   </label>
                 </div>
+                <div class="toggle-wrapper" style="padding: 12px 16px; background: var(--canvas-soft); border: 1px solid var(--hairline); border-radius: 12px;">
+                  <span class="form-label" style="margin: 0;">Show Announcement Popup Modal</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="announcementPopupEnabled">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
               </div>
+
+              <div class="form-group full-width" style="margin-bottom: 12px;">
+                <label class="form-label" for="announcementTitle">Announcement Header Title</label>
+                <input type="text" id="announcementTitle" class="admin-input" placeholder="e.g. 🔥 Mega Platform Updates Live!">
+              </div>
+
+              <div class="form-group full-width" style="margin-bottom: 12px;">
+                <label class="form-label" for="announcementText">Announcement Message Body / Ticker Text</label>
+                <input type="text" id="announcementText" class="admin-input" placeholder="e.g. New Live Class portals and verified batch access links updated!">
+              </div>
+
+              <div class="form-group full-width" style="margin-bottom: 12px;">
+                <label class="form-label" for="announcementImageUrl">Announcement Banner Image (URL OR Upload)</label>
+                <input type="text" id="announcementImageUrl" class="admin-input" placeholder="https://example.com/banner.png or Upload below">
+                <input type="file" id="announcementImageFile" accept="image/*" class="admin-input" style="margin-top: 6px; padding: 6px; font-size: 11px;">
+              </div>
+
+              <div class="form-group full-width" style="margin-bottom: 16px;">
+                <label class="form-label" for="announcementActionUrl">Action Button Link (Optional)</label>
+                <input type="url" id="announcementActionUrl" class="admin-input" placeholder="https://t.me/channel or custom link">
+              </div>
+
               <div class="form-group full-width">
-                <label class="form-label" for="announcementText">Ticker Announcement Message</label>
-                <input type="text" id="announcementText" class="admin-input" placeholder="e.g. Live updates and batch portal links configured!">
+                <button type="submit" class="btn-primary" style="height: 44px; font-weight: 700; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+                  <span>Broadcast Announcement & Popup</span>
+                </button>
               </div>
-              <div class="form-group full-width">
-                <button type="submit" class="btn-primary" style="height: 44px; font-weight: 600;">Save Announcement</button>
-              </div>
-              <div id="announcementStatusMsg" style="display: none; color: #10b981; font-size: 13px;">Saved successfully!</div>
+              <div id="announcementStatusMsg" style="display: none; color: #10b981; font-size: 13px; font-weight: 700; margin-top: 6px;">Saved & Broadcasted Live!</div>
             </form>
           </section>
+        </div>
         </div>
       </div>
     </div>

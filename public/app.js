@@ -265,6 +265,57 @@ document.addEventListener('DOMContentLoaded', () => {
     if (appSettings && appSettings.announcementEnabled && appSettings.announcementText) {
       if (tickerText) tickerText.textContent = appSettings.announcementText;
       if (tickerBar) tickerBar.style.display = 'flex';
+    } else {
+      if (tickerBar) tickerBar.style.display = 'none';
+    }
+
+    // ANNOUNCEMENT POPUP MODAL LOGIC
+    if (appSettings && appSettings.announcementPopupEnabled) {
+      const popupModal = document.getElementById('announcementPopupModal');
+      const popupModalClose = document.getElementById('announcementPopupModalClose');
+      const popupDismissBtn = document.getElementById('announcementPopupDismissBtn');
+      const popupTitle = document.getElementById('announcementPopupTitle');
+      const popupMsg = document.getElementById('announcementPopupMsg');
+      const bannerContainer = document.getElementById('announcementBannerContainer');
+      const bannerImg = document.getElementById('announcementBannerImg');
+      const actionBtn = document.getElementById('announcementPopupActionBtn');
+
+      if (popupTitle) popupTitle.textContent = appSettings.announcementTitle || 'Mega Platform Announcement';
+      if (popupMsg) popupMsg.textContent = appSettings.announcementText || 'Check out live platform updates!';
+
+      if (appSettings.announcementImageUrl) {
+        if (bannerImg) bannerImg.src = appSettings.announcementImageUrl;
+        if (bannerContainer) bannerContainer.style.display = 'block';
+      } else {
+        if (bannerContainer) bannerContainer.style.display = 'none';
+      }
+
+      if (appSettings.announcementActionUrl) {
+        if (actionBtn) {
+          actionBtn.href = appSettings.announcementActionUrl;
+          actionBtn.style.display = 'inline-flex';
+        }
+      } else {
+        if (actionBtn) actionBtn.style.display = 'none';
+      }
+
+      const hasDismissed = sessionStorage.getItem('nexora_popup_dismissed') === 'true';
+      if (!hasDismissed && popupModal) {
+        popupModal.style.display = 'flex';
+      }
+
+      const closePopup = () => {
+        if (popupModal) popupModal.style.display = 'none';
+        sessionStorage.setItem('nexora_popup_dismissed', 'true');
+      };
+
+      if (popupModalClose) popupModalClose.onclick = closePopup;
+      if (popupDismissBtn) popupDismissBtn.onclick = closePopup;
+      if (popupModal) {
+        popupModal.onclick = (e) => {
+          if (e.target === popupModal) closePopup();
+        };
+      }
     }
   }
 

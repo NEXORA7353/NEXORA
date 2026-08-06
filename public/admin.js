@@ -303,13 +303,41 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const annForm = document.getElementById('announcementForm');
+  const annEnabled = document.getElementById('announcementEnabled');
+  const annPopupEnabled = document.getElementById('announcementPopupEnabled');
+  const annTitle = document.getElementById('announcementTitle');
+  const annText = document.getElementById('announcementText');
+  const annImageUrl = document.getElementById('announcementImageUrl');
+  const annImageFile = document.getElementById('announcementImageFile');
+  const annActionUrl = document.getElementById('announcementActionUrl');
+  const annStatusMsg = document.getElementById('announcementStatusMsg');
+
+  if (annImageFile) {
+    annImageFile.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        if (annImageUrl) annImageUrl.value = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
   function applyTelegramFields(data) {
+    if (!data) return;
     if (tgEnabled) tgEnabled.checked = data.telegramEnabled !== false;
     if (tgLink) tgLink.value = data.telegramLink || '';
     if (tgTitle) tgTitle.value = data.telegramTitle || '';
     if (tgMessage) tgMessage.value = data.telegramMessage || '';
+
     if (annEnabled) annEnabled.checked = !!data.announcementEnabled;
+    if (annPopupEnabled) annPopupEnabled.checked = !!data.announcementPopupEnabled;
+    if (annTitle) annTitle.value = data.announcementTitle || '';
     if (annText) annText.value = data.announcementText || '';
+    if (annImageUrl) annImageUrl.value = data.announcementImageUrl || '';
+    if (annActionUrl) annActionUrl.value = data.announcementActionUrl || '';
   }
 
   if (annForm) {
@@ -318,14 +346,22 @@ document.addEventListener('DOMContentLoaded', () => {
       const currentSettings = (await fetchFromUpstash('nexora_settings')) || {};
       const updated = {
         ...currentSettings,
-        announcementEnabled: annEnabled.checked,
-        announcementText: annText.value.trim()
+        announcementEnabled: annEnabled ? annEnabled.checked : false,
+        announcementPopupEnabled: annPopupEnabled ? annPopupEnabled.checked : false,
+        announcementTitle: annTitle ? annTitle.value.trim() : '',
+        announcementText: annText ? annText.value.trim() : '',
+        announcementImageUrl: annImageUrl ? annImageUrl.value.trim() : '',
+        announcementActionUrl: annActionUrl ? annActionUrl.value.trim() : ''
       };
+
       await saveToUpstash('nexora_settings', updated);
+      try { localStorage.setItem('nexora_settings', JSON.stringify(updated)); } catch (e) {}
+
       if (annStatusMsg) {
         annStatusMsg.style.display = 'block';
         setTimeout(() => { annStatusMsg.style.display = 'none'; }, 3000);
       }
+      alert('Announcement settings broadcasted live!');
     });
   }
 
