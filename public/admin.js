@@ -554,7 +554,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Persistence Engine
   async function savePlatforms(updatedPlatforms) {
-    platforms = sanitizePlatforms(updatedPlatforms);
+    let cloudApps = (await fetchFromUpstash('nexora_apps')) || [];
+    if (!Array.isArray(cloudApps) || cloudApps.length === 0) {
+      try {
+        const local = localStorage.getItem('nexora_apps');
+        if (local) cloudApps = JSON.parse(local);
+      } catch (e) {}
+    }
+
+    const validCloud = sanitizePlatforms(cloudApps);
+    const combined = [...updatedPlatforms, ...validCloud];
+    platforms = sanitizePlatforms(combined);
 
     // 1. Sync to Upstash Cloud Redis (Central Live Database)
     await saveToUpstash('nexora_apps', platforms);
@@ -566,15 +576,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     renderPlatformList();
     if (metricPlatformCount) metricPlatformCount.textContent = platforms.length;
-
-    // 3. API Sync
-    try {
-      await fetch('/api/apps', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(platforms)
-      });
-    } catch (e) {}
   }
 
   // Load platforms with Priority 1: Upstash Cloud Redis
