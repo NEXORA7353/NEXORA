@@ -116,12 +116,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function sanitizePlatforms(apps) {
     if (!Array.isArray(apps)) return [];
-    return apps.filter(a => {
-      if (!a || !a.name || typeof a.name !== 'string') return false;
-      const cleanName = a.name.trim().toLowerCase();
-      if (cleanName === '' || cleanName === 'new platform') return false;
-      return true;
+    const seenNames = new Set();
+    const cleanList = [];
+
+    for (const a of apps) {
+      if (!a || !a.name || typeof a.name !== 'string') continue;
+      const cleanName = a.name.trim();
+      const lowerName = cleanName.toLowerCase();
+      if (cleanName === '' || lowerName === 'new platform') continue;
+
+      if (!seenNames.has(lowerName)) {
+        seenNames.add(lowerName);
+        cleanList.push({
+          ...a,
+          name: cleanName
+        });
+      }
+    }
+
+    // Auto-assign sequential order ranking (1, 2, 3...) if missing or duplicated
+    const seenOrders = new Set();
+    cleanList.forEach((item, idx) => {
+      let ord = parseInt(item.order, 10);
+      if (!ord || isNaN(ord) || seenOrders.has(ord)) {
+        ord = idx + 1;
+      }
+      seenOrders.add(ord);
+      item.order = ord;
     });
+
+    return cleanList;
   }
 
   async function fetchApps() {

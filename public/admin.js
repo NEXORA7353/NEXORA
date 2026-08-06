@@ -495,12 +495,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function sanitizePlatforms(apps) {
     if (!Array.isArray(apps)) return [];
-    return apps.filter(a => {
-      if (!a || !a.name || typeof a.name !== 'string') return false;
-      const cleanName = a.name.trim().toLowerCase();
-      if (cleanName === '' || cleanName === 'new platform') return false;
-      return true;
+    const seenNames = new Set();
+    const cleanList = [];
+
+    for (const a of apps) {
+      if (!a || !a.name || typeof a.name !== 'string') continue;
+      const cleanName = a.name.trim();
+      const lowerName = cleanName.toLowerCase();
+      if (cleanName === '' || lowerName === 'new platform') continue;
+
+      if (!seenNames.has(lowerName)) {
+        seenNames.add(lowerName);
+        cleanList.push({
+          ...a,
+          name: cleanName
+        });
+      }
+    }
+
+    // Auto-assign sequential order ranking (1, 2, 3...) if missing or duplicated
+    const seenOrders = new Set();
+    cleanList.forEach((item, idx) => {
+      let ord = parseInt(item.order, 10);
+      if (!ord || isNaN(ord) || seenOrders.has(ord)) {
+        ord = idx + 1;
+      }
+      seenOrders.add(ord);
+      item.order = ord;
     });
+
+    return cleanList;
   }
 
   // Persistence Engine
@@ -849,15 +873,21 @@ document.addEventListener('DOMContentLoaded', () => {
       const nameVal = document.getElementById('appName').value.trim();
       if (!nameVal) return;
 
-      const newItem = {
-        id: 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+      const orderInput = document.getElementById('appOrder');
+      const orderVal = orderInput ? (parseInt(orderInput.value, 10) || (platforms.length + 1)) : (platforms.length + 1);
+
+      const existingIdx = platforms.findIndex(p => p.name.trim().toLowerCase() === nameVal.toLowerCase());
+
+      const itemData = {
+        id: existingIdx !== -1 ? platforms[existingIdx].id : ('id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5)),
         name: nameVal,
         logoUrl: document.getElementById('appLogo').value.trim(),
         logo: document.getElementById('appLogo').value.trim(),
         category: document.getElementById('appCategory').value.trim() || 'GENERAL',
+        order: orderVal,
         featured: document.getElementById('appFeatured').checked,
         badgeTag: document.getElementById('appBadgeTag') ? document.getElementById('appBadgeTag').value : 'NONE',
-        addedAt: new Date().toISOString(),
+        addedAt: existingIdx !== -1 ? (platforms[existingIdx].addedAt || new Date().toISOString()) : new Date().toISOString(),
         links: Array.isArray(tempLinks) && tempLinks.length > 0 ? JSON.parse(JSON.stringify(tempLinks)) : [
           {
             id: 'link_1',
@@ -870,15 +900,20 @@ document.addEventListener('DOMContentLoaded', () => {
         ]
       };
 
-      platforms.unshift(newItem);
+      if (existingIdx !== -1) {
+        platforms[existingIdx] = itemData;
+      } else {
+        platforms.push(itemData);
+      }
+
       await savePlatforms(platforms);
 
       addPlatformForm.reset();
       const appOrderEl = document.getElementById('appOrder');
-      if (appOrderEl) appOrderEl.value = 1;
+      if (appOrderEl) appOrderEl.value = platforms.length + 1;
       resetLinksBuilder();
 
-      alert(`Platform "${nameVal}" added successfully!`);
+      alert(existingIdx !== -1 ? `Platform "${nameVal}" updated successfully!` : `Platform "${nameVal}" added successfully!`);
     });
   }
 
