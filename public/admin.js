@@ -265,14 +265,33 @@ document.addEventListener('DOMContentLoaded', () => {
   if (presetSelect) {
     presetSelect.addEventListener('change', (e) => {
       const val = e.target.value;
-      if (val && PRESET_PLATFORMS[val]) {
+      if (!val) return;
+
+      const existing = platforms.find(p => p.id === val || (PRESET_PLATFORMS[val] && p.name.toLowerCase() === PRESET_PLATFORMS[val].name.toLowerCase()));
+      if (existing) {
+        document.getElementById('appName').value = existing.name;
+        document.getElementById('appCategory').value = existing.category || 'GENERAL';
+        document.getElementById('appLogo').value = existing.logoUrl || existing.logo || '';
+        document.getElementById('appOrder').value = existing.order || 1;
+        document.getElementById('appFeatured').checked = !!existing.featured;
+        
+        tempLinks = Array.isArray(existing.links) && existing.links.length > 0 
+          ? JSON.parse(JSON.stringify(existing.links)) 
+          : [
+              { id: 'link_1', title: existing.name + ' Main Access Portal', url: 'https://' + existing.name.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com', statusMode: 'online', keyRequirement: 'without_key', loginRequirement: 'login_not_required' }
+            ];
+        renderLinksBuilder();
+        return;
+      }
+
+      if (PRESET_PLATFORMS[val]) {
         const p = PRESET_PLATFORMS[val];
         document.getElementById('appName').value = p.name;
         document.getElementById('appCategory').value = p.category;
         document.getElementById('appLogo').value = p.logoUrl;
         tempLinks = [
-          { id: 'link_1', title: p.name + ' Main Portal', url: 'https://' + p.name.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com', statusMode: 'online', keyRequirement: 'without_key', loginRequirement: 'login_not_required' },
-          { id: 'link_2', title: p.name + ' Verified Batch Portal', url: 'https://' + p.name.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com/batches', statusMode: 'online', keyRequirement: 'with_key', loginRequirement: 'login_required' }
+          { id: 'link_1', title: p.name + ' Main Access Portal', url: 'https://' + p.name.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com', statusMode: 'online', keyRequirement: 'without_key', loginRequirement: 'login_not_required' },
+          { id: 'link_2', title: p.name + ' Premium Batch Portal', url: 'https://' + p.name.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com/batches', statusMode: 'online', keyRequirement: 'with_key', loginRequirement: 'login_required' }
         ];
         renderLinksBuilder();
       }

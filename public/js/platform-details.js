@@ -135,11 +135,15 @@ document.addEventListener('DOMContentLoaded', () => {
               <span class="status-badge checking" id="status_${link.id}" style="font-size: 13px; padding: 6px 14px; font-weight: 700;">
                 <span class="status-dot"></span><span class="status-lbl">Checking...</span>
               </span>
-              <span class="attr-badge ${link.keyRequirement === 'with_key' ? 'key-req' : ''}" style="font-size: 13px; padding: 6px 14px; font-weight: 700;">
-                ${link.keyRequirement === 'with_key' ? '🔐 Key Required' : '🔓 Without Key'}
+              <span class="attr-badge ${link.keyRequirement === 'with_key' ? 'key-req' : ''}" style="font-size: 13px; padding: 6px 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                ${link.keyRequirement === 'with_key' 
+                  ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span>Key Required</span>' 
+                  : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg><span>Without Key</span>'}
               </span>
-              <span class="attr-badge ${link.loginRequirement === 'login_required' ? 'login-req' : ''}" style="font-size: 13px; padding: 6px 14px; font-weight: 700;">
-                ${link.loginRequirement === 'login_required' ? '👤 Login Required' : '⚡ No Login'}
+              <span class="attr-badge ${link.loginRequirement === 'login_required' ? 'login-req' : ''}" style="font-size: 13px; padding: 6px 14px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+                ${link.loginRequirement === 'login_required' 
+                  ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg><span>Login Required</span>' 
+                  : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg><span>No Login</span>'}
               </span>
             </div>
           </div>

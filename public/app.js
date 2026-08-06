@@ -321,8 +321,9 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 14px; border-top: 1px solid var(--hairline);">
-          <span class="attr-badge" style="font-size: 12px; padding: 6px 12px; font-weight: 700; background: rgba(var(--accent-orange-rgb), 0.12); color: var(--accent-orange); border-color: rgba(var(--accent-orange-rgb), 0.3);">
-            ⚡ ${linksCount} ${linksCount === 1 ? 'Portal' : 'Portals & Batches'}
+          <span class="attr-badge" style="font-size: 12px; padding: 6px 12px; font-weight: 700; background: rgba(var(--accent-orange-rgb), 0.12); color: var(--accent-orange); border-color: rgba(var(--accent-orange-rgb), 0.3); display: inline-flex; align-items: center; gap: 6px;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span>${linksCount} ${linksCount === 1 ? 'Portal' : 'Portals & Batches'}</span>
           </span>
           <a href="/platform.html?id=${app.id}" class="link-access-btn" style="text-decoration: none; padding: 10px 18px; font-size: 13px; font-weight: 700;">
             <span>Open Platform</span>
