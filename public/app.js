@@ -120,16 +120,33 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
   }
 
+  function sanitizePlatforms(apps) {
+    if (!Array.isArray(apps)) return [];
+    return apps.filter(a => a && a.name && a.name.trim() !== '' && a.name.trim().toLowerCase() !== 'new platform');
+  }
+
   async function fetchApps() {
-    // 1. Try API
+    // Priority 1: Check Upstash Cloud Redis (Central Live Database)
+    const upstashApps = await fetchFromUpstash('nexora_apps');
+    const validUpstash = sanitizePlatforms(upstashApps);
+    if (validUpstash.length > 0) {
+      allApps = validUpstash;
+      try { localStorage.setItem('nexora_apps', JSON.stringify(allApps)); } catch (e) {}
+      renderCategoryTabs();
+      renderGrid();
+      return;
+    }
+
+    // Priority 2: Try Server API Endpoint
     try {
       const res = await fetch('/api/apps', { cache: 'no-store' });
       if (res.ok) {
         const resData = await res.json();
         if (resData && (Array.isArray(resData) || Array.isArray(resData.data))) {
-          const fetched = Array.isArray(resData) ? resData : (resData.data || []);
-          if (fetched.length > 0) {
-            allApps = fetched;
+          const rawApi = Array.isArray(resData) ? resData : (resData.data || []);
+          const validApi = sanitizePlatforms(rawApi);
+          if (validApi.length > 0) {
+            allApps = validApi;
             try { localStorage.setItem('nexora_apps', JSON.stringify(allApps)); } catch (e) {}
             renderCategoryTabs();
             renderGrid();
@@ -139,23 +156,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (e) {}
 
-    // 2. Try Upstash Cloud Redis
-    const upstashApps = await fetchFromUpstash('nexora_apps');
-    if (Array.isArray(upstashApps) && upstashApps.length > 0) {
-      allApps = upstashApps;
-      try { localStorage.setItem('nexora_apps', JSON.stringify(allApps)); } catch (e) {}
-      renderCategoryTabs();
-      renderGrid();
-      return;
-    }
-
-    // 3. Try LocalStorage
+    // Priority 3: Check LocalStorage Fallback
     try {
       const local = localStorage.getItem('nexora_apps');
       if (local) {
         const parsed = JSON.parse(local);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          allApps = parsed;
+        const validLocal = sanitizePlatforms(parsed);
+        if (validLocal.length > 0) {
+          allApps = validLocal;
           renderCategoryTabs();
           renderGrid();
           return;
@@ -163,7 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (e) {}
 
-    // 4. Default Pre-seeded Sample Platforms
+    // Priority 4: Default Pre-seeded Physics Wallah Platform
     allApps = getDefaultInitialPlatforms();
     try { localStorage.setItem('nexora_apps', JSON.stringify(allApps)); } catch (e) {}
     renderCategoryTabs();

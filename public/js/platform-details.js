@@ -29,34 +29,42 @@ document.addEventListener('DOMContentLoaded', () => {
     return null;
   }
 
+  function sanitizePlatforms(apps) {
+    if (!Array.isArray(apps)) return [];
+    return apps.filter(a => a && a.name && a.name.trim() !== '' && a.name.trim().toLowerCase() !== 'new platform');
+  }
+
   async function loadPlatformDetails() {
     let allApps = [];
 
-    // 1. Check API
-    try {
-      const res = await fetch('/api/apps', { cache: 'no-store' });
-      if (res.ok) {
-        const resData = await res.json();
-        if (resData && (Array.isArray(resData) || Array.isArray(resData.data))) {
-          allApps = Array.isArray(resData) ? resData : (resData.data || []);
-        }
-      }
-    } catch (e) {}
-
-    // 2. Check Upstash
-    if (allApps.length === 0) {
-      const upstashApps = await fetchFromUpstash('nexora_apps');
-      if (Array.isArray(upstashApps) && upstashApps.length > 0) {
-        allApps = upstashApps;
-      }
+    // Priority 1: Check Upstash Cloud Redis (Central Live Database)
+    const upstashApps = await fetchFromUpstash('nexora_apps');
+    const validUpstash = sanitizePlatforms(upstashApps);
+    if (validUpstash.length > 0) {
+      allApps = validUpstash;
+      try { localStorage.setItem('nexora_apps', JSON.stringify(allApps)); } catch (e) {}
     }
 
-    // 3. Check LocalStorage
+    // Priority 2: Check API Route
+    if (allApps.length === 0) {
+      try {
+        const res = await fetch('/api/apps', { cache: 'no-store' });
+        if (res.ok) {
+          const resData = await res.json();
+          if (resData && (Array.isArray(resData) || Array.isArray(resData.data))) {
+            const rawApi = Array.isArray(resData) ? resData : (resData.data || []);
+            allApps = sanitizePlatforms(rawApi);
+          }
+        }
+      } catch (e) {}
+    }
+
+    // Priority 3: Check LocalStorage
     if (allApps.length === 0) {
       try {
         const local = localStorage.getItem('nexora_apps');
         if (local) {
-          allApps = JSON.parse(local) || [];
+          allApps = sanitizePlatforms(JSON.parse(local));
         }
       } catch (e) {}
     }

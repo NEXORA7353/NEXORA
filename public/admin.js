@@ -314,11 +314,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  function sanitizePlatforms(apps) {
+    if (!Array.isArray(apps)) return [];
+    return apps.filter(a => a && a.name && a.name.trim() !== '' && a.name.trim().toLowerCase() !== 'new platform');
+  }
+
   // Persistence Engine
   async function savePlatforms(updatedPlatforms) {
-    platforms = updatedPlatforms;
+    platforms = sanitizePlatforms(updatedPlatforms);
 
-    // LocalStorage for instant non-blocking save
+    // 1. Sync to Upstash Cloud Redis (Central Live Database)
+    await saveToUpstash('nexora_apps', platforms);
+
+    // 2. LocalStorage for instant local fallback
     try {
       localStorage.setItem('nexora_apps', JSON.stringify(platforms));
     } catch (e) {}
@@ -326,7 +334,7 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPlatformList();
     if (metricPlatformCount) metricPlatformCount.textContent = platforms.length;
 
-    // API Sync
+    // 3. API Sync
     try {
       await fetch('/api/apps', {
         method: 'POST',
@@ -334,21 +342,30 @@ document.addEventListener('DOMContentLoaded', () => {
         body: JSON.stringify(platforms)
       });
     } catch (e) {}
-
-    // Upstash Sync
-    await saveToUpstash('nexora_apps', platforms);
   }
 
-  // Load platforms from API -> Upstash -> LocalStorage
+  // Load platforms with Priority 1: Upstash Cloud Redis
   async function loadPlatforms() {
+    // Priority 1: Upstash Cloud Redis
+    const upstashApps = await fetchFromUpstash('nexora_apps');
+    const validUpstash = sanitizePlatforms(upstashApps);
+    if (validUpstash.length > 0) {
+      platforms = validUpstash;
+      try { localStorage.setItem('nexora_apps', JSON.stringify(platforms)); } catch (e) {}
+      renderPlatformList();
+      return;
+    }
+
+    // Priority 2: API Route
     try {
       const res = await fetch('/api/apps', { cache: 'no-store' });
       if (res.ok) {
         const resData = await res.json();
         if (resData && (Array.isArray(resData) || Array.isArray(resData.data))) {
-          const fetched = Array.isArray(resData) ? resData : (resData.data || []);
-          if (fetched.length > 0) {
-            platforms = fetched;
+          const rawApi = Array.isArray(resData) ? resData : (resData.data || []);
+          const validApi = sanitizePlatforms(rawApi);
+          if (validApi.length > 0) {
+            platforms = validApi;
             try { localStorage.setItem('nexora_apps', JSON.stringify(platforms)); } catch (e) {}
             renderPlatformList();
             return;
@@ -357,20 +374,14 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (e) {}
 
-    const upstashApps = await fetchFromUpstash('nexora_apps');
-    if (Array.isArray(upstashApps) && upstashApps.length > 0) {
-      platforms = upstashApps;
-      try { localStorage.setItem('nexora_apps', JSON.stringify(platforms)); } catch (e) {}
-      renderPlatformList();
-      return;
-    }
-
+    // Priority 3: LocalStorage
     try {
       const local = localStorage.getItem('nexora_apps');
       if (local) {
         const parsed = JSON.parse(local);
-        if (Array.isArray(parsed)) {
-          platforms = parsed;
+        const validLocal = sanitizePlatforms(parsed);
+        if (validLocal.length > 0) {
+          platforms = validLocal;
           renderPlatformList();
           return;
         }
