@@ -243,7 +243,14 @@ document.addEventListener('DOMContentLoaded', () => {
     apkFileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
-      if (apkSize) apkSize.value = (file.size / (1024 * 1024)).toFixed(1) + ' MB';
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+      if (apkSize) apkSize.value = sizeMB + ' MB';
+
+      if (file.size > 2 * 1024 * 1024) {
+        alert(`Notice: File size is ${sizeMB} MB. To prevent browser memory crash (Out of Memory), please upload your .apk file to Google Drive, GitHub Releases, Telegram, or Catbox.moe and paste the direct download URL in the APK Download URL field!`);
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = (evt) => {
         if (apkUrl) apkUrl.value = evt.target.result;
@@ -256,7 +263,14 @@ document.addEventListener('DOMContentLoaded', () => {
     exeFileInput.addEventListener('change', (e) => {
       const file = e.target.files[0];
       if (!file) return;
-      if (exeSize) exeSize.value = (file.size / (1024 * 1024)).toFixed(1) + ' MB';
+      const sizeMB = (file.size / (1024 * 1024)).toFixed(1);
+      if (exeSize) exeSize.value = sizeMB + ' MB';
+
+      if (file.size > 2 * 1024 * 1024) {
+        alert(`Notice: File size is ${sizeMB} MB. To prevent browser memory crash (Out of Memory), please upload your .exe setup to Google Drive, GitHub Releases, Telegram, or Catbox.moe and paste the direct download URL in the EXE Download URL field!`);
+        return;
+      }
+
       const reader = new FileReader();
       reader.onload = (evt) => {
         if (exeUrl) exeUrl.value = evt.target.result;
