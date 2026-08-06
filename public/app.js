@@ -723,41 +723,39 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modalApkVersion) modalApkVersion.textContent = appDownloadData.apkVersion || 'v1.2.0';
     if (modalApkSize) modalApkSize.textContent = appDownloadData.apkSize || '24.5 MB';
     if (modalApkDownloadBtn) {
-      const targetUrl = appDownloadData.apkUrl && appDownloadData.apkUrl.trim() !== '#' ? appDownloadData.apkUrl.trim() : '';
-      if (targetUrl) {
-        modalApkDownloadBtn.href = targetUrl;
-        modalApkDownloadBtn.target = '_blank';
-        modalApkDownloadBtn.onclick = null;
-        if (targetUrl.startsWith('data:')) {
-          modalApkDownloadBtn.setAttribute('download', `nexora_${appDownloadData.apkVersion || 'app'}.apk`);
-        }
-      } else {
-        modalApkDownloadBtn.href = '#';
-        modalApkDownloadBtn.onclick = (e) => {
+      const targetUrl = appDownloadData.apkUrl && appDownloadData.apkUrl.trim() !== '#' ? appDownloadData.apkUrl.trim() : 'https://gofile.io/d/UNtAj9';
+      modalApkDownloadBtn.href = targetUrl;
+      modalApkDownloadBtn.target = '_blank';
+      modalApkDownloadBtn.onclick = (e) => {
+        if (targetUrl && targetUrl !== '#') {
+          window.open(targetUrl, '_blank');
+        } else {
           e.preventDefault();
           alert('Android APK download link has not been configured in Admin Console yet.');
-        };
+        }
+      };
+      if (targetUrl.startsWith('data:')) {
+        modalApkDownloadBtn.setAttribute('download', `nexora_${appDownloadData.apkVersion || 'app'}.apk`);
       }
     }
     if (androidModalCard) androidModalCard.style.display = appDownloadData.apkEnabled !== false ? 'flex' : 'none';
 
     if (modalExeVersion) modalExeVersion.textContent = appDownloadData.exeVersion || 'v1.0.0';
-    if (modalExeSize) modalExeSize.textContent = appDownloadData.exeSize || '48.2 MB';
+    if (modalExeSize) modalExeSize.textContent = appDownloadData.exeSize || '98.2 MB';
     if (modalExeDownloadBtn) {
-      const targetUrl = appDownloadData.exeUrl && appDownloadData.exeUrl.trim() !== '#' ? appDownloadData.exeUrl.trim() : '';
-      if (targetUrl) {
-        modalExeDownloadBtn.href = targetUrl;
-        modalExeDownloadBtn.target = '_blank';
-        modalExeDownloadBtn.onclick = null;
-        if (targetUrl.startsWith('data:')) {
-          modalExeDownloadBtn.setAttribute('download', `nexora_setup_${appDownloadData.exeVersion || 'app'}.exe`);
-        }
-      } else {
-        modalExeDownloadBtn.href = '#';
-        modalExeDownloadBtn.onclick = (e) => {
+      const targetUrl = appDownloadData.exeUrl && appDownloadData.exeUrl.trim() !== '#' ? appDownloadData.exeUrl.trim() : 'https://gofile.io/d/geE7fL';
+      modalExeDownloadBtn.href = targetUrl;
+      modalExeDownloadBtn.target = '_blank';
+      modalExeDownloadBtn.onclick = (e) => {
+        if (targetUrl && targetUrl !== '#') {
+          window.open(targetUrl, '_blank');
+        } else {
           e.preventDefault();
           alert('Windows EXE download link has not been configured in Admin Console yet.');
-        };
+        }
+      };
+      if (targetUrl.startsWith('data:')) {
+        modalExeDownloadBtn.setAttribute('download', `nexora_setup_${appDownloadData.exeVersion || 'app'}.exe`);
       }
     }
     if (windowsModalCard) windowsModalCard.style.display = appDownloadData.exeEnabled !== false ? 'flex' : 'none';
