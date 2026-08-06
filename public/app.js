@@ -32,20 +32,33 @@ document.addEventListener('DOMContentLoaded', () => {
   const UPSTASH_TOKEN = 'gQAAAAAAAUmaAAIgcDE5M2IwMjM4MTczZjA0ZWQ5YWUwYzYzNTU1YzIyYTQ3Mg';
 
   let progressVal = 0;
+  const splashMessages = [
+    'Initializing NEXORA Engine...',
+    'Loading Secure Modules...',
+    'Fetching Platform Data...',
+    'Verifying Access Keys...',
+    'Preparing Dashboard...',
+    'NEXORA Ready \u2714'
+  ];
+  let msgIdx = 0;
   const progressInterval = setInterval(() => {
     if (progressVal < 85) {
-      progressVal += 15;
+      progressVal += 12;
       if (splashProgress) splashProgress.style.width = progressVal + '%';
+      if (splashStatus && msgIdx < splashMessages.length - 1) {
+        splashStatus.textContent = splashMessages[msgIdx];
+        msgIdx++;
+      }
     }
-  }, 80);
+  }, 120);
 
   function hideSplashScreen() {
     if (splashProgress) splashProgress.style.width = '100%';
-    if (splashStatus) splashStatus.textContent = 'Engine Ready';
+    if (splashStatus) splashStatus.textContent = splashMessages[splashMessages.length - 1];
     clearInterval(progressInterval);
     setTimeout(() => {
       if (splashScreen) splashScreen.classList.add('fade-out');
-    }, 350);
+    }, 400);
   }
 
   // Fetch data
@@ -257,7 +270,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const heroPlatformCount = document.getElementById('heroPlatformCount');
     if (heroPlatformCount) {
-      heroPlatformCount.textContent = `${allApps.length} ${allApps.length === 1 ? 'Platform Folder' : 'Platform Folders'}`;
+      heroPlatformCount.textContent = allApps.length;
     }
     hideSplashScreen();
 
@@ -282,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     emptyState.style.display = 'none';
-    appsGrid.style.display = 'flex';
+    appsGrid.style.display = 'grid';
 
     filtered.forEach(app => {
       const card = document.createElement('article');

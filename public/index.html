@@ -3,26 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Educational Hub</title>
+  <title>NEXORA — Secure Educational Hub</title>
+  <meta name="description" content="NEXORA is a secure, modern educational platform hub providing direct access to verified study materials, live classes, exam prep batches, and learning tools.">
+  <meta name="keywords" content="NEXORA, educational hub, study materials, live classes, exam prep, secure portal">
+  <meta name="author" content="NEXORA">
+  <!-- Security Meta -->
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta http-equiv="X-Frame-Options" content="DENY">
+  <meta name="referrer" content="strict-origin-when-cross-origin">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5451638891460185"
      crossorigin="anonymous"></script>
   <link rel="manifest" href="/manifest.json">
   <link rel="stylesheet" href="/style.css">
   <script src="/js/theme.js"></script>
-  <meta name="theme-color" content="#0a0a0a">
+  <meta name="theme-color" content="#0a0b0e">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="Hub">
+  <meta name="apple-mobile-web-app-title" content="NEXORA">
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
-  <meta name="description" content="Unified educational platform launcher.">
 </head>
 <body>
-  <!-- SCREEN 0 — ANIMATED SPLASH / LOADING SCREEN -->
+  <!-- SCREEN 0 — NEXORA ANIMATED SPLASH / LOADING SCREEN -->
   <div class="splash-screen" id="splashScreen">
     <div class="splash-content">
       <div class="logo-glow-wrapper">
-        <svg class="brand-header-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <svg class="brand-header-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 80px; height: 80px;">
           <defs>
             <linearGradient id="splashLogoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
               <stop offset="0%" stop-color="#ff7a17" />
@@ -35,13 +41,13 @@
         </svg>
         <div class="pulse-ring"></div>
       </div>
-      <div class="splash-title">Educational Hub</div>
-      <div class="splash-tag">LEARNING PLATFORM PORTAL</div>
+      <div class="splash-title">NEXORA</div>
+      <div class="splash-tag">SECURE EDUCATIONAL HUB</div>
       
       <div class="loading-bar-container">
         <div class="loading-bar-fill" id="splashProgress"></div>
       </div>
-      <div class="splash-status" id="splashStatus">Initializing Engine...</div>
+      <div class="splash-status" id="splashStatus">Initializing Secure Engine...</div>
     </div>
   </div>
 
@@ -61,8 +67,8 @@
             <path d="M32 68V32L54 56V32M68 32V68L46 44V68" stroke="url(#hdrGrad)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
           <div>
-            <h1 class="app-title">Educational Hub</h1>
-            <div class="eyebrow">PLATFORM PORTAL</div>
+            <h1 class="app-title">NEXORA</h1>
+            <div class="eyebrow">SECURE EDUCATIONAL HUB</div>
           </div>
         </div>
 
@@ -102,74 +108,49 @@
         <a href="/disclaimer.html" class="nav-link">Disclaimer</a>
       </nav>
 
-      <!-- HERO HEADER BANNER -->
-      <section class="landing-hero" style="position: relative; overflow: hidden; margin-bottom: 24px;">
-        <div style="max-width: 900px; margin: 0 auto; text-align: center;">
+      <!-- NEXORA HERO BANNER -->
+      <section class="nexora-hero">
+        <div class="nexora-hero-inner">
           <div class="hero-badge">
             <span class="hero-badge-dot"></span>
-            <span>EDUCATIONAL HUB & PORTAL DIRECTORY</span>
+            <span>NEXORA — SECURE EDUCATIONAL HUB</span>
           </div>
-          <h1 class="hero-headline" style="font-size: 32px; font-weight: 800; letter-spacing: -0.8px; margin-bottom: 12px; color: var(--ink);">
-            Verified Learning Portals & Live Class Hubs
-          </h1>
-          <p class="hero-subtext" style="font-size: 15px; color: var(--ink-mute); max-width: 680px; margin: 0 auto 20px auto; line-height: 1.6;">
-            Direct access to lecture portals, exam preparation batches, key-secured servers, and verified study links in one organized workspace.
-          </p>
+          <h2 class="hero-headline">Your Verified Learning <br><span style="background: linear-gradient(90deg, var(--accent-orange), var(--accent-violet)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Portal Directory</span></h2>
+          <p class="hero-subtext">Access lecture portals, exam prep batches, key-secured servers, and verified study links — all in one secure workspace powered by NEXORA.</p>
 
-          <!-- QUICK STATS BAR -->
-          <div style="display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 16px; background: var(--canvas-card); border: 1px solid var(--hairline); padding: 10px 24px; border-radius: 9999px; box-shadow: var(--card-shadow);">
-            <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--ink);">
-              <span style="color: var(--accent-orange);">📁</span>
-              <span id="heroPlatformCount">1</span> Platform Folder
+          <!-- STATS ROW -->
+          <div class="hero-stats-row">
+            <div class="hero-stat-card">
+              <div class="hero-stat-val" id="heroPlatformCount">0</div>
+              <div class="hero-stat-lbl">PLATFORMS</div>
             </div>
-            <span style="color: var(--hairline);">•</span>
-            <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--ink);">
-              <span style="color: var(--accent-green);">⚡</span>
-              <span>100% Active Links</span>
+            <div class="hero-stat-card">
+              <div class="hero-stat-val" style="color: var(--accent-green);">✓ LIVE</div>
+              <div class="hero-stat-lbl">STATUS</div>
             </div>
-            <span style="color: var(--hairline);">•</span>
-            <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--ink);">
-              <span style="color: var(--accent-violet);">🔐</span>
-              <span>Secured Access</span>
+            <div class="hero-stat-card">
+              <div class="hero-stat-val" style="color: var(--accent-violet);">🔐</div>
+              <div class="hero-stat-lbl">SECURED</div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- SEARCH & FILTER CONSOLE -->
-      <div class="search-section" style="max-width: 900px; margin: 0 auto 20px auto; padding: 0 20px;">
-        <div style="position: relative; display: flex; align-items: center;">
-          <svg style="position: absolute; left: 18px; color: var(--ink-mute); pointer-events: none;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-          <input type="text" id="searchInput" class="search-input" placeholder="Search educational platforms by name or category..." autocomplete="off" style="padding-left: 50px; height: 52px; font-size: 15px; border-radius: 16px; border: 1px solid var(--hairline); background: var(--canvas-card); color: var(--ink); width: 100%; box-shadow: var(--card-shadow); transition: all 0.25s ease;">
+      <!-- SEARCH CONSOLE -->
+      <div class="nexora-search-wrap">
+        <div class="nexora-search-box">
+          <svg class="nexora-search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="searchInput" class="search-input" placeholder="Search platforms by name or category..." autocomplete="off">
         </div>
       </div>
 
-      <!-- CATEGORY FILTER TABS -->
-      <div class="category-tabs-container" id="categoryTabs" style="justify-content: center; margin-bottom: 24px; padding: 0 20px;">
-        <!-- Dynamic category tabs rendered here -->
-      </div>
-
-      <!-- ADSENSE DISPLAY AD UNIT CONTAINER (COMPACT & SLEEK) -->
-      <div class="search-section" style="max-width: 900px; margin: 0 auto 24px auto; padding: 0 20px;">
-        <div style="background: var(--canvas-card); border: 1px dashed var(--hairline); border-radius: 14px; padding: 12px 20px; text-align: center; min-height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-          <div class="eyebrow" style="font-size: 9px; margin-bottom: 6px; opacity: 0.6;">SPONSORED ADVERTISEMENT</div>
-          <ins class="adsbygoogle"
-               style="display:block; text-align:center; width:100%;"
-               data-ad-layout="in-article"
-               data-ad-format="fluid"
-               data-ad-client="ca-pub-5451638891460185"
-               data-ad-slot="auto"></ins>
-          <script>
-               (adsbygoogle = window.adsbygoogle || []).push({});
-          </script>
-        </div>
+      <!-- CATEGORY TABS -->
+      <div class="category-tabs-container" id="categoryTabs">
+        <!-- Dynamic -->
       </div>
 
       <!-- SECTION HEADER -->
-      <div class="section-header" style="max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between;">
+      <div class="section-header">
         <div class="eyebrow" id="sectionEyebrow">PLATFORMS</div>
       </div>
 
@@ -184,42 +165,45 @@
         <div class="empty-sub">Contact administrator</div>
       </div>
 
-      <!-- FOOTER -->
+      <!-- NEXORA FOOTER -->
       <footer class="site-footer">
-        <div class="footer-brand">
-          <svg class="brand-header-logo" viewBox="0 0 100 100" fill="none" width="32" height="32">
-            <rect x="10" y="10" width="80" height="80" rx="22" fill="#16181d" stroke="#ff7a17" stroke-width="4"/>
-            <path d="M32 68V32L54 56V32M68 32V68L46 44V68" stroke="#ff7a17" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          <div>
-            <div style="font-weight: 600; color: #fff; font-size: 15px;">NEXORA</div>
-            <div class="eyebrow" style="font-size: 9px;">EDUCATIONAL HUB</div>
+        <div class="footer-inner">
+          <div class="footer-brand">
+            <svg viewBox="0 0 100 100" fill="none" width="36" height="36">
+              <defs><linearGradient id="footGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#ff7a17"/><stop offset="100%" stop-color="#a855f7"/></linearGradient></defs>
+              <rect x="10" y="10" width="80" height="80" rx="22" fill="#16181d" stroke="url(#footGrad)" stroke-width="4"/>
+              <path d="M32 68V32L54 56V32M68 32V68L46 44V68" stroke="url(#footGrad)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div>
+              <div style="font-weight: 700; color: var(--ink); font-size: 18px; letter-spacing: -0.3px;">NEXORA</div>
+              <div class="eyebrow" style="font-size: 9px;">SECURE EDUCATIONAL HUB</div>
+            </div>
           </div>
-        </div>
-        <p class="footer-desc">NEXORA is a modern educational portal providing direct access to study materials, exam prep, and verified learning tools.</p>
-        
-        <div class="footer-grid">
-          <div>
-            <div class="footer-col-title">Navigation</div>
-            <ul class="footer-links">
-              <li><a href="/">Home</a></li>
-              <li><a href="/about.html">About Us</a></li>
-              <li><a href="/contact.html">Contact Us</a></li>
-              <li><a href="/faq.html">FAQ</a></li>
-            </ul>
+          <p class="footer-desc">NEXORA is a modern, secure educational portal providing direct access to verified study materials, live class batches, exam preparation, and learning tools.</p>
+          
+          <div class="footer-grid">
+            <div>
+              <div class="footer-col-title">NEXORA Navigation</div>
+              <ul class="footer-links">
+                <li><a href="/">Home</a></li>
+                <li><a href="/about.html">About NEXORA</a></li>
+                <li><a href="/contact.html">Contact Us</a></li>
+                <li><a href="/faq.html">FAQ</a></li>
+              </ul>
+            </div>
+            <div>
+              <div class="footer-col-title">Legal</div>
+              <ul class="footer-links">
+                <li><a href="/privacy.html">Privacy Policy</a></li>
+                <li><a href="/terms.html">Terms & Conditions</a></li>
+                <li><a href="/disclaimer.html">Disclaimer</a></li>
+              </ul>
+            </div>
           </div>
-          <div>
-            <div class="footer-col-title">Legal</div>
-            <ul class="footer-links">
-              <li><a href="/privacy.html">Privacy Policy</a></li>
-              <li><a href="/terms.html">Terms & Conditions</a></li>
-              <li><a href="/disclaimer.html">Disclaimer</a></li>
-            </ul>
-          </div>
-        </div>
 
-        <div class="footer-bottom">
-          &copy; 2026 NEXORA Educational Hub. All rights reserved.
+          <div class="footer-bottom">
+            &copy; 2026 NEXORA — Secure Educational Hub. All rights reserved.
+          </div>
         </div>
       </footer>
     </div>
