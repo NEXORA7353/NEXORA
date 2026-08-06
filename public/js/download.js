@@ -50,35 +50,45 @@
     if (pageApkVersion) pageApkVersion.textContent = data.apkVersion || 'v1.2.0';
     if (pageApkSize) pageApkSize.textContent = data.apkSize || '24.5 MB';
 
-    const apkUrl = data.apkUrl && data.apkUrl.trim() !== '#' ? data.apkUrl.trim() : 'https://gofile.io/d/UNtAj9';
+    const apkUrl = data.apkUrl && data.apkUrl.trim() !== '#' ? data.apkUrl.trim() : '/downloads/nexora.apk';
     if (pageApkDownloadBtn) {
       pageApkDownloadBtn.href = apkUrl;
-      pageApkDownloadBtn.target = '_blank';
-      pageApkDownloadBtn.onclick = (e) => {
-        if (apkUrl && apkUrl !== '#') {
-          window.open(apkUrl, '_blank');
-        } else {
-          e.preventDefault();
-          alert('Android APK download link has not been configured yet.');
-        }
-      };
+      if (apkUrl.startsWith('/') || apkUrl.endsWith('.apk') || apkUrl.includes('raw.githubusercontent.com') || apkUrl.includes('/releases/download/')) {
+        pageApkDownloadBtn.setAttribute('download', `nexora_${data.apkVersion || 'v1.2.0'}.apk`);
+        pageApkDownloadBtn.onclick = null;
+      } else {
+        pageApkDownloadBtn.target = '_blank';
+        pageApkDownloadBtn.onclick = (e) => {
+          if (apkUrl && apkUrl !== '#') {
+            window.open(apkUrl, '_blank');
+          } else {
+            e.preventDefault();
+            alert('Android APK download link has not been configured yet.');
+          }
+        };
+      }
     }
 
     if (pageExeVersion) pageExeVersion.textContent = data.exeVersion || 'v1.0.0';
     if (pageExeSize) pageExeSize.textContent = data.exeSize || '98.2 MB';
 
-    const exeUrl = data.exeUrl && data.exeUrl.trim() !== '#' ? data.exeUrl.trim() : 'https://gofile.io/d/geE7fL';
+    const exeUrl = data.exeUrl && data.exeUrl.trim() !== '#' ? data.exeUrl.trim() : '/downloads/nexora-setup.exe';
     if (pageExeDownloadBtn) {
       pageExeDownloadBtn.href = exeUrl;
-      pageExeDownloadBtn.target = '_blank';
-      pageExeDownloadBtn.onclick = (e) => {
-        if (exeUrl && exeUrl !== '#') {
-          window.open(exeUrl, '_blank');
-        } else {
-          e.preventDefault();
-          alert('Windows EXE download link has not been configured yet.');
-        }
-      };
+      if (exeUrl.startsWith('/') || exeUrl.endsWith('.exe') || exeUrl.includes('raw.githubusercontent.com') || exeUrl.includes('/releases/download/')) {
+        pageExeDownloadBtn.setAttribute('download', `nexora_setup_${data.exeVersion || 'v1.0.0'}.exe`);
+        pageExeDownloadBtn.onclick = null;
+      } else {
+        pageExeDownloadBtn.target = '_blank';
+        pageExeDownloadBtn.onclick = (e) => {
+          if (exeUrl && exeUrl !== '#') {
+            window.open(exeUrl, '_blank');
+          } else {
+            e.preventDefault();
+            alert('Windows EXE download link has not been configured yet.');
+          }
+        };
+      }
     }
   }
 
