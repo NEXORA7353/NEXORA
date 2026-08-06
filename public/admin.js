@@ -285,6 +285,68 @@ document.addEventListener('DOMContentLoaded', () => {
     unacademy: { name: 'Unacademy', category: 'LIVE CLASS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcU0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' }
   };
 
+  // UNIVERSAL LOGO FILE UPLOAD & AUTO-FETCH LOGIC
+  const appLogoFile = document.getElementById('appLogoFile');
+  const appLogoInput = document.getElementById('appLogo');
+  const autoFetchLogoBtn = document.getElementById('autoFetchLogoBtn');
+  const logoPreviewContainer = document.getElementById('logoPreviewContainer');
+  const logoPreviewImg = document.getElementById('logoPreviewImg');
+  const logoSourceInfo = document.getElementById('logoSourceInfo');
+
+  if (appLogoFile) {
+    appLogoFile.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target.result;
+        if (appLogoInput) appLogoInput.value = dataUrl;
+        if (logoPreviewImg) logoPreviewImg.src = dataUrl;
+        if (logoSourceInfo) logoSourceInfo.textContent = `Uploaded Local File (${(file.size / 1024).toFixed(1)} KB Data URL)`;
+        if (logoPreviewContainer) logoPreviewContainer.style.display = 'flex';
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  if (autoFetchLogoBtn) {
+    autoFetchLogoBtn.addEventListener('click', () => {
+      const appName = document.getElementById('appName').value.trim();
+      let domain = appLogoInput ? appLogoInput.value.trim() : '';
+
+      if (!domain && appName) {
+        domain = appName.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com';
+      }
+
+      if (!domain) {
+        alert('Please enter a Platform Name or Web URL first to auto-fetch logo!');
+        return;
+      }
+
+      domain = domain.replace(/^https?:\/\//, '').split('/')[0];
+      const fetchedLogo = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+      
+      if (appLogoInput) appLogoInput.value = fetchedLogo;
+      if (logoPreviewImg) logoPreviewImg.src = fetchedLogo;
+      if (logoSourceInfo) logoSourceInfo.textContent = `Auto-Fetched Favicon (${domain})`;
+      if (logoPreviewContainer) logoPreviewContainer.style.display = 'flex';
+    });
+  }
+
+  if (appLogoInput) {
+    appLogoInput.addEventListener('input', (e) => {
+      const val = e.target.value.trim();
+      if (val) {
+        if (logoPreviewImg) logoPreviewImg.src = val;
+        if (logoSourceInfo) logoSourceInfo.textContent = 'Web Image Link';
+        if (logoPreviewContainer) logoPreviewContainer.style.display = 'flex';
+      } else {
+        if (logoPreviewContainer) logoPreviewContainer.style.display = 'none';
+      }
+    });
+  }
+
   const presetSelect = document.getElementById('presetPlatformSelect');
   if (presetSelect) {
     presetSelect.addEventListener('change', (e) => {
@@ -601,9 +663,15 @@ document.addEventListener('DOMContentLoaded', () => {
           <label class="form-label">Platform Name</label>
           <input type="text" class="admin-input edit-name" value="${escapeHtml(app.name)}" required>
         </div>
-        <div class="form-group">
-          <label class="form-label">Logo URL</label>
-          <input type="url" class="admin-input edit-logo" value="${escapeHtml(app.logoUrl || app.logo || '')}">
+        <div class="form-group" style="background: var(--canvas-soft); padding: 10px; border-radius: 10px; border: 1px solid var(--hairline);">
+          <label class="form-label" style="color: var(--accent-orange); font-weight: 700;">Logo Image (Upload File OR Web URL / Auto-Fetch)</label>
+          <div style="display: flex; flex-direction: column; gap: 6px;">
+            <input type="file" class="admin-input edit-logo-file" accept="image/*" style="font-size: 11px; padding: 4px;">
+            <div style="display: flex; gap: 6px;">
+              <input type="url" class="admin-input edit-logo" value="${escapeHtml(app.logoUrl || app.logo || '')}" placeholder="https://example.com/logo.png" style="font-size: 11px;">
+              <button type="button" class="btn-outline btn-sm auto-fetch-edit-logo-btn" style="white-space: nowrap; font-size: 10px; padding: 4px 8px;">⚡ Auto-Fetch</button>
+            </div>
+          </div>
         </div>
         <div class="form-group">
           <label class="form-label">Category</label>
@@ -637,6 +705,39 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </form>
     `;
+
+    const editLogoFileInput = card.querySelector('.edit-logo-file');
+    const editLogoUrlInput = card.querySelector('.edit-logo');
+    const autoFetchEditBtn = card.querySelector('.auto-fetch-edit-logo-btn');
+
+    if (editLogoFileInput) {
+      editLogoFileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          if (editLogoUrlInput) editLogoUrlInput.value = evt.target.result;
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    if (autoFetchEditBtn) {
+      autoFetchEditBtn.addEventListener('click', () => {
+        const editName = card.querySelector('.edit-name').value.trim();
+        let domain = editLogoUrlInput ? editLogoUrlInput.value.trim() : '';
+        if (!domain && editName) {
+          domain = editName.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com';
+        }
+        if (!domain) {
+          alert('Please enter a Platform Name or URL first!');
+          return;
+        }
+        domain = domain.replace(/^https?:\/\//, '').split('/')[0];
+        const fetchedUrl = `https://www.google.com/s2/favicons?domain=${domain}&sz=128`;
+        if (editLogoUrlInput) editLogoUrlInput.value = fetchedUrl;
+      });
+    }
 
     const editLinksContainer = card.querySelector('.edit-links-container');
 
