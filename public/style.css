@@ -922,6 +922,36 @@ img {
   min-height: 120px;
 }
 
+/* ADMIN GATE & AUTHENTICATION */
+.gate-container {
+  min-height: calc(100vh - 100px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 40px 20px;
+}
+
+.gate-box {
+  background: var(--canvas-card);
+  border: 1px solid var(--hairline);
+  border-radius: 20px;
+  padding: 36px 32px;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-shadow: var(--card-shadow);
+  transition: all 0.3s ease;
+  margin: 0 auto;
+}
+
+.gate-box:hover {
+  border-color: var(--hairline-hover);
+  box-shadow: var(--card-hover-shadow);
+}
+
 /* ADMIN DASHBOARD */
 .admin-container {
   padding: 24px 20px;
