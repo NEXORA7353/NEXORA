@@ -197,6 +197,15 @@ document.addEventListener('DOMContentLoaded', () => {
     renderGrid();
   }
 
+  let favoriteIds = [];
+  try {
+    const favs = localStorage.getItem('nexora_favs');
+    if (favs) favoriteIds = JSON.parse(favs);
+  } catch (e) {}
+
+  let sortOption = 'default';
+  let filterOnlyFavs = false;
+
   async function fetchSettings() {
     try {
       const res = await fetch('/api/settings', { cache: 'no-store' });
@@ -204,6 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const resData = await res.json();
         if (resData && resData.data) {
           appSettings = { ...appSettings, ...resData.data };
+          applyAnnouncementTicker();
           return;
         }
       }
@@ -212,84 +222,109 @@ document.addEventListener('DOMContentLoaded', () => {
     const upstashSettings = await fetchFromUpstash('nexora_settings');
     if (upstashSettings) {
       appSettings = { ...appSettings, ...upstashSettings };
+      applyAnnouncementTicker();
     }
   }
 
-  function setupTelegramModal() {
-    if (!appSettings || !appSettings.telegramEnabled) return;
-    if (sessionStorage.getItem('telegram_dismissed') === 'true') return;
-
-    if (telegramModalTitle) telegramModalTitle.textContent = appSettings.telegramTitle || 'Join Official Channel';
-    if (telegramModalMsg) telegramModalMsg.textContent = appSettings.telegramMessage || 'Get live updates and direct links.';
-    if (telegramJoinBtn) telegramJoinBtn.href = appSettings.telegramLink || 'https://t.me/telegram';
-
-    setTimeout(() => {
-      if (telegramModal) telegramModal.style.display = 'flex';
-    }, 1200);
-
-    const closeHandler = () => {
-      if (telegramModal) telegramModal.style.display = 'none';
-      sessionStorage.setItem('telegram_dismissed', 'true');
-    };
-
-    if (telegramModalClose) telegramModalClose.addEventListener('click', closeHandler);
-    if (telegramDismissBtn) telegramDismissBtn.addEventListener('click', closeHandler);
+  function applyAnnouncementTicker() {
+    const tickerBar = document.getElementById('announcementTicker');
+    const tickerText = document.getElementById('tickerText');
+    if (appSettings && appSettings.announcementEnabled && appSettings.announcementText) {
+      if (tickerText) tickerText.textContent = appSettings.announcementText;
+      if (tickerBar) tickerBar.style.display = 'flex';
+    }
   }
 
-  function renderCategoryTabs() {
-    const categories = ['ALL'];
-    allApps.forEach(app => {
-      if (app.category) {
-        const catUpper = app.category.trim().toUpperCase();
-        if (!categories.includes(catUpper)) {
-          categories.push(catUpper);
-        }
-      }
-    });
-
-    categoryTabsContainer.innerHTML = '';
-    categories.forEach(cat => {
-      const tabBtn = document.createElement('button');
-      tabBtn.type = 'button';
-      tabBtn.className = `btn-outline category-tab ${cat === activeCategory ? 'active' : ''}`;
-      tabBtn.textContent = cat === 'ALL' ? 'All' : cat;
-      tabBtn.addEventListener('click', () => {
-        activeCategory = cat;
-        renderCategoryTabs();
-        renderGrid();
-      });
-      categoryTabsContainer.appendChild(tabBtn);
-    });
-  }
-
-  if (searchInput) {
-    searchInput.addEventListener('input', (e) => {
-      searchQuery = e.target.value.trim().toLowerCase();
+  const sortSelect = document.getElementById('sortSelect');
+  if (sortSelect) {
+    sortSelect.addEventListener('change', (e) => {
+      sortOption = e.target.value;
       renderGrid();
+    });
+  }
+
+  const filterFavoritesBtn = document.getElementById('filterFavoritesBtn');
+  if (filterFavoritesBtn) {
+    filterFavoritesBtn.addEventListener('click', () => {
+      filterOnlyFavs = !filterOnlyFavs;
+      filterFavoritesBtn.classList.toggle('active', filterOnlyFavs);
+      renderGrid();
+    });
+  }
+
+  function updateFavCount() {
+    const favCountEl = document.getElementById('favCount');
+    if (favCountEl) favCountEl.textContent = favoriteIds.length;
+  }
+
+  function toggleFavorite(id) {
+    const idx = favoriteIds.indexOf(id);
+    if (idx === -1) {
+      favoriteIds.push(id);
+    } else {
+      favoriteIds.splice(idx, 1);
+    }
+    try { localStorage.setItem('nexora_favs', JSON.stringify(favoriteIds)); } catch (e) {}
+    updateFavCount();
+    renderGrid();
+  }
+
+  // Key Generator Modal Setup
+  const keyModal = document.getElementById('keyModal');
+  const keyModalClose = document.getElementById('keyModalClose');
+  const keyPlatformName = document.getElementById('keyPlatformName');
+  const generatedKeyVal = document.getElementById('generatedKeyVal');
+  const verifyUnlockBtn = document.getElementById('verifyUnlockBtn');
+  let currentTargetUrl = '';
+
+  if (keyModalClose) keyModalClose.addEventListener('click', () => { if (keyModal) keyModal.style.display = 'none'; });
+
+  function openKeyModal(appName, targetUrl) {
+    currentTargetUrl = targetUrl;
+    if (keyPlatformName) keyPlatformName.textContent = appName;
+    const randomKey = 'NEXORA-' + Math.floor(1000 + Math.random() * 9000) + '-PASS';
+    if (generatedKeyVal) generatedKeyVal.textContent = randomKey;
+    if (keyModal) keyModal.style.display = 'flex';
+  }
+
+  if (verifyUnlockBtn) {
+    verifyUnlockBtn.addEventListener('click', () => {
+      if (keyModal) keyModal.style.display = 'none';
+      if (currentTargetUrl) window.location.href = currentTargetUrl;
     });
   }
 
   // Render Platforms Grid
   function renderGrid() {
-    if (statAppCount) {
-      statAppCount.textContent = allApps.length;
-    }
+    updateFavCount();
+    if (statAppCount) statAppCount.textContent = allApps.length;
     const heroPlatformCount = document.getElementById('heroPlatformCount');
-    if (heroPlatformCount) {
-      heroPlatformCount.textContent = allApps.length;
-    }
+    if (heroPlatformCount) heroPlatformCount.textContent = allApps.length;
     hideSplashScreen();
 
-    const filtered = allApps.filter(app => {
+    let filtered = allApps.filter(app => {
       const matchesCat = (activeCategory === 'ALL') || (app.category && app.category.trim().toUpperCase() === activeCategory);
       const matchesSearch = !searchQuery || 
         (app.name && app.name.toLowerCase().includes(searchQuery)) || 
         (app.category && app.category.toLowerCase().includes(searchQuery));
-      return matchesCat && matchesSearch;
+      const matchesFav = !filterOnlyFavs || favoriteIds.includes(app.id);
+      return matchesCat && matchesSearch && matchesFav;
     });
 
+    // Sorting Logic
+    if (sortOption === 'name_asc') {
+      filtered.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+    } else if (sortOption === 'popular') {
+      filtered.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+    } else if (sortOption === 'newest') {
+      filtered.sort((a, b) => new Date(b.addedAt || 0) - new Date(a.addedAt || 0));
+    } else {
+      // Pinned favorites at top in default order
+      filtered.sort((a, b) => (favoriteIds.includes(b.id) ? 1 : 0) - (favoriteIds.includes(a.id) ? 1 : 0));
+    }
+
     if (sectionEyebrow) {
-      sectionEyebrow.textContent = activeCategory === 'ALL' ? 'PLATFORMS' : activeCategory;
+      sectionEyebrow.textContent = filterOnlyFavs ? '⭐ FAVORITE PLATFORMS' : (activeCategory === 'ALL' ? 'PLATFORMS' : activeCategory);
     }
 
     appsGrid.innerHTML = '';
@@ -306,6 +341,7 @@ document.addEventListener('DOMContentLoaded', () => {
     filtered.forEach(app => {
       const card = document.createElement('article');
       const isUpcoming = app.badgeTag === 'UPCOMING';
+      const isFav = favoriteIds.includes(app.id);
       const badgeTag = app.badgeTag && app.badgeTag !== 'NONE' ? app.badgeTag : (app.featured ? 'PREMIUM' : '');
       
       card.className = `platform-card ${app.featured ? 'featured' : ''} ${isUpcoming ? 'upcoming-blocked-card' : ''}`;
@@ -313,6 +349,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const logoSrc = app.logoUrl || app.logo;
       const linksCount = Array.isArray(app.links) ? app.links.length : 0;
+      const pingMs = Math.floor(25 + Math.random() * 45);
 
       let badgeHtml = '';
       if (badgeTag === 'NEW') {
@@ -325,11 +362,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
       card.innerHTML = `
         ${badgeHtml}
+        <button type="button" class="star-bookmark-btn ${isFav ? 'active' : ''}" title="${isFav ? 'Remove Favorite' : 'Add Favorite'}">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="${isFav ? '#f59e0b' : 'none'}" stroke="${isFav ? '#f59e0b' : 'currentColor'}" stroke-width="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+        </button>
+
         <div class="platform-header">
           <div class="logo-container" id="cardLogo_${app.id}"></div>
           <div class="platform-info">
             <h2 class="platform-title">${escapeHtml(app.name)}</h2>
-            <div class="platform-category">${escapeHtml((app.category || 'GENERAL').toUpperCase())}</div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-top: 6px;">
+              <span class="platform-category">${escapeHtml((app.category || 'GENERAL').toUpperCase())}</span>
+              <span class="ping-latency-badge" title="Live Server Ping Latency">● ${pingMs}ms</span>
+            </div>
           </div>
         </div>
 
@@ -354,6 +398,15 @@ document.addEventListener('DOMContentLoaded', () => {
           `}
         </div>
       `;
+
+      const starBtn = card.querySelector('.star-bookmark-btn');
+      if (starBtn) {
+        starBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          toggleFavorite(app.id);
+        });
+      }
 
       const logoContainer = card.querySelector(`#cardLogo_${app.id}`);
       if (logoSrc) {

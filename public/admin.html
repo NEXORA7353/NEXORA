@@ -291,11 +291,36 @@
                   <label class="form-label" for="tgMessage">Popup Message</label>
                   <input type="text" id="tgMessage" class="admin-input" placeholder="Join our channel for daily live class updates & direct links!" required>
                 </div>
-                <div class="form-group full-width" style="margin-top: 8px;">
-                  <button type="submit" class="btn-primary" style="height: 46px; font-weight: 600; width: 100%;">Save Telegram Settings</button>
-                  <div id="tgStatusMsg" style="font-size: 13px; color: var(--accent-green); display: none; margin-top: 8px; text-align: center; font-weight: 600;">Settings saved successfully!</div>
+                <div class="form-group full-width">
+                <button type="submit" class="btn-primary" style="height: 44px; font-weight: 600;">Save Telegram Popup Settings</button>
+              </div>
+              <div id="tgStatusMsg" style="display: none; color: #10b981; font-size: 13px;">Saved successfully!</div>
+            </form>
+          </section>
+
+          <div class="hairline" style="margin: 24px 0;"></div>
+
+          <!-- ANNOUNCEMENT BROADCAST CONTROL -->
+          <section>
+            <div class="eyebrow" style="margin-bottom: 12px;">ANNOUNCEMENT TICKER BROADCAST</div>
+            <form id="announcementForm" class="admin-form">
+              <div class="form-group full-width">
+                <div class="toggle-wrapper" style="padding: 12px 16px; background: var(--canvas-soft); border: 1px solid var(--hairline); border-radius: 12px;">
+                  <span class="form-label" style="margin: 0;">Show Live Announcement Ticker Bar</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="announcementEnabled">
+                    <span class="toggle-slider"></span>
+                  </label>
                 </div>
               </div>
+              <div class="form-group full-width">
+                <label class="form-label" for="announcementText">Ticker Announcement Message</label>
+                <input type="text" id="announcementText" class="admin-input" placeholder="e.g. Live updates and batch portal links configured!">
+              </div>
+              <div class="form-group full-width">
+                <button type="submit" class="btn-primary" style="height: 44px; font-weight: 600;">Save Announcement</button>
+              </div>
+              <div id="announcementStatusMsg" style="display: none; color: #10b981; font-size: 13px;">Saved successfully!</div>
             </form>
           </section>
         </div>

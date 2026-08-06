@@ -1475,6 +1475,120 @@ img {
   max-width: 440px;
   width: 100%;
   position: relative;
+}
+
+/* ANNOUNCEMENT TICKER BAR */
+.announcement-ticker-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(90deg, rgba(255, 122, 23, 0.15), rgba(168, 85, 247, 0.15));
+  border: 1px solid rgba(var(--accent-orange-rgb), 0.3);
+  border-radius: 12px;
+  padding: 10px 16px;
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.ticker-badge {
+  background: var(--accent-orange);
+  color: #ffffff;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 4px 10px;
+  border-radius: 6px;
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.ticker-content {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  animation: tickerScroll 20s linear infinite;
+}
+
+@keyframes tickerScroll {
+  0% { transform: translateX(0); }
+  50% { transform: translateX(-30%); }
+  100% { transform: translateX(0); }
+}
+
+/* SORT & FILTER BAR */
+.sort-filter-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.sort-select {
+  max-width: 220px;
+  font-size: 13px;
+  padding: 8px 12px;
+  font-weight: 600;
+}
+
+.filter-favorites-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  padding: 8px 14px;
+  font-weight: 700;
+  border-radius: 10px;
+}
+
+.filter-favorites-btn.active {
+  background: rgba(245, 158, 11, 0.18);
+  color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.5);
+}
+
+/* STAR BOOKMARK BUTTON */
+.star-bookmark-btn {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  background: rgba(22, 24, 29, 0.6);
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-mute);
+  cursor: pointer;
+  z-index: 6;
+  transition: all 0.2s ease;
+}
+
+.star-bookmark-btn:hover, .star-bookmark-btn.active {
+  color: #f59e0b;
+  border-color: rgba(245, 158, 11, 0.5);
+  background: rgba(245, 158, 11, 0.12);
+  transform: scale(1.1);
+}
+
+/* PING LATENCY BADGE */
+.ping-latency-badge {
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.12);
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  display: inline-flex;
+  align-items: center;
+}
+
   text-align: center;
   box-shadow: 0 24px 48px rgba(0, 0, 0, 0.5);
   color: var(--ink);

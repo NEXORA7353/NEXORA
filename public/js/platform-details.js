@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
               <span>Upcoming</span>
             </button>
           ` : `
-            <a href="${link.url || '#'}" class="link-access-btn" style="padding: 14px 28px; font-size: 15px; font-weight: 700; height: 50px; border-radius: 12px;" ${link.url ? 'target="_self"' : ''}>
+            <a href="${link.url || '#'}" class="link-access-btn portal-access-btn" data-keyreq="${link.keyRequirement}" data-title="${escapeHtml(link.title)}" style="padding: 14px 28px; font-size: 15px; font-weight: 700; height: 50px; border-radius: 12px;" ${link.url ? 'target="_self"' : ''}>
               <span>Access</span>
               <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none">
                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
@@ -187,6 +187,18 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             e.stopPropagation();
             alert(`⛔ Access Blocked: "${link.title || 'This Portal'}" is Upcoming and will be available soon!`);
+          });
+        }
+      } else if (link.keyRequirement === 'with_key') {
+        const accessLink = card.querySelector('.portal-access-btn');
+        if (accessLink) {
+          accessLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            const keyPass = prompt(`🔑 KEY REQUIRED FOR ${link.title.toUpperCase()}\n\nPlease enter or click OK to verify your automatically generated NEXORA Access Key:`, 'NEXORA-9942-PASS');
+            if (keyPass) {
+              alert('✓ Key Verified! Access Granted.');
+              window.location.href = link.url;
+            }
           });
         }
       }

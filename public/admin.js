@@ -195,11 +195,35 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  const annForm = document.getElementById('announcementForm');
+  const annEnabled = document.getElementById('announcementEnabled');
+  const annText = document.getElementById('announcementText');
+  const annStatusMsg = document.getElementById('announcementStatusMsg');
+
   function applyTelegramFields(data) {
     if (tgEnabled) tgEnabled.checked = data.telegramEnabled !== false;
     if (tgLink) tgLink.value = data.telegramLink || '';
     if (tgTitle) tgTitle.value = data.telegramTitle || '';
     if (tgMessage) tgMessage.value = data.telegramMessage || '';
+    if (annEnabled) annEnabled.checked = !!data.announcementEnabled;
+    if (annText) annText.value = data.announcementText || '';
+  }
+
+  if (annForm) {
+    annForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const currentSettings = (await fetchFromUpstash('nexora_settings')) || {};
+      const updated = {
+        ...currentSettings,
+        announcementEnabled: annEnabled.checked,
+        announcementText: annText.value.trim()
+      };
+      await saveToUpstash('nexora_settings', updated);
+      if (annStatusMsg) {
+        annStatusMsg.style.display = 'block';
+        setTimeout(() => { annStatusMsg.style.display = 'none'; }, 3000);
+      }
+    });
   }
 
   if (telegramSettingsForm) {

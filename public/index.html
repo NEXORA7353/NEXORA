@@ -108,6 +108,12 @@
         <a href="/disclaimer.html" class="nav-link">Disclaimer</a>
       </nav>
 
+      <!-- LIVE ANNOUNCEMENT TICKER BAR -->
+      <div class="announcement-ticker-bar" id="announcementTicker" style="display: none;">
+        <div class="ticker-badge">ANNOUNCEMENT</div>
+        <div class="ticker-content" id="tickerText">📢 Live updates and portal links configured!</div>
+      </div>
+
       <!-- NEXORA HERO BANNER -->
       <section class="nexora-hero">
         <div class="nexora-hero-inner">
@@ -147,6 +153,20 @@
           <svg class="nexora-search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input type="text" id="searchInput" class="search-input" placeholder="Search platforms by name or category..." autocomplete="off">
         </div>
+      </div>
+
+      <!-- SORT & FILTER BAR -->
+      <div class="sort-filter-bar">
+        <select id="sortSelect" class="admin-input sort-select">
+          <option value="default">Sort: Default Order</option>
+          <option value="popular">Sort: Most Popular</option>
+          <option value="name_asc">Sort: A to Z</option>
+          <option value="newest">Sort: Newly Added</option>
+        </select>
+        <button type="button" class="btn-outline btn-sm filter-favorites-btn" id="filterFavoritesBtn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <span>Favorites (<span id="favCount">0</span>)</span>
+        </button>
       </div>
 
       <!-- CATEGORY TABS -->
@@ -294,6 +314,34 @@
       <div id="notifList" style="display: flex; flex-direction: column; gap: 10px; max-height: 360px; overflow-y: auto; padding-right: 4px;">
         <!-- Notification cards rendered here -->
       </div>
+    </div>
+  <!-- ACCESS KEY VERIFICATION & GENERATOR MODAL -->
+  <div class="telegram-modal-overlay" id="keyModal" style="display: none;">
+    <div class="telegram-modal-card" style="max-width: 440px; text-align: center;">
+      <button class="telegram-modal-close" id="keyModalClose" aria-label="Close">
+        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+      <div style="margin-bottom: 16px;">
+        <div style="width: 56px; height: 56px; border-radius: 16px; background: rgba(var(--accent-orange-rgb), 0.12); color: var(--accent-orange); display: inline-flex; align-items: center; justify-content: center; margin-bottom: 12px; border: 1px solid rgba(var(--accent-orange-rgb), 0.3);">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <h3 style="font-size: 20px; font-weight: 800; color: var(--ink); margin-bottom: 4px;">NEXORA Key Verification</h3>
+        <p style="font-size: 13px; color: var(--ink-mute);" id="keyModalSub">Generating secure one-time key for <strong id="keyPlatformName" style="color: var(--accent-orange);">Access Portal</strong></p>
+      </div>
+
+      <div style="background: var(--canvas-soft); padding: 18px; border-radius: 14px; border: 1px solid var(--hairline); text-align: center; margin-bottom: 18px;">
+        <div class="eyebrow" style="font-size: 10px; margin-bottom: 6px;">ONE-TIME VERIFIED ACCESS KEY</div>
+        <div id="generatedKeyVal" style="font-family: 'JetBrains Mono', monospace; font-size: 20px; font-weight: 800; color: var(--accent-orange); letter-spacing: 2px;">NEXORA-8842-PASS</div>
+      </div>
+
+      <button type="button" class="btn-primary" id="verifyUnlockBtn" style="width: 100%; height: 48px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 8px;">
+        <span>Verify Key & Unlock Portal</span>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+      </button>
     </div>
   </div>
 
