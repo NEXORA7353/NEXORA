@@ -102,19 +102,59 @@
         <a href="/disclaimer.html" class="nav-link">Disclaimer</a>
       </nav>
 
-      <!-- SEARCH BAR -->
-      <div class="search-section">
-        <input type="text" id="searchInput" class="search-input" placeholder="Search platforms..." autocomplete="off">
+      <!-- HERO HEADER BANNER -->
+      <section class="landing-hero" style="position: relative; overflow: hidden; margin-bottom: 24px;">
+        <div style="max-width: 900px; margin: 0 auto; text-align: center;">
+          <div class="hero-badge">
+            <span class="hero-badge-dot"></span>
+            <span>EDUCATIONAL HUB & PORTAL DIRECTORY</span>
+          </div>
+          <h1 class="hero-headline" style="font-size: 32px; font-weight: 800; letter-spacing: -0.8px; margin-bottom: 12px; color: var(--ink);">
+            Verified Learning Portals & Live Class Hubs
+          </h1>
+          <p class="hero-subtext" style="font-size: 15px; color: var(--ink-mute); max-width: 680px; margin: 0 auto 20px auto; line-height: 1.6;">
+            Direct access to lecture portals, exam preparation batches, key-secured servers, and verified study links in one organized workspace.
+          </p>
+
+          <!-- QUICK STATS BAR -->
+          <div style="display: inline-flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 16px; background: var(--canvas-card); border: 1px solid var(--hairline); padding: 10px 24px; border-radius: 9999px; box-shadow: var(--card-shadow);">
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--ink);">
+              <span style="color: var(--accent-orange);">📁</span>
+              <span id="heroPlatformCount">1</span> Platform Folder
+            </div>
+            <span style="color: var(--hairline);">•</span>
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--ink);">
+              <span style="color: var(--accent-green);">⚡</span>
+              <span>100% Active Links</span>
+            </div>
+            <span style="color: var(--hairline);">•</span>
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 600; color: var(--ink);">
+              <span style="color: var(--accent-violet);">🔐</span>
+              <span>Secured Access</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SEARCH & FILTER CONSOLE -->
+      <div class="search-section" style="max-width: 900px; margin: 0 auto 20px auto; padding: 0 20px;">
+        <div style="position: relative; display: flex; align-items: center;">
+          <svg style="position: absolute; left: 18px; color: var(--ink-mute); pointer-events: none;" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="searchInput" class="search-input" placeholder="Search educational platforms by name or category..." autocomplete="off" style="padding-left: 50px; height: 52px; font-size: 15px; border-radius: 16px; border: 1px solid var(--hairline); background: var(--canvas-card); color: var(--ink); width: 100%; box-shadow: var(--card-shadow); transition: all 0.25s ease;">
+        </div>
       </div>
 
-      <!-- CATEGORY FILTER -->
-      <div class="category-tabs-container" id="categoryTabs">
+      <!-- CATEGORY FILTER TABS -->
+      <div class="category-tabs-container" id="categoryTabs" style="justify-content: center; margin-bottom: 24px; padding: 0 20px;">
         <!-- Dynamic category tabs rendered here -->
       </div>
 
-      <!-- ADSENSE DISPLAY AD UNIT CONTAINER -->
-      <div class="search-section" style="margin-bottom: 8px;">
-        <div style="background: var(--canvas-card); border: 1px dashed var(--hairline); border-radius: 12px; padding: 12px; text-align: center; min-height: 90px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+      <!-- ADSENSE DISPLAY AD UNIT CONTAINER (COMPACT & SLEEK) -->
+      <div class="search-section" style="max-width: 900px; margin: 0 auto 24px auto; padding: 0 20px;">
+        <div style="background: var(--canvas-card); border: 1px dashed var(--hairline); border-radius: 14px; padding: 12px 20px; text-align: center; min-height: 80px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
           <div class="eyebrow" style="font-size: 9px; margin-bottom: 6px; opacity: 0.6;">SPONSORED ADVERTISEMENT</div>
           <ins class="adsbygoogle"
                style="display:block; text-align:center; width:100%;"
@@ -129,7 +169,7 @@
       </div>
 
       <!-- SECTION HEADER -->
-      <div class="section-header">
+      <div class="section-header" style="max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between;">
         <div class="eyebrow" id="sectionEyebrow">PLATFORMS</div>
       </div>
 

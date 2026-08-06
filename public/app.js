@@ -255,6 +255,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (statAppCount) {
       statAppCount.textContent = allApps.length;
     }
+    const heroPlatformCount = document.getElementById('heroPlatformCount');
+    if (heroPlatformCount) {
+      heroPlatformCount.textContent = `${allApps.length} ${allApps.length === 1 ? 'Platform Folder' : 'Platform Folders'}`;
+    }
     hideSplashScreen();
 
     const filtered = allApps.filter(app => {
