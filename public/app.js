@@ -601,6 +601,86 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // APP DOWNLOAD MODAL LOGIC
+  const openAppDownloadModalBtn = document.getElementById('openAppDownloadModalBtn');
+  const appDownloadModal = document.getElementById('appDownloadModal');
+  const appDownloadModalClose = document.getElementById('appDownloadModalClose');
+  const modalApkVersion = document.getElementById('modalApkVersion');
+  const modalApkSize = document.getElementById('modalApkSize');
+  const modalApkDownloadBtn = document.getElementById('modalApkDownloadBtn');
+  const androidModalCard = document.getElementById('androidModalCard');
+
+  const modalExeVersion = document.getElementById('modalExeVersion');
+  const modalExeSize = document.getElementById('modalExeSize');
+  const modalExeDownloadBtn = document.getElementById('modalExeDownloadBtn');
+  const windowsModalCard = document.getElementById('windowsModalCard');
+
+  let appDownloadData = null;
+
+  async function loadAppDownloadData() {
+    appDownloadData = await fetchFromUpstash('nexora_download_apps');
+    if (!appDownloadData) {
+      try {
+        const local = localStorage.getItem('nexora_download_apps');
+        if (local) appDownloadData = JSON.parse(local);
+      } catch (e) {}
+    }
+
+    if (!appDownloadData) {
+      appDownloadData = {
+        apkEnabled: true,
+        apkUrl: '#',
+        apkVersion: 'v1.2.0',
+        apkSize: '24.5 MB',
+        exeEnabled: true,
+        exeUrl: '#',
+        exeVersion: 'v1.0.0',
+        exeSize: '48.2 MB'
+      };
+    }
+
+    if (modalApkVersion) modalApkVersion.textContent = appDownloadData.apkVersion || 'v1.2.0';
+    if (modalApkSize) modalApkSize.textContent = appDownloadData.apkSize || '24.5 MB';
+    if (modalApkDownloadBtn) {
+      modalApkDownloadBtn.href = appDownloadData.apkUrl || '#';
+      if (appDownloadData.apkUrl && appDownloadData.apkUrl.startsWith('data:')) {
+        modalApkDownloadBtn.setAttribute('download', `nexora_${appDownloadData.apkVersion || 'app'}.apk`);
+      }
+    }
+    if (androidModalCard) androidModalCard.style.display = appDownloadData.apkEnabled !== false ? 'flex' : 'none';
+
+    if (modalExeVersion) modalExeVersion.textContent = appDownloadData.exeVersion || 'v1.0.0';
+    if (modalExeSize) modalExeSize.textContent = appDownloadData.exeSize || '48.2 MB';
+    if (modalExeDownloadBtn) {
+      modalExeDownloadBtn.href = appDownloadData.exeUrl || '#';
+      if (appDownloadData.exeUrl && appDownloadData.exeUrl.startsWith('data:')) {
+        modalExeDownloadBtn.setAttribute('download', `nexora_setup_${appDownloadData.exeVersion || 'app'}.exe`);
+      }
+    }
+    if (windowsModalCard) windowsModalCard.style.display = appDownloadData.exeEnabled !== false ? 'flex' : 'none';
+  }
+
+  if (openAppDownloadModalBtn && appDownloadModal) {
+    openAppDownloadModalBtn.addEventListener('click', () => {
+      loadAppDownloadData();
+      appDownloadModal.style.display = 'flex';
+    });
+  }
+
+  if (appDownloadModalClose && appDownloadModal) {
+    appDownloadModalClose.addEventListener('click', () => {
+      appDownloadModal.style.display = 'none';
+    });
+  }
+
+  if (appDownloadModal) {
+    appDownloadModal.addEventListener('click', (e) => {
+      if (e.target === appDownloadModal) appDownloadModal.style.display = 'none';
+    });
+  }
+
+  loadAppDownloadData();
+
   if (notifModalClose) {
     notifModalClose.addEventListener('click', () => {
       notifModal.style.display = 'none';

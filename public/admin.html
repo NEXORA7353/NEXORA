@@ -363,6 +363,67 @@
 
           <div class="hairline" style="margin: 24px 0;"></div>
 
+          <!-- ANDROID APK & WINDOWS EXE DOWNLOAD MANAGER -->
+          <section>
+            <div class="eyebrow" style="margin-bottom: 12px;">📱 ANDROID APK & 💻 WINDOWS EXE DOWNLOAD MANAGER</div>
+            <form id="appDownloadSettingsForm" class="admin-form">
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                <!-- ANDROID APK SECTION -->
+                <div style="background: var(--canvas-soft); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                    <div style="font-weight: 700; color: #10b981; font-size: 15px;">🤖 Android App (.apk)</div>
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="apkEnabled" checked>
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+                  <div class="form-group" style="margin-bottom: 10px;">
+                    <label class="form-label" for="apkUrl">APK Download URL OR File Upload</label>
+                    <input type="text" id="apkUrl" class="admin-input" placeholder="https://example.com/nexora.apk or Upload below">
+                    <input type="file" id="apkFileInput" accept=".apk" class="admin-input" style="margin-top: 6px; padding: 6px; font-size: 11px;">
+                  </div>
+                  <div class="form-group" style="margin-bottom: 10px;">
+                    <label class="form-label" for="apkVersion">Version Name</label>
+                    <input type="text" id="apkVersion" class="admin-input" placeholder="v1.2.0">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="apkSize">File Size</label>
+                    <input type="text" id="apkSize" class="admin-input" placeholder="24.5 MB">
+                  </div>
+                </div>
+
+                <!-- WINDOWS EXE SECTION -->
+                <div style="background: var(--canvas-soft); border: 1px solid var(--hairline); border-radius: 14px; padding: 16px;">
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                    <div style="font-weight: 700; color: #a855f7; font-size: 15px;">💻 Windows App (.exe)</div>
+                    <label class="toggle-switch">
+                      <input type="checkbox" id="exeEnabled" checked>
+                      <span class="toggle-slider"></span>
+                    </label>
+                  </div>
+                  <div class="form-group" style="margin-bottom: 10px;">
+                    <label class="form-label" for="exeUrl">EXE Download URL OR File Upload</label>
+                    <input type="text" id="exeUrl" class="admin-input" placeholder="https://example.com/nexora-setup.exe or Upload below">
+                    <input type="file" id="exeFileInput" accept=".exe" class="admin-input" style="margin-top: 6px; padding: 6px; font-size: 11px;">
+                  </div>
+                  <div class="form-group" style="margin-bottom: 10px;">
+                    <label class="form-label" for="exeVersion">Version Name</label>
+                    <input type="text" id="exeVersion" class="admin-input" placeholder="v1.0.0">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="exeSize">File Size</label>
+                    <input type="text" id="exeSize" class="admin-input" placeholder="48.2 MB">
+                  </div>
+                </div>
+              </div>
+
+              <button type="submit" class="btn-primary" style="height: 44px; font-weight: 700; width: 100%;">💾 Save App Download Settings</button>
+              <div id="appDownloadStatusMsg" style="display: none; color: #10b981; font-size: 13px; margin-top: 8px; font-weight: 700;">App Download Links Updated Live!</div>
+            </form>
+          </section>
+
+          <div class="hairline" style="margin: 24px 0;"></div>
+
           <!-- ANNOUNCEMENT BROADCAST CONTROL -->
           <section>
             <div class="eyebrow" style="margin-bottom: 12px;">ANNOUNCEMENT TICKER BROADCAST</div>

@@ -196,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return false;
   }
 
-  // Telegram Settings
+  // Telegram & App Settings
   async function loadTelegramSettings() {
     try {
       const res = await fetch('/api/settings', { cache: 'no-store' });
@@ -204,7 +204,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const resData = await res.json();
         if (resData && resData.data) {
           applyTelegramFields(resData.data);
-          return;
         }
       }
     } catch (e) {}
@@ -213,12 +212,96 @@ document.addEventListener('DOMContentLoaded', () => {
     if (upstashSettings) {
       applyTelegramFields(upstashSettings);
     }
+
+    const upstashAppDownloads = await fetchFromUpstash('nexora_download_apps');
+    if (upstashAppDownloads) {
+      applyAppDownloadFields(upstashAppDownloads);
+    } else {
+      try {
+        const local = localStorage.getItem('nexora_download_apps');
+        if (local) applyAppDownloadFields(JSON.parse(local));
+      } catch (e) {}
+    }
   }
 
-  const annForm = document.getElementById('announcementForm');
-  const annEnabled = document.getElementById('announcementEnabled');
-  const annText = document.getElementById('announcementText');
-  const annStatusMsg = document.getElementById('announcementStatusMsg');
+  // App Download Settings Elements
+  const appDownloadForm = document.getElementById('appDownloadSettingsForm');
+  const apkEnabled = document.getElementById('apkEnabled');
+  const apkUrl = document.getElementById('apkUrl');
+  const apkFileInput = document.getElementById('apkFileInput');
+  const apkVersion = document.getElementById('apkVersion');
+  const apkSize = document.getElementById('apkSize');
+
+  const exeEnabled = document.getElementById('exeEnabled');
+  const exeUrl = document.getElementById('exeUrl');
+  const exeFileInput = document.getElementById('exeFileInput');
+  const exeVersion = document.getElementById('exeVersion');
+  const exeSize = document.getElementById('exeSize');
+  const appDownloadStatusMsg = document.getElementById('appDownloadStatusMsg');
+
+  if (apkFileInput) {
+    apkFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (apkSize) apkSize.value = (file.size / (1024 * 1024)).toFixed(1) + ' MB';
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        if (apkUrl) apkUrl.value = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  if (exeFileInput) {
+    exeFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (exeSize) exeSize.value = (file.size / (1024 * 1024)).toFixed(1) + ' MB';
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        if (exeUrl) exeUrl.value = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function applyAppDownloadFields(data) {
+    if (!data) return;
+    if (apkEnabled) apkEnabled.checked = data.apkEnabled !== false;
+    if (apkUrl) apkUrl.value = data.apkUrl || '';
+    if (apkVersion) apkVersion.value = data.apkVersion || 'v1.2.0';
+    if (apkSize) apkSize.value = data.apkSize || '24.5 MB';
+
+    if (exeEnabled) exeEnabled.checked = data.exeEnabled !== false;
+    if (exeUrl) exeUrl.value = data.exeUrl || '';
+    if (exeVersion) exeVersion.value = data.exeVersion || 'v1.0.0';
+    if (exeSize) exeSize.value = data.exeSize || '48.2 MB';
+  }
+
+  if (appDownloadForm) {
+    appDownloadForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = {
+        apkEnabled: apkEnabled ? apkEnabled.checked : true,
+        apkUrl: apkUrl ? apkUrl.value.trim() : '',
+        apkVersion: apkVersion ? apkVersion.value.trim() : 'v1.2.0',
+        apkSize: apkSize ? apkSize.value.trim() : '24.5 MB',
+        exeEnabled: exeEnabled ? exeEnabled.checked : true,
+        exeUrl: exeUrl ? exeUrl.value.trim() : '',
+        exeVersion: exeVersion ? exeVersion.value.trim() : 'v1.0.0',
+        exeSize: exeSize ? exeSize.value.trim() : '48.2 MB'
+      };
+
+      await saveToUpstash('nexora_download_apps', payload);
+      try { localStorage.setItem('nexora_download_apps', JSON.stringify(payload)); } catch (e) {}
+
+      if (appDownloadStatusMsg) {
+        appDownloadStatusMsg.style.display = 'block';
+        setTimeout(() => { appDownloadStatusMsg.style.display = 'none'; }, 3000);
+      }
+      alert('App Download Settings saved live!');
+    });
+  }
 
   function applyTelegramFields(data) {
     if (tgEnabled) tgEnabled.checked = data.telegramEnabled !== false;
