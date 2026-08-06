@@ -197,10 +197,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (e) {}
 
-    // Priority 4: Default Pre-seeded 23 Major Platforms
-    allApps = getDefaultInitialPlatforms();
-    try { localStorage.setItem('nexora_apps', JSON.stringify(allApps)); } catch (e) {}
-    saveToUpstash('nexora_apps', allApps);
+    // 4. Pure Empty State - 100% Live Database Powered (Zero Dummy Data)
+    allApps = [];
     renderCategoryTabs();
     renderGrid();
   }
