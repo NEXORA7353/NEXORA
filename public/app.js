@@ -652,6 +652,36 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // TELEGRAM MODAL SETUP
+  function setupTelegramModal() {
+    if (!telegramModal || !appSettings || appSettings.telegramEnabled === false) return;
+
+    const hasDismissed = sessionStorage.getItem('nexora_telegram_dismissed') === 'true';
+    if (hasDismissed) return;
+
+    if (telegramModalTitle) telegramModalTitle.textContent = appSettings.telegramTitle || 'Join Official Channel';
+    if (telegramModalMsg) telegramModalMsg.textContent = appSettings.telegramMessage || 'Get instant access to daily updates & links!';
+    if (telegramJoinBtn && appSettings.telegramLink) telegramJoinBtn.href = appSettings.telegramLink;
+
+    setTimeout(() => {
+      if (telegramModal) telegramModal.style.display = 'flex';
+    }, 2500);
+
+    const closeTgModal = () => {
+      if (telegramModal) telegramModal.style.display = 'none';
+      sessionStorage.setItem('nexora_telegram_dismissed', 'true');
+    };
+
+    if (telegramModalClose) telegramModalClose.onclick = closeTgModal;
+    if (telegramDismissBtn) telegramDismissBtn.onclick = closeTgModal;
+    if (telegramJoinBtn) {
+      telegramJoinBtn.onclick = () => {
+        sessionStorage.setItem('nexora_telegram_dismissed', 'true');
+        if (telegramModal) telegramModal.style.display = 'none';
+      };
+    }
+  }
+
   // APP DOWNLOAD MODAL LOGIC
   const openAppDownloadModalBtn = document.getElementById('openAppDownloadModalBtn');
   const appDownloadModal = document.getElementById('appDownloadModal');
@@ -693,9 +723,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modalApkVersion) modalApkVersion.textContent = appDownloadData.apkVersion || 'v1.2.0';
     if (modalApkSize) modalApkSize.textContent = appDownloadData.apkSize || '24.5 MB';
     if (modalApkDownloadBtn) {
-      modalApkDownloadBtn.href = appDownloadData.apkUrl || '#';
-      if (appDownloadData.apkUrl && appDownloadData.apkUrl.startsWith('data:')) {
-        modalApkDownloadBtn.setAttribute('download', `nexora_${appDownloadData.apkVersion || 'app'}.apk`);
+      const targetUrl = appDownloadData.apkUrl && appDownloadData.apkUrl.trim() !== '#' ? appDownloadData.apkUrl.trim() : '';
+      if (targetUrl) {
+        modalApkDownloadBtn.href = targetUrl;
+        modalApkDownloadBtn.target = '_blank';
+        modalApkDownloadBtn.onclick = null;
+        if (targetUrl.startsWith('data:')) {
+          modalApkDownloadBtn.setAttribute('download', `nexora_${appDownloadData.apkVersion || 'app'}.apk`);
+        }
+      } else {
+        modalApkDownloadBtn.href = '#';
+        modalApkDownloadBtn.onclick = (e) => {
+          e.preventDefault();
+          alert('Android APK download link has not been configured in Admin Console yet.');
+        };
       }
     }
     if (androidModalCard) androidModalCard.style.display = appDownloadData.apkEnabled !== false ? 'flex' : 'none';
@@ -703,9 +744,20 @@ document.addEventListener('DOMContentLoaded', () => {
     if (modalExeVersion) modalExeVersion.textContent = appDownloadData.exeVersion || 'v1.0.0';
     if (modalExeSize) modalExeSize.textContent = appDownloadData.exeSize || '48.2 MB';
     if (modalExeDownloadBtn) {
-      modalExeDownloadBtn.href = appDownloadData.exeUrl || '#';
-      if (appDownloadData.exeUrl && appDownloadData.exeUrl.startsWith('data:')) {
-        modalExeDownloadBtn.setAttribute('download', `nexora_setup_${appDownloadData.exeVersion || 'app'}.exe`);
+      const targetUrl = appDownloadData.exeUrl && appDownloadData.exeUrl.trim() !== '#' ? appDownloadData.exeUrl.trim() : '';
+      if (targetUrl) {
+        modalExeDownloadBtn.href = targetUrl;
+        modalExeDownloadBtn.target = '_blank';
+        modalExeDownloadBtn.onclick = null;
+        if (targetUrl.startsWith('data:')) {
+          modalExeDownloadBtn.setAttribute('download', `nexora_setup_${appDownloadData.exeVersion || 'app'}.exe`);
+        }
+      } else {
+        modalExeDownloadBtn.href = '#';
+        modalExeDownloadBtn.onclick = (e) => {
+          e.preventDefault();
+          alert('Windows EXE download link has not been configured in Admin Console yet.');
+        };
       }
     }
     if (windowsModalCard) windowsModalCard.style.display = appDownloadData.exeEnabled !== false ? 'flex' : 'none';
