@@ -197,6 +197,33 @@ document.addEventListener('DOMContentLoaded', () => {
     renderGrid();
   }
 
+  function renderCategoryTabs() {
+    const categories = ['ALL'];
+    allApps.forEach(app => {
+      if (app.category) {
+        const catUpper = app.category.trim().toUpperCase();
+        if (!categories.includes(catUpper)) {
+          categories.push(catUpper);
+        }
+      }
+    });
+
+    if (!categoryTabsContainer) return;
+    categoryTabsContainer.innerHTML = '';
+    categories.forEach(cat => {
+      const tabBtn = document.createElement('button');
+      tabBtn.type = 'button';
+      tabBtn.className = `btn-outline category-tab ${cat === activeCategory ? 'active' : ''}`;
+      tabBtn.textContent = cat === 'ALL' ? 'All' : cat;
+      tabBtn.addEventListener('click', () => {
+        activeCategory = cat;
+        renderCategoryTabs();
+        renderGrid();
+      });
+      categoryTabsContainer.appendChild(tabBtn);
+    });
+  }
+
   let favoriteIds = [];
   try {
     const favs = localStorage.getItem('nexora_favs');
