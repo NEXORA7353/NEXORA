@@ -109,6 +109,10 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
             Platforms
           </button>
+          <button type="button" class="admin-tab-btn" data-tab="tab-backup">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Backup & Restore
+          </button>
           <button type="button" class="admin-tab-btn" data-tab="tab-telegram">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2L2 9.5l7.5 3L18 5.5l-6 8.5v5l3.5-3.5L20 18.5 21.5 2z"/></svg>
             Telegram Popup
@@ -285,6 +289,40 @@
             </div>
             <div class="admin-list" id="adminList">
               <!-- Configured platforms rendered here -->
+            </div>
+          </section>
+        </div>
+
+        <!-- TAB: BACKUP & DATA RECOVERY MANAGER -->
+        <div class="tab-content" id="tab-backup" style="display: none;">
+          <section style="margin-bottom: 24px;">
+            <div class="eyebrow" style="margin-bottom: 12px;">DATABASE BACKUP & ONE-CLICK RECOVERY</div>
+            <div style="background: rgba(var(--accent-orange-rgb), 0.08); border: 1px solid rgba(var(--accent-orange-rgb), 0.3); border-radius: 14px; padding: 20px; margin-bottom: 20px;">
+              <h3 style="margin-bottom: 8px; color: var(--accent-orange); font-size: 16px;">🛡️ Instant Database Protection & Export/Import</h3>
+              <p style="font-size: 13px; color: var(--ink-soft); line-height: 1.6; margin-bottom: 16px;">
+                Download your full platform database as a JSON backup file or restore previously saved data in 1 click.
+              </p>
+              <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                <button type="button" class="btn-primary" id="exportDatabaseBtn" style="font-weight: 700;">📥 Download Database JSON Backup</button>
+                <button type="button" class="btn-outline" id="autoScanBrowserBackupBtn" style="font-weight: 700; border-color: #10b981; color: #10b981;">🔍 Scan & Restore Browser Storage Data</button>
+              </div>
+            </div>
+
+            <!-- RESTORE FROM JSON FILE OR TEXT -->
+            <div style="background: var(--canvas-soft); border: 1px solid var(--hairline); border-radius: 14px; padding: 20px;">
+              <div class="eyebrow" style="margin-bottom: 8px;">RESTORE DATABASE FROM JSON</div>
+              <p style="font-size: 12px; color: var(--ink-mute); margin-bottom: 12px;">Paste JSON data below or upload a JSON backup file to instantly restore your custom platforms:</p>
+              
+              <div class="form-group" style="margin-bottom: 12px;">
+                <input type="file" id="importJsonFileInput" accept=".json" class="admin-input" style="padding: 8px;">
+              </div>
+              
+              <div class="form-group" style="margin-bottom: 12px;">
+                <textarea id="importJsonTextarea" class="admin-input" rows="6" placeholder="Paste database JSON array here..." style="font-family: 'JetBrains Mono', monospace; font-size: 12px;"></textarea>
+              </div>
+              
+              <button type="button" class="btn-primary" id="importJsonSubmitBtn" style="font-weight: 700; width: 100%;">📤 Restore & Overwrite Cloud Database Now</button>
+              <div id="backupStatusMsg" style="display: none; margin-top: 10px; font-weight: 700; font-size: 13px;"></div>
             </div>
           </section>
         </div>

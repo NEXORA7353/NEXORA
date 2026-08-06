@@ -552,20 +552,116 @@ document.addEventListener('DOMContentLoaded', () => {
     return cleanList;
   }
 
-  // Persistence Engine - Strictly respect Cloud Database content
+  // Persistence Engine - Strictly respect Cloud Database content with Dual Backup Snapshot
   async function savePlatforms(updatedPlatforms) {
     platforms = sanitizePlatforms(updatedPlatforms);
 
     // 1. Sync to Upstash Cloud Redis (Central Database)
     await saveToUpstash('nexora_apps', platforms);
+    saveToUpstash('nexora_apps_backup', platforms);
 
-    // 2. LocalStorage for instant local fallback
+    // 2. LocalStorage for instant local fallback & history snapshot
     try {
       localStorage.setItem('nexora_apps', JSON.stringify(platforms));
+      localStorage.setItem('nexora_apps_backup', JSON.stringify(platforms));
+      localStorage.setItem('nexora_apps_history_backup', JSON.stringify(platforms));
     } catch (e) {}
 
     renderPlatformList();
     if (metricPlatformCount) metricPlatformCount.textContent = platforms.length;
+  }
+
+  // Backup & Data Recovery Handlers
+  const exportDatabaseBtn = document.getElementById('exportDatabaseBtn');
+  const autoScanBrowserBackupBtn = document.getElementById('autoScanBrowserBackupBtn');
+  const importJsonFileInput = document.getElementById('importJsonFileInput');
+  const importJsonTextarea = document.getElementById('importJsonTextarea');
+  const importJsonSubmitBtn = document.getElementById('importJsonSubmitBtn');
+  const backupStatusMsg = document.getElementById('backupStatusMsg');
+
+  if (exportDatabaseBtn) {
+    exportDatabaseBtn.addEventListener('click', () => {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(platforms, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `nexora_database_backup_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    });
+  }
+
+  if (autoScanBrowserBackupBtn) {
+    autoScanBrowserBackupBtn.addEventListener('click', async () => {
+      const keysToScan = ['nexora_apps', 'nexora_apps_backup', 'nexora_apps_history_backup', 'nexora_draft_apps'];
+      let foundList = [];
+
+      for (const key of keysToScan) {
+        try {
+          const item = localStorage.getItem(key);
+          if (item) {
+            const parsed = JSON.parse(item);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              foundList = [...foundList, ...parsed];
+            }
+          }
+        } catch (e) {}
+      }
+
+      if (foundList.length > 0) {
+        const merged = sanitizePlatforms([...foundList, ...platforms]);
+        await savePlatforms(merged);
+        alert(`Successfully restored ${merged.length} platforms from browser storage cache!`);
+      } else {
+        alert('No lost cache data found in current browser storage.');
+      }
+    });
+  }
+
+  if (importJsonFileInput) {
+    importJsonFileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (evt) => {
+        if (importJsonTextarea) importJsonTextarea.value = evt.target.result;
+      };
+      reader.readAsText(file);
+    });
+  }
+
+  if (importJsonSubmitBtn) {
+    importJsonSubmitBtn.addEventListener('click', async () => {
+      const rawText = importJsonTextarea ? importJsonTextarea.value.trim() : '';
+      if (!rawText) {
+        alert('Please paste JSON data or select a JSON file first!');
+        return;
+      }
+
+      try {
+        const parsed = JSON.parse(rawText);
+        if (!Array.isArray(parsed)) {
+          alert('Invalid format: JSON must be an array of platforms.');
+          return;
+        }
+
+        const validRestored = sanitizePlatforms(parsed);
+        if (validRestored.length === 0) {
+          alert('No valid platform items found in JSON.');
+          return;
+        }
+
+        await savePlatforms(validRestored);
+        if (backupStatusMsg) {
+          backupStatusMsg.style.display = 'block';
+          backupStatusMsg.style.color = '#10b981';
+          backupStatusMsg.textContent = `✓ Successfully restored ${validRestored.length} platforms to Cloud Database!`;
+        }
+        alert(`Success! Restored ${validRestored.length} platforms to Cloud Database.`);
+      } catch (err) {
+        alert('JSON Parsing Error: Please check your JSON syntax.');
+      }
+    });
   }
 
   // Load platforms directly from Upstash Cloud Redis
