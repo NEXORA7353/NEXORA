@@ -367,11 +367,36 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  const resetCustomFormBtn = document.getElementById('resetCustomFormBtn');
+  const appOrderInput = document.getElementById('appOrder');
+
+  function resetCustomForm() {
+    if (addPlatformForm) addPlatformForm.reset();
+    if (presetSelect) presetSelect.value = 'custom';
+    if (logoPreviewContainer) logoPreviewContainer.style.display = 'none';
+    if (appOrderInput) appOrderInput.value = platforms.length + 1;
+    resetLinksBuilder();
+    const appNameEl = document.getElementById('appName');
+    if (appNameEl) {
+      appNameEl.focus();
+      appNameEl.placeholder = "Enter custom platform name (e.g. Target Academy)";
+    }
+  }
+
+  if (resetCustomFormBtn) {
+    resetCustomFormBtn.addEventListener('click', resetCustomForm);
+  }
+
   const presetSelect = document.getElementById('presetPlatformSelect');
   if (presetSelect) {
     presetSelect.addEventListener('change', (e) => {
       const val = e.target.value;
       if (!val) return;
+
+      if (val === 'custom') {
+        resetCustomForm();
+        return;
+      }
 
       const existing = platforms.find(p => p.id === val || (PRESET_PLATFORMS[val] && p.name.toLowerCase() === PRESET_PLATFORMS[val].name.toLowerCase()));
       if (existing) {

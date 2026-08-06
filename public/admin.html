@@ -164,32 +164,38 @@
             <form id="addPlatformForm" class="admin-form">
               <div class="admin-form-grid">
                 <div class="form-group full-width">
-                  <label class="form-label" for="presetPlatformSelect" style="color: var(--accent-orange); font-weight: 700; font-size: 14px;">Quick Select Preset Platform (23 Major Platforms)</label>
+                  <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                    <label class="form-label" for="presetPlatformSelect" style="color: var(--accent-orange); font-weight: 700; font-size: 14px; margin: 0;">Select Preset OR Add Custom Platform</label>
+                    <button type="button" class="btn-outline btn-sm" id="resetCustomFormBtn" style="font-weight: 700; border-color: var(--accent-orange); color: var(--accent-orange);">+ New Custom Platform</button>
+                  </div>
                   <select id="presetPlatformSelect" class="admin-input" style="background: rgba(var(--accent-orange-rgb), 0.08); border-color: rgba(var(--accent-orange-rgb), 0.3); font-weight: 600;">
-                    <option value="">-- Select Preset Platform to Auto-Fill Data or Enter Custom Below --</option>
-                    <option value="pw">Physics Wallah</option>
-                    <option value="vidyakul">Vidyakul</option>
-                    <option value="sciencemagnet">Science Magnet</option>
-                    <option value="parmar">Parmar Academy</option>
-                    <option value="rgvikramjeet">RG VIKRAMJEET</option>
-                    <option value="testbook">Testbook</option>
-                    <option value="utkarsh">Utkarsh Classes</option>
-                    <option value="yesofficer">Yes Officer</option>
-                    <option value="kdlive">KD LIVE</option>
-                    <option value="selectionway">Selection Way</option>
-                    <option value="careerwill">Careerwill</option>
-                    <option value="nexttopper">Next Topper</option>
-                    <option value="studyiq">Study IQ</option>
-                    <option value="rojgarwithankit">Rojgar With Ankit</option>
-                    <option value="cdsjourney">CDS Journey</option>
-                    <option value="khanglobal">Khan Global Studies</option>
-                    <option value="uclive">UC Live Rani Mam</option>
-                    <option value="gyanbindu">Gyanbindu</option>
-                    <option value="gkgsmasti">GK GS Masti</option>
-                    <option value="dishaonline">Disha Online Class</option>
-                    <option value="mastersahab">Master Sahab</option>
-                    <option value="classplus">Classplus</option>
-                    <option value="unacademy">Unacademy</option>
+                    <option value="">-- Choose Option: Select Preset OR Create Custom Manual Platform --</option>
+                    <option value="custom" style="font-weight: 800; color: var(--accent-orange);">➕ Create Custom New Platform (Manual Entry)</option>
+                    <optgroup label="23 Major Preset Platforms">
+                      <option value="pw">Physics Wallah</option>
+                      <option value="vidyakul">Vidyakul</option>
+                      <option value="sciencemagnet">Science Magnet</option>
+                      <option value="parmar">Parmar Academy</option>
+                      <option value="rgvikramjeet">RG VIKRAMJEET</option>
+                      <option value="testbook">Testbook</option>
+                      <option value="utkarsh">Utkarsh Classes</option>
+                      <option value="yesofficer">Yes Officer</option>
+                      <option value="kdlive">KD LIVE</option>
+                      <option value="selectionway">Selection Way</option>
+                      <option value="careerwill">Careerwill</option>
+                      <option value="nexttopper">Next Topper</option>
+                      <option value="studyiq">Study IQ</option>
+                      <option value="rojgarwithankit">Rojgar With Ankit</option>
+                      <option value="cdsjourney">CDS Journey</option>
+                      <option value="khanglobal">Khan Global Studies</option>
+                      <option value="uclive">UC Live Rani Mam</option>
+                      <option value="gyanbindu">Gyanbindu</option>
+                      <option value="gkgsmasti">GK GS Masti</option>
+                      <option value="dishaonline">Disha Online Class</option>
+                      <option value="mastersahab">Master Sahab</option>
+                      <option value="classplus">Classplus</option>
+                      <option value="unacademy">Unacademy</option>
+                    </optgroup>
                   </select>
                 </div>
 
