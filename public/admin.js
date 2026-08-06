@@ -4,6 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const UPSTASH_URL = 'https://legible-loon-84378.upstash.io';
   const UPSTASH_TOKEN = 'gQAAAAAAAUmaAAIgcDE5M2IwMjM4MTczZjA0ZWQ5YWUwYzYzNTU1YzIyYTQ3Mg';
 
+  // All DOM Elements declared at the very top to prevent Temporal Dead Zone ReferenceErrors
   const gateScreen = document.getElementById('gateScreen');
   const dashboardScreen = document.getElementById('dashboardScreen');
   const gateForm = document.getElementById('gateForm');
@@ -26,8 +27,65 @@ document.addEventListener('DOMContentLoaded', () => {
   const adminList = document.getElementById('adminList');
   const platformCount = document.getElementById('platformCount');
 
+  // Metrics & Analytics elements
+  const analyticsList = document.getElementById('analyticsList');
+  const refreshAnalyticsBtn = document.getElementById('refreshAnalyticsBtn');
+  const metricPlatformCount = document.getElementById('metricPlatformCount');
+  const metricClickCount = document.getElementById('metricClickCount');
+  const metricPendingCount = document.getElementById('metricPendingCount');
+
+  // Theme elements
+  const adminThemeToggleBtn = document.getElementById('adminThemeToggleBtn');
+  const gateThemeToggleBtn = document.getElementById('gateThemeToggleBtn');
+  const admSunIcon = document.getElementById('admSunIcon');
+  const admMoonIcon = document.getElementById('admMoonIcon');
+
+  // Feedback elements
+  const adminFeedbackList = document.getElementById('adminFeedbackList');
+  const feedbackCount = document.getElementById('feedbackCount');
+
   let platforms = [];
   let tempLinks = [];
+  let feedbackItems = [];
+
+  // Theme Helpers
+  function setAdminTheme(theme) {
+    if (theme === 'light') {
+      document.documentElement.setAttribute('data-theme', 'light');
+    } else {
+      document.documentElement.removeAttribute('data-theme');
+    }
+    try {
+      localStorage.setItem('nexora_theme', theme);
+    } catch (e) {}
+    updateAdminIcons(theme);
+  }
+
+  function updateAdminIcons(theme) {
+    const sunIcons = document.querySelectorAll('#admSunIcon, #gateSunIcon, #themeSunIcon');
+    const moonIcons = document.querySelectorAll('#admMoonIcon, #gateMoonIcon, #themeMoonIcon');
+    sunIcons.forEach(icon => { if (icon) icon.style.display = theme === 'light' ? 'block' : 'none'; });
+    moonIcons.forEach(icon => { if (icon) icon.style.display = theme === 'light' ? 'none' : 'block'; });
+  }
+
+  function initAdminTheme() {
+    const saved = localStorage.getItem('nexora_theme') || 'dark';
+    setAdminTheme(saved);
+  }
+
+  if (adminThemeToggleBtn) {
+    adminThemeToggleBtn.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+      setAdminTheme(current === 'light' ? 'dark' : 'light');
+    });
+  }
+
+  if (gateThemeToggleBtn) {
+    gateThemeToggleBtn.addEventListener('click', () => {
+      const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
+      setAdminTheme(current === 'light' ? 'dark' : 'light');
+    });
+  }
 
   // Authentication check
   if (sessionStorage.getItem('nexora_auth') === 'true') {
@@ -36,38 +94,43 @@ document.addEventListener('DOMContentLoaded', () => {
     showGate();
   }
 
-  gateForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const entered = gatePassword.value;
-    if (entered === 'admin@123' || entered === 'nexora2024' || entered === ADMIN_PASSWORD) {
-      sessionStorage.setItem('nexora_auth', 'true');
-      gateError.style.display = 'none';
-      gatePassword.value = '';
-      showDashboard();
-    } else {
-      gateError.style.display = 'block';
-    }
-  });
+  if (gateForm) {
+    gateForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const entered = gatePassword.value;
+      if (entered === 'admin@123' || entered === 'nexora2024' || entered === ADMIN_PASSWORD) {
+        sessionStorage.setItem('nexora_auth', 'true');
+        if (gateError) gateError.style.display = 'none';
+        gatePassword.value = '';
+        showDashboard();
+      } else {
+        if (gateError) gateError.style.display = 'block';
+      }
+    });
+  }
 
-  logoutBtn.addEventListener('click', () => {
-    sessionStorage.removeItem('nexora_auth');
-    showGate();
-  });
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', () => {
+      sessionStorage.removeItem('nexora_auth');
+      showGate();
+    });
+  }
 
   function showGate() {
-    gateScreen.style.display = 'flex';
-    dashboardScreen.style.display = 'none';
+    if (gateScreen) gateScreen.style.display = 'flex';
+    if (dashboardScreen) dashboardScreen.style.display = 'none';
+    initAdminTheme();
   }
 
   function showDashboard() {
-    gateScreen.style.display = 'none';
-    dashboardScreen.style.display = 'block';
+    if (gateScreen) gateScreen.style.display = 'none';
+    if (dashboardScreen) dashboardScreen.style.display = 'block';
+    initAdminTheme();
     loadTelegramSettings();
     loadFeedback();
     loadPlatforms();
     loadAnalytics();
     resetLinksBuilder();
-    initAdminTheme();
   }
 
   // ADMIN TAB NAVIGATION
@@ -87,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // Upstash Direct Fallbacks
+  // Upstash REST API Helper
   async function fetchFromUpstash(key) {
     try {
       const res = await fetch(`${UPSTASH_URL}/get/${key}`, {
@@ -113,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
     return false;
   }
 
-  // Telegram Settings Handler
+  // Telegram Settings
   async function loadTelegramSettings() {
     try {
       const res = await fetch('/api/settings', { cache: 'no-store' });
@@ -139,27 +202,29 @@ document.addEventListener('DOMContentLoaded', () => {
     if (tgMessage) tgMessage.value = data.telegramMessage || '';
   }
 
-  telegramSettingsForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const payload = {
-      telegramEnabled: tgEnabled.checked,
-      telegramLink: tgLink.value.trim(),
-      telegramTitle: tgTitle.value.trim(),
-      telegramMessage: tgMessage.value.trim()
-    };
+  if (telegramSettingsForm) {
+    telegramSettingsForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const payload = {
+        telegramEnabled: tgEnabled.checked,
+        telegramLink: tgLink.value.trim(),
+        telegramTitle: tgTitle.value.trim(),
+        telegramMessage: tgMessage.value.trim()
+      };
 
-    fetch('/api/settings', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-      .then(res => res.json())
-      .then(() => showTgStatus('Saved successfully!'))
-      .catch(async () => {
-        await saveToUpstash('nexora_settings', payload);
-        showTgStatus('Saved successfully!');
-      });
-  });
+      fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+        .then(res => res.json())
+        .then(() => showTgStatus('Saved successfully!'))
+        .catch(async () => {
+          await saveToUpstash('nexora_settings', payload);
+          showTgStatus('Saved successfully!');
+        });
+    });
+  }
 
   function showTgStatus(msg) {
     if (tgStatusMsg) {
@@ -192,6 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderLinksBuilder() {
+    if (!linksBuilderList) return;
     linksBuilderList.innerHTML = '';
     tempLinks.forEach((link, idx) => {
       const box = document.createElement('div');
@@ -202,11 +268,11 @@ document.addEventListener('DOMContentLoaded', () => {
           <span style="font-size: 11px; font-family: monospace; color: var(--ink-mute);">LINK #${idx + 1}</span>
           ${tempLinks.length > 1 ? `<button type="button" class="btn-danger btn-sm remove-link-btn" data-idx="${idx}">Remove</button>` : ''}
         </div>
-        <input type="text" class="admin-input link-title-input" placeholder="Link Title (e.g. PW Thor Batch)" value="${escapeHtml(link.title)}" required>
+        <input type="text" class="admin-input link-title-input" placeholder="Link Title (e.g. PW Yakeen NEET Batch)" value="${escapeHtml(link.title)}" required>
         <input type="url" class="admin-input link-url-input" placeholder="Platform Target URL (https://...)" value="${escapeHtml(link.url)}" required>
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
           <div>
-            <label class="form-label" style="font-size: 9px;">Status</label>
+            <label class="form-label" style="font-size: 9px;">Status Mode</label>
             <select class="admin-input link-status-select" style="font-size: 11px; padding: 6px 8px;">
               <option value="auto" ${link.statusMode === 'auto' ? 'selected' : ''}>Auto Detect</option>
               <option value="online" ${link.statusMode === 'online' ? 'selected' : ''}>Force Online</option>
@@ -248,71 +314,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  function getDefaultInitialPlatforms() {
-    return [
-      {
-        id: 'pw_main',
-        name: 'Physics Wallah',
-        category: 'LIVE CLASS',
-        logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w',
-        order: 1,
-        featured: true,
-        addedAt: new Date().toISOString(),
-        links: [
-          {
-            id: 'pw_link_1',
-            title: 'Physics Wallah Main Portal',
-            url: 'https://study.physicswallah.live',
-            statusMode: 'online',
-            keyRequirement: 'without_key',
-            loginRequirement: 'login_not_required'
-          },
-          {
-            id: 'pw_link_2',
-            title: 'PW Yakeen NEET Batch',
-            url: 'https://study.physicswallah.live/batches',
-            statusMode: 'online',
-            keyRequirement: 'with_key',
-            loginRequirement: 'login_required'
-          }
-        ]
-      },
-      {
-        id: 'netprep_main',
-        name: 'NETprep Portal',
-        category: 'EXAM PREP',
-        logoUrl: '',
-        order: 2,
-        featured: false,
-        addedAt: new Date().toISOString(),
-        links: [
-          {
-            id: 'netprep_link_1',
-            title: 'NETprep Study Hub',
-            url: 'https://netprep.in',
-            statusMode: 'online',
-            keyRequirement: 'without_key',
-            loginRequirement: 'login_not_required'
-          }
-        ]
-      }
-    ];
-  }
-
+  // Persistence Engine
   async function savePlatforms(updatedPlatforms) {
     platforms = updatedPlatforms;
 
-    // 1. Save to LocalStorage for zero-latency UI persistence
+    // LocalStorage for instant non-blocking save
     try {
       localStorage.setItem('nexora_apps', JSON.stringify(platforms));
     } catch (e) {}
 
-    // 2. Render UI immediately
     renderPlatformList();
-    const metricPlatformCount = document.getElementById('metricPlatformCount');
     if (metricPlatformCount) metricPlatformCount.textContent = platforms.length;
 
-    // 3. Sync to API route if backend server running
+    // API Sync
     try {
       await fetch('/api/apps', {
         method: 'POST',
@@ -321,13 +335,12 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     } catch (e) {}
 
-    // 4. Sync to Upstash Cloud Redis
+    // Upstash Sync
     await saveToUpstash('nexora_apps', platforms);
   }
 
-  // Load platforms with 4-step fallback system
+  // Load platforms from API -> Upstash -> LocalStorage
   async function loadPlatforms() {
-    // 1. Try API
     try {
       const res = await fetch('/api/apps', { cache: 'no-store' });
       if (res.ok) {
@@ -344,7 +357,6 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (e) {}
 
-    // 2. Try Upstash Cloud Redis
     const upstashApps = await fetchFromUpstash('nexora_apps');
     if (Array.isArray(upstashApps) && upstashApps.length > 0) {
       platforms = upstashApps;
@@ -353,12 +365,11 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // 3. Try LocalStorage
     try {
       const local = localStorage.getItem('nexora_apps');
       if (local) {
         const parsed = JSON.parse(local);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
           platforms = parsed;
           renderPlatformList();
           return;
@@ -366,15 +377,23 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (e) {}
 
-    // 4. Fallback Default Sample Platforms
-    platforms = getDefaultInitialPlatforms();
-    try { localStorage.setItem('nexora_apps', JSON.stringify(platforms)); } catch (e) {}
+    platforms = [];
     renderPlatformList();
   }
 
   function renderPlatformList() {
-    platformCount.textContent = `Platform count: ${platforms.length}`;
+    if (platformCount) platformCount.textContent = `Platform count: ${platforms.length}`;
+    if (metricPlatformCount) metricPlatformCount.textContent = platforms.length;
+    if (!adminList) return;
     adminList.innerHTML = '';
+
+    if (platforms.length === 0) {
+      adminList.innerHTML = `
+        <div style="text-align: center; color: var(--ink-mute); padding: 30px; font-size: 13px; background: var(--canvas-card); border-radius: 14px; border: 1px solid var(--hairline); grid-column: 1 / -1;">
+          No platforms configured yet. Add your main platform (e.g. Physics Wallah) using the form above!
+        </div>`;
+      return;
+    }
 
     platforms.forEach(app => {
       const card = document.createElement('article');
@@ -417,7 +436,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const catEl = document.createElement('div');
     catEl.className = 'admin-item-cat';
-    catEl.textContent = `${(app.category || 'GENERAL').toUpperCase()} • ${app.links ? app.links.length : 0} LINK(S)`;
+    catEl.textContent = `${(app.category || 'GENERAL').toUpperCase()} • ${app.links ? app.links.length : 0} PORTAL(S)`;
 
     details.appendChild(nameEl);
     details.appendChild(catEl);
@@ -463,7 +482,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return name.substring(0, 2).toUpperCase();
   }
 
-  // Inline Platform Edit Mode
   function renderCardEditState(card, app) {
     let editLinks = Array.isArray(app.links) && app.links.length > 0 ? JSON.parse(JSON.stringify(app.links)) : [
       { id: 'link_1', title: app.name + ' Portal', url: app.url || '', statusMode: 'auto', keyRequirement: 'without_key', loginRequirement: 'login_not_required' }
@@ -507,7 +525,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px;">
           <button type="button" class="btn-outline btn-sm cancel-edit-btn">Cancel</button>
-          <button type="submit" class="btn-primary btn-sm">Save Platform</button>
+          <button type="submit" class="btn-primary btn-sm">Save Changes</button>
         </div>
       </form>
     `;
@@ -590,43 +608,45 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Add platform form submit
-  addPlatformForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const nameVal = document.getElementById('appName').value.trim();
-    if (!nameVal) return;
+  // Add Platform Form Submit
+  if (addPlatformForm) {
+    addPlatformForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const nameVal = document.getElementById('appName').value.trim();
+      if (!nameVal) return;
 
-    const newItem = {
-      id: 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-      name: nameVal,
-      logoUrl: document.getElementById('appLogo').value.trim(),
-      logo: document.getElementById('appLogo').value.trim(),
-      category: document.getElementById('appCategory').value.trim() || 'GENERAL',
-      order: parseInt(document.getElementById('appOrder').value, 10) || (platforms.length + 1),
-      featured: document.getElementById('appFeatured').checked,
-      addedAt: new Date().toISOString(),
-      links: Array.isArray(tempLinks) && tempLinks.length > 0 ? JSON.parse(JSON.stringify(tempLinks)) : [
-        {
-          id: 'link_1',
-          title: nameVal + ' Portal',
-          url: '',
-          statusMode: 'auto',
-          keyRequirement: 'without_key',
-          loginRequirement: 'login_not_required'
-        }
-      ]
-    };
+      const newItem = {
+        id: 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+        name: nameVal,
+        logoUrl: document.getElementById('appLogo').value.trim(),
+        logo: document.getElementById('appLogo').value.trim(),
+        category: document.getElementById('appCategory').value.trim() || 'GENERAL',
+        order: parseInt(document.getElementById('appOrder').value, 10) || (platforms.length + 1),
+        featured: document.getElementById('appFeatured').checked,
+        addedAt: new Date().toISOString(),
+        links: Array.isArray(tempLinks) && tempLinks.length > 0 ? JSON.parse(JSON.stringify(tempLinks)) : [
+          {
+            id: 'link_1',
+            title: nameVal + ' Portal',
+            url: '',
+            statusMode: 'auto',
+            keyRequirement: 'without_key',
+            loginRequirement: 'login_not_required'
+          }
+        ]
+      };
 
-    platforms.unshift(newItem);
-    await savePlatforms(platforms);
+      platforms.unshift(newItem);
+      await savePlatforms(platforms);
 
-    addPlatformForm.reset();
-    const appOrderEl = document.getElementById('appOrder');
-    if (appOrderEl) appOrderEl.value = 1;
-    resetLinksBuilder();
+      addPlatformForm.reset();
+      const appOrderEl = document.getElementById('appOrder');
+      if (appOrderEl) appOrderEl.value = 1;
+      resetLinksBuilder();
 
-    alert(`Platform "${nameVal}" added successfully!`);
-  });
+      alert(`Platform "${nameVal}" added successfully!`);
+    });
+  }
 
   async function deletePlatform(id) {
     if (!confirm('Are you sure you want to delete this platform?')) return;
@@ -643,11 +663,78 @@ document.addEventListener('DOMContentLoaded', () => {
       .replace(/"/g, '&quot;');
   }
 
-  // USER FEEDBACK & REPORTS MANAGEMENT
-  let feedbackItems = [];
-  const adminFeedbackList = document.getElementById('adminFeedbackList');
-  const feedbackCount = document.getElementById('feedbackCount');
+  // Analytics & Stats
+  if (refreshAnalyticsBtn) {
+    refreshAnalyticsBtn.addEventListener('click', () => loadAnalytics());
+  }
 
+  async function loadAnalytics() {
+    let clickData = {};
+    try {
+      const res = await fetch('/api/track-click', { cache: 'no-store' });
+      if (res.ok) {
+        clickData = await res.json();
+      }
+    } catch (e) {}
+
+    const localClicks = JSON.parse(localStorage.getItem('nexora_link_clicks') || '{}');
+    Object.keys(localClicks).forEach(k => {
+      if (!clickData[k]) {
+        clickData[k] = { appName: k, linkTitle: 'Access Link', url: k, count: localClicks[k], lastClicked: new Date().toISOString() };
+      }
+    });
+
+    renderAnalytics(clickData);
+    updateMetrics(clickData);
+  }
+
+  function renderAnalytics(clickData) {
+    if (!analyticsList) return;
+    analyticsList.innerHTML = '';
+
+    const items = Object.values(clickData).sort((a, b) => (b.count || 0) - (a.count || 0));
+
+    if (items.length === 0) {
+      analyticsList.innerHTML = `
+        <div style="text-align: center; color: var(--ink-mute); padding: 20px; font-size: 13px; background: var(--canvas-card); border-radius: 12px; border: 1px solid var(--hairline);">
+          No link clicks tracked yet. Clicks will appear here in real-time as users open platforms.
+        </div>`;
+      return;
+    }
+
+    items.forEach(item => {
+      const card = document.createElement('div');
+      card.className = 'admin-item-card';
+      card.innerHTML = `
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div style="font-size: 15px; font-weight: 600; color: var(--ink);">${escapeHtml(item.appName || item.linkTitle || 'Platform Link')}</div>
+          <span style="font-size: 14px; font-weight: 700; color: var(--accent-green); background: rgba(16, 185, 129, 0.15); padding: 4px 10px; border-radius: 999px;">
+            ${item.count || 0} CLICKS
+          </span>
+        </div>
+        <div style="font-size: 12px; color: var(--ink-mute); word-break: break-all;">URL: ${escapeHtml(item.url || '#')}</div>
+        ${item.lastClicked ? `<div style="font-size: 11px; color: var(--ink-mute);">Last Clicked: ${new Date(item.lastClicked).toLocaleString()}</div>` : ''}
+      `;
+      analyticsList.appendChild(card);
+    });
+  }
+
+  function updateMetrics(clickData) {
+    if (metricPlatformCount) metricPlatformCount.textContent = platforms ? platforms.length : 0;
+    
+    let totalClicks = 0;
+    if (clickData) {
+      Object.values(clickData).forEach(v => {
+        totalClicks += (v.count || 0);
+      });
+    }
+    if (metricClickCount) metricClickCount.textContent = totalClicks;
+
+    const pending = (feedbackItems || []).filter(f => f.status === 'PENDING').length;
+    if (metricPendingCount) metricPendingCount.textContent = pending;
+  }
+
+  // User Feedback
   async function loadFeedback() {
     try {
       const res = await fetch('/api/feedback', { cache: 'no-store' });
@@ -681,180 +768,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
       card.innerHTML = `
         <div style="display: flex; align-items: center; justify-content: space-between;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span class="notif-type-badge ${item.type === 'ERROR' ? 'error' : (item.type === 'IMPROVEMENT' ? 'improvement' : 'question')}">${item.type || 'QUESTION'}</span>
-            <span style="font-size: 13px; font-weight: 600; color: #fff;">${escapeHtml(item.userName || 'Student')}</span>
-            ${item.userEmail ? `<span style="font-size: 12px; color: var(--ink-mute);">(${escapeHtml(item.userEmail)})</span>` : ''}
-          </div>
-          <span style="font-size: 11px; color: var(--ink-mute);">${new Date(item.createdAt).toLocaleString()}</span>
+          <span class="notif-type-badge ${item.type || 'improvement'}">${(item.type || 'FEEDBACK').toUpperCase()}</span>
+          <span class="eyebrow" style="font-size: 10px;">${new Date(item.timestamp || Date.now()).toLocaleDateString()}</span>
         </div>
-        
-        <div style="font-size: 14px; color: var(--ink-body); line-height: 1.4; background: var(--canvas-soft); padding: 10px; border-radius: 8px;">
-          ${escapeHtml(item.message)}
-        </div>
-
-        ${isReplied ? `
-          <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 8px; padding: 10px; margin-top: 4px;">
-            <div style="font-size: 11px; font-weight: 700; color: #10b981;">CURRENT ADMIN REPLY:</div>
-            <div style="font-size: 13px; color: #fff; margin-top: 2px;">${escapeHtml(item.adminReply)}</div>
-          </div>
-        ` : ''}
-
-        <div style="margin-top: 8px; display: flex; flex-direction: column; gap: 8px;">
-          <textarea id="replyText_${item.id}" class="admin-input" placeholder="Type reply for user..." style="min-height: 60px; font-size: 13px;">${escapeHtml(item.adminReply || '')}</textarea>
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <button type="button" class="btn-primary btn-sm" onclick="sendAdminReply('${item.id}')">
-              ${isReplied ? 'Update Reply' : 'Send Reply'}
-            </button>
-            <button type="button" class="btn-danger btn-sm" onclick="deleteFeedbackItem('${item.id}')">Delete</button>
-          </div>
-        </div>
+        <div style="font-size: 14px; color: var(--ink); line-height: 1.5;">${escapeHtml(item.message)}</div>
+        ${isReplied && item.adminReply ? `<div style="font-size: 12px; color: var(--accent-green); background: rgba(16,185,129,0.1); padding: 8px 12px; border-radius: 8px;">Reply: ${escapeHtml(item.adminReply)}</div>` : ''}
       `;
       adminFeedbackList.appendChild(card);
-    });
-  }
-
-  window.sendAdminReply = async function(id) {
-    const textarea = document.getElementById(`replyText_${id}`);
-    if (!textarea || !textarea.value.trim()) {
-      alert('Please type a reply before sending.');
-      return;
-    }
-    const adminReply = textarea.value.trim();
-    try {
-      const res = await fetch('/api/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'reply', id, adminReply })
-      });
-      if (res.ok) {
-        alert('Reply sent successfully! User will receive a notification.');
-        loadFeedback();
-      }
-    } catch (e) {
-      alert('Failed to send reply.');
-    }
-  };
-
-  window.deleteFeedbackItem = async function(id) {
-    if (!confirm('Are you sure you want to delete this submission?')) return;
-    try {
-      const res = await fetch('/api/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'delete', id })
-      });
-      if (res.ok) {
-        loadFeedback();
-      }
-    } catch (e) {}
-  };
-
-  // LINK CLICK ANALYTICS & STATS METRICS
-  const analyticsList = document.getElementById('analyticsList');
-  const refreshAnalyticsBtn = document.getElementById('refreshAnalyticsBtn');
-  const metricPlatformCount = document.getElementById('metricPlatformCount');
-  const metricClickCount = document.getElementById('metricClickCount');
-  const metricPendingCount = document.getElementById('metricPendingCount');
-
-  if (refreshAnalyticsBtn) {
-    refreshAnalyticsBtn.addEventListener('click', () => loadAnalytics());
-  }
-
-  async function loadAnalytics() {
-    let clickData = {};
-    try {
-      const res = await fetch('/api/track-click', { cache: 'no-store' });
-      if (res.ok) {
-        clickData = await res.json();
-      }
-    } catch (e) {}
-
-    // Combine with local storage clicks
-    const localClicks = JSON.parse(localStorage.getItem('nexora_link_clicks') || '{}');
-    Object.keys(localClicks).forEach(k => {
-      if (!clickData[k]) {
-        clickData[k] = { appName: k, linkTitle: 'Access Link', url: k, count: localClicks[k], lastClicked: new Date().toISOString() };
-      }
-    });
-
-    renderAnalytics(clickData);
-    updateMetrics(clickData);
-  }
-
-  function renderAnalytics(clickData) {
-    if (!analyticsList) return;
-    analyticsList.innerHTML = '';
-
-    const items = Object.values(clickData).sort((a, b) => (b.count || 0) - (a.count || 0));
-
-    if (items.length === 0) {
-      analyticsList.innerHTML = `
-        <div style="text-align: center; color: var(--ink-mute); padding: 20px; font-size: 13px; background: var(--canvas-card); border-radius: 12px; border: 1px solid var(--hairline);">
-          No link clicks tracked yet. Clicks will appear here in real-time as users open platforms.
-        </div>`;
-      return;
-    }
-
-    items.forEach(item => {
-      const card = document.createElement('div');
-      card.className = 'admin-item-card';
-      card.innerHTML = `
-        <div style="display: flex; align-items: center; justify-content: space-between;">
-          <div style="font-size: 15px; font-weight: 600; color: #fff;">${escapeHtml(item.appName || item.linkTitle || 'Platform Link')}</div>
-          <span style="font-size: 14px; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.15); padding: 4px 10px; border-radius: 999px;">
-            ${item.count || 0} CLICKS
-          </span>
-        </div>
-        <div style="font-size: 12px; color: var(--ink-mute); word-break: break-all;">URL: ${escapeHtml(item.url || '#')}</div>
-        ${item.lastClicked ? `<div style="font-size: 11px; color: var(--ink-mute);">Last Clicked: ${new Date(item.lastClicked).toLocaleString()}</div>` : ''}
-      `;
-      analyticsList.appendChild(card);
-    });
-  }
-
-  function updateMetrics(clickData) {
-    if (metricPlatformCount) metricPlatformCount.textContent = platforms ? platforms.length : 0;
-    
-    let totalClicks = 0;
-    if (clickData) {
-      Object.values(clickData).forEach(v => {
-        totalClicks += (v.count || 0);
-      });
-    }
-    if (metricClickCount) metricClickCount.textContent = totalClicks;
-
-    const pending = (feedbackItems || []).filter(f => f.status === 'PENDING').length;
-    if (metricPendingCount) metricPendingCount.textContent = pending;
-  }
-
-  // ADMIN THEME TOGGLE
-  const adminThemeToggleBtn = document.getElementById('adminThemeToggleBtn');
-  const admSunIcon = document.getElementById('admSunIcon');
-  const admMoonIcon = document.getElementById('admMoonIcon');
-
-  function initAdminTheme() {
-    const saved = localStorage.getItem('nexora_theme') || 'dark';
-    setAdminTheme(saved);
-  }
-
-  function setAdminTheme(theme) {
-    if (theme === 'light') {
-      document.documentElement.setAttribute('data-theme', 'light');
-      if (admSunIcon) admSunIcon.style.display = 'block';
-      if (admMoonIcon) admMoonIcon.style.display = 'none';
-    } else {
-      document.documentElement.removeAttribute('data-theme');
-      if (admSunIcon) admSunIcon.style.display = 'none';
-      if (admMoonIcon) admMoonIcon.style.display = 'block';
-    }
-    localStorage.setItem('nexora_theme', theme);
-  }
-
-  if (adminThemeToggleBtn) {
-    adminThemeToggleBtn.addEventListener('click', () => {
-      const current = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
-      setAdminTheme(current === 'light' ? 'dark' : 'light');
     });
   }
 });

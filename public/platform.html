@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Platform Details | NEXORA Educational Portal</title>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5451638891460185" crossorigin="anonymous"></script>
+  <link rel="manifest" href="/manifest.json">
+  <link rel="stylesheet" href="/style.css">
+  <script src="/js/theme.js"></script>
+  <meta name="theme-color" content="#0a0a0a">
+</head>
+<body>
+  <div class="mobile-wrapper">
+    <div class="app-container">
+      <!-- TOP BAR HEADER -->
+      <header class="top-bar" style="display: flex; align-items: center; justify-content: space-between;">
+        <div class="brand-header-group">
+          <a href="/" style="text-decoration: none; display: flex; align-items: center; gap: 12px;">
+            <svg class="brand-header-logo" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="detailHdrGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#ff7a17" />
+                  <stop offset="100%" stop-color="#a855f7" />
+                </linearGradient>
+              </defs>
+              <rect x="10" y="10" width="80" height="80" rx="22" fill="#16181d" stroke="url(#detailHdrGrad)" stroke-width="4"/>
+              <path d="M32 68V32L54 56V32M68 32V68L46 44V68" stroke="url(#detailHdrGrad)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div>
+              <h1 class="app-title" style="font-size: 20px;">NEXORA</h1>
+              <div class="eyebrow">PLATFORM FOLDER</div>
+            </div>
+          </a>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <a href="/" class="btn-outline btn-sm" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            <span>Back to Hub</span>
+          </a>
+          <button type="button" class="theme-toggle-btn" id="themeToggleBtn" title="Toggle Light/Dark Theme" aria-label="Toggle Theme">
+            <svg id="themeSunIcon" class="sun-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+            <svg id="themeMoonIcon" class="moon-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- NAVIGATION MENU -->
+      <nav class="nav-menu">
+        <a href="/" class="nav-link">Home</a>
+        <a href="/about.html" class="nav-link">About Us</a>
+        <a href="/contact.html" class="nav-link">Contact</a>
+        <a href="/faq.html" class="nav-link">FAQ</a>
+        <a href="/privacy.html" class="nav-link">Privacy Policy</a>
+        <a href="/terms.html" class="nav-link">Terms</a>
+        <a href="/disclaimer.html" class="nav-link">Disclaimer</a>
+      </nav>
+
+      <!-- BREADCRUMB -->
+      <div class="breadcrumb">
+        <a href="/">Home Hub</a>
+        <span>/</span>
+        <span id="breadcrumbCategory">Category</span>
+        <span>/</span>
+        <span id="breadcrumbPlatform">Platform Details</span>
+      </div>
+
+      <!-- PLATFORM HERO CONTAINER -->
+      <section class="landing-hero" style="margin-bottom: 24px;">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 16px;">
+          <div id="detailLogoContainer" class="logo-container" style="width: 64px; height: 64px; border-radius: 16px;">
+            <!-- Logo image or fallback -->
+          </div>
+          <div>
+            <div class="hero-badge" style="margin-bottom: 6px;">
+              <span class="hero-badge-dot"></span>
+              <span id="detailCategoryBadge">GENERAL</span>
+            </div>
+            <h1 class="hero-headline" id="detailTitleName" style="margin-bottom: 0;">Platform Title</h1>
+          </div>
+        </div>
+        <p class="hero-subtext" id="detailDescription">Direct access portals, live lecture links, and exam preparation batches configured for this educational platform.</p>
+      </section>
+
+      <!-- SUB-LINKS & PORTALS LIST -->
+      <section style="padding: 0 20px;">
+        <div class="section-header" style="padding-left: 0; padding-right: 0;">
+          <div class="eyebrow" id="detailLinksCountHeader">AVAILABLE PORTALS & BATCHES</div>
+        </div>
+
+        <div id="detailLinksGrid" class="apps-grid" style="grid-template-columns: 1fr;">
+          <!-- Sub-links cards rendered here -->
+        </div>
+
+        <div id="detailEmptyState" class="empty-state" style="display: none;">
+          <div class="empty-title">No portals available for this platform</div>
+          <div class="empty-sub">Check back later or contact administrator</div>
+        </div>
+      </section>
+
+      <!-- FOOTER -->
+      <footer class="site-footer">
+        <div class="footer-brand">
+          <svg class="brand-header-logo" viewBox="0 0 100 100" fill="none" width="32" height="32">
+            <rect x="10" y="10" width="80" height="80" rx="22" fill="#16181d" stroke="#ff7a17" stroke-width="4"/>
+            <path d="M32 68V32L54 56V32M68 32V68L46 44V68" stroke="#ff7a17" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div>
+            <div style="font-weight: 600; color: var(--ink); font-size: 15px;">NEXORA</div>
+            <div class="eyebrow" style="font-size: 9px;">EDUCATIONAL HUB</div>
+          </div>
+        </div>
+        <p class="footer-desc">NEXORA is a modern educational portal providing direct access to study materials, exam prep, and verified learning tools.</p>
+        <div class="footer-bottom">
+          &copy; 2026 NEXORA Educational Hub. All rights reserved.
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script src="/js/theme.js"></script>
+  <script src="/js/analytics.js"></script>
+  <script src="/js/platform-details.js"></script>
+</body>
+</html>

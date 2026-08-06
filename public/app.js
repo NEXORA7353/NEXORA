@@ -275,135 +275,52 @@ document.addEventListener('DOMContentLoaded', () => {
     filtered.forEach(app => {
       const card = document.createElement('article');
       card.className = `platform-card ${app.featured ? 'featured' : ''}`;
-
-      // Header
-      const header = document.createElement('div');
-      header.className = 'platform-header';
-
-      const logoWrapper = document.createElement('div');
-      logoWrapper.className = 'logo-container';
+      card.style.cursor = 'pointer';
 
       const logoSrc = app.logoUrl || app.logo;
+      const linksCount = Array.isArray(app.links) ? app.links.length : 0;
+
+      card.innerHTML = `
+        <div class="platform-header">
+          <div class="logo-container" id="cardLogo_${app.id}"></div>
+          <div class="platform-info">
+            <h2 class="platform-title">${escapeHtml(app.name)}</h2>
+            <div class="platform-category">${escapeHtml((app.category || 'GENERAL').toUpperCase())}</div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--hairline);">
+          <span class="attr-badge" style="font-size: 11px; padding: 4px 10px;">
+            📁 ${linksCount} ${linksCount === 1 ? 'Portal / Batch' : 'Portals & Batches'}
+          </span>
+          <a href="/platform.html?id=${app.id}" class="link-access-btn" style="text-decoration: none;">
+            <span>Open Folder</span>
+            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </a>
+        </div>
+      `;
+
+      const logoContainer = card.querySelector(`#cardLogo_${app.id}`);
       if (logoSrc) {
         const img = document.createElement('img');
         img.src = logoSrc;
         img.alt = app.name;
         img.className = 'logo-img';
-        img.onerror = () => renderLogoFallback(logoWrapper, app.name);
-        logoWrapper.appendChild(img);
+        img.onerror = () => renderLogoFallback(logoContainer, app.name);
+        logoContainer.appendChild(img);
       } else {
-        renderLogoFallback(logoWrapper, app.name);
+        renderLogoFallback(logoContainer, app.name);
       }
 
-      const infoDiv = document.createElement('div');
-      infoDiv.className = 'platform-info';
-
-      const titleEl = document.createElement('h2');
-      titleEl.className = 'platform-title';
-      titleEl.textContent = app.name;
-
-      const catEl = document.createElement('div');
-      catEl.className = 'platform-category';
-      catEl.textContent = (app.category || 'GENERAL').toUpperCase();
-
-      infoDiv.appendChild(titleEl);
-      infoDiv.appendChild(catEl);
-
-      header.appendChild(logoWrapper);
-      header.appendChild(infoDiv);
-      card.appendChild(header);
-
-      // Links Section
-      const linksContainer = document.createElement('div');
-      linksContainer.className = 'platform-links-list';
-
-      let links = Array.isArray(app.links) && app.links.length > 0 ? app.links : [];
-      if (links.length === 0 && app.url) {
-        links = [{
-          id: 'link_1',
-          title: 'Main Access Portal',
-          url: app.url,
-          statusMode: 'auto',
-          keyRequirement: 'without_key',
-          loginRequirement: 'login_not_required'
-        }];
-      }
-
-      links.forEach(link => {
-        const linkItem = document.createElement('div');
-        linkItem.className = 'link-item';
-
-        const linkDetails = document.createElement('div');
-        linkDetails.className = 'link-details';
-
-        const linkTitle = document.createElement('div');
-        linkTitle.className = 'link-title';
-        linkTitle.textContent = link.title || 'Access Portal';
-
-        const badgesRow = document.createElement('div');
-        badgesRow.className = 'link-badges';
-
-        // Status Badge
-        const statusBadge = document.createElement('span');
-        statusBadge.className = 'status-badge checking';
-        statusBadge.innerHTML = `<span class="status-dot"></span><span class="status-lbl">Checking...</span>`;
-        badgesRow.appendChild(statusBadge);
-
-        // Auto or Manual Status Check
-        if (link.statusMode === 'online') {
-          setStatusBadge(statusBadge, true);
-        } else if (link.statusMode === 'offline') {
-          setStatusBadge(statusBadge, false);
-        } else {
-          // Auto Detect
-          checkLinkStatus(link.url, (isOnline) => {
-            setStatusBadge(statusBadge, isOnline);
-          });
+      card.addEventListener('click', (e) => {
+        if (!e.target.closest('a')) {
+          window.location.href = `/platform.html?id=${app.id}`;
         }
-
-        // Key Gen Requirement Badge
-        const keyBadge = document.createElement('span');
-        keyBadge.className = `attr-badge ${link.keyRequirement === 'with_key' ? 'key-req' : ''}`;
-        keyBadge.textContent = link.keyRequirement === 'with_key' ? 'Key Required' : 'Without Key';
-        badgesRow.appendChild(keyBadge);
-
-        // Login Requirement Badge
-        const loginBadge = document.createElement('span');
-        loginBadge.className = `attr-badge ${link.loginRequirement === 'login_required' ? 'login-req' : ''}`;
-        loginBadge.textContent = link.loginRequirement === 'login_required' ? 'Login Required' : 'No Login';
-        badgesRow.appendChild(loginBadge);
-
-        linkDetails.appendChild(linkTitle);
-        linkDetails.appendChild(badgesRow);
-
-        // Access Button with SVG Open Icon (Same Tab Launcher)
-        const openBtn = document.createElement('a');
-        openBtn.href = link.url || '#';
-        openBtn.target = '_self';
-        openBtn.className = 'link-access-btn';
-        openBtn.innerHTML = `
-          <span>Access</span>
-          <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-            <polyline points="15 3 21 3 21 9"></polyline>
-            <line x1="10" y1="14" x2="21" y2="3"></line>
-          </svg>
-        `;
-        openBtn.addEventListener('click', (e) => {
-          if (!link.url) {
-            e.preventDefault();
-            return;
-          }
-          trackLinkClick(app.name, link.title || app.name, link.url);
-          window.location.href = link.url;
-        });
-
-        linkItem.appendChild(linkDetails);
-        linkItem.appendChild(openBtn);
-        linksContainer.appendChild(linkItem);
       });
 
-      card.appendChild(linksContainer);
       appsGrid.appendChild(card);
     });
   }
@@ -665,6 +582,15 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   initTheme();
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
 
   // Initial notification check
   loadNotifications();
