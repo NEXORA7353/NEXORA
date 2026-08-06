@@ -305,13 +305,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
     filtered.forEach(app => {
       const card = document.createElement('article');
-      card.className = `platform-card ${app.featured ? 'featured' : ''}`;
-      card.style.cursor = 'pointer';
+      const isUpcoming = app.badgeTag === 'UPCOMING';
+      const badgeTag = app.badgeTag && app.badgeTag !== 'NONE' ? app.badgeTag : (app.featured ? 'PREMIUM' : '');
+      
+      card.className = `platform-card ${app.featured ? 'featured' : ''} ${isUpcoming ? 'upcoming-blocked-card' : ''}`;
+      card.style.cursor = isUpcoming ? 'not-allowed' : 'pointer';
 
       const logoSrc = app.logoUrl || app.logo;
       const linksCount = Array.isArray(app.links) ? app.links.length : 0;
 
+      let badgeHtml = '';
+      if (badgeTag === 'NEW') {
+        badgeHtml = `<div class="card-ribbon ribbon-new">NEW</div>`;
+      } else if (badgeTag === 'PREMIUM') {
+        badgeHtml = `<div class="card-ribbon ribbon-premium">PREMIUM</div>`;
+      } else if (badgeTag === 'UPCOMING') {
+        badgeHtml = `<div class="card-ribbon ribbon-upcoming">UPCOMING</div>`;
+      }
+
       card.innerHTML = `
+        ${badgeHtml}
         <div class="platform-header">
           <div class="logo-container" id="cardLogo_${app.id}"></div>
           <div class="platform-info">
@@ -325,13 +338,20 @@ document.addEventListener('DOMContentLoaded', () => {
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
             <span>${linksCount} ${linksCount === 1 ? 'Portal' : 'Portals & Batches'}</span>
           </span>
-          <a href="/platform.html?id=${app.id}" class="link-access-btn" style="text-decoration: none; padding: 10px 18px; font-size: 13px; font-weight: 700;">
-            <span>Open Platform</span>
-            <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2.5" fill="none">
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-              <polyline points="12 5 19 12 12 19"></polyline>
-            </svg>
-          </a>
+          ${isUpcoming ? `
+            <button type="button" class="link-access-btn blocked-btn" disabled style="padding: 10px 18px; font-size: 13px; font-weight: 700; background: #475569; color: #cbd5e1; cursor: not-allowed; opacity: 0.8;">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.2" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <span>Upcoming</span>
+            </button>
+          ` : `
+            <a href="/platform.html?id=${app.id}" class="link-access-btn" style="text-decoration: none; padding: 10px 18px; font-size: 13px; font-weight: 700;">
+              <span>Open Platform</span>
+              <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2.5" fill="none">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </a>
+          `}
         </div>
       `;
 
@@ -348,6 +368,12 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       card.addEventListener('click', (e) => {
+        if (isUpcoming) {
+          e.preventDefault();
+          e.stopPropagation();
+          alert(`⛔ Access Blocked: "${app.name}" is an Upcoming platform and will be available soon!`);
+          return;
+        }
         if (!e.target.closest('a')) {
           window.location.href = `/platform.html?id=${app.id}`;
         }

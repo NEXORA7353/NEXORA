@@ -333,10 +333,10 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
         <input type="text" class="admin-input link-title-input" placeholder="Link Title (e.g. PW Yakeen NEET Batch)" value="${escapeHtml(link.title)}" required>
         <input type="url" class="admin-input link-url-input" placeholder="Platform Target URL (https://...)" value="${escapeHtml(link.url)}" required>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;">
           <div>
             <label class="form-label" style="font-size: 9px;">Status Mode</label>
-            <select class="admin-input link-status-select" style="font-size: 11px; padding: 6px 8px;">
+            <select class="admin-input link-status-select" style="font-size: 10px; padding: 4px;">
               <option value="auto" ${link.statusMode === 'auto' ? 'selected' : ''}>Auto Detect</option>
               <option value="online" ${link.statusMode === 'online' ? 'selected' : ''}>Force Online</option>
               <option value="offline" ${link.statusMode === 'offline' ? 'selected' : ''}>Force Offline</option>
@@ -344,16 +344,25 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
           <div>
             <label class="form-label" style="font-size: 9px;">Key Gen</label>
-            <select class="admin-input link-key-select" style="font-size: 11px; padding: 6px 8px;">
+            <select class="admin-input link-key-select" style="font-size: 10px; padding: 4px;">
               <option value="without_key" ${link.keyRequirement === 'without_key' ? 'selected' : ''}>Without Key</option>
               <option value="with_key" ${link.keyRequirement === 'with_key' ? 'selected' : ''}>Key Required</option>
             </select>
           </div>
           <div>
             <label class="form-label" style="font-size: 9px;">Login</label>
-            <select class="admin-input link-login-select" style="font-size: 11px; padding: 6px 8px;">
+            <select class="admin-input link-login-select" style="font-size: 10px; padding: 4px;">
               <option value="login_not_required" ${link.loginRequirement === 'login_not_required' ? 'selected' : ''}>No Login</option>
               <option value="login_required" ${link.loginRequirement === 'login_required' ? 'selected' : ''}>Login Required</option>
+            </select>
+          </div>
+          <div>
+            <label class="form-label" style="font-size: 9px;">Badge Tag</label>
+            <select class="admin-input link-badge-select" style="font-size: 10px; padding: 4px;">
+              <option value="NONE" ${!link.badgeTag || link.badgeTag === 'NONE' ? 'selected' : ''}>Standard</option>
+              <option value="NEW" ${link.badgeTag === 'NEW' ? 'selected' : ''}>NEW</option>
+              <option value="PREMIUM" ${link.badgeTag === 'PREMIUM' ? 'selected' : ''}>PREMIUM</option>
+              <option value="UPCOMING" ${link.badgeTag === 'UPCOMING' ? 'selected' : ''}>UPCOMING (Block 🔒)</option>
             </select>
           </div>
         </div>
@@ -364,6 +373,7 @@ document.addEventListener('DOMContentLoaded', () => {
       box.querySelector('.link-status-select').addEventListener('change', (e) => { link.statusMode = e.target.value; });
       box.querySelector('.link-key-select').addEventListener('change', (e) => { link.keyRequirement = e.target.value; });
       box.querySelector('.link-login-select').addEventListener('change', (e) => { link.loginRequirement = e.target.value; });
+      box.querySelector('.link-badge-select').addEventListener('change', (e) => { link.badgeTag = e.target.value; });
 
       const removeBtn = box.querySelector('.remove-link-btn');
       if (removeBtn) {
@@ -695,8 +705,8 @@ document.addEventListener('DOMContentLoaded', () => {
         logoUrl: document.getElementById('appLogo').value.trim(),
         logo: document.getElementById('appLogo').value.trim(),
         category: document.getElementById('appCategory').value.trim() || 'GENERAL',
-        order: parseInt(document.getElementById('appOrder').value, 10) || (platforms.length + 1),
         featured: document.getElementById('appFeatured').checked,
+        badgeTag: document.getElementById('appBadgeTag') ? document.getElementById('appBadgeTag').value : 'NONE',
         addedAt: new Date().toISOString(),
         links: Array.isArray(tempLinks) && tempLinks.length > 0 ? JSON.parse(JSON.stringify(tempLinks)) : [
           {

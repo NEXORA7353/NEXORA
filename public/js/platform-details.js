@@ -125,13 +125,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     links.forEach(link => {
       const card = document.createElement('article');
-      card.className = 'platform-card';
+      const isUpcoming = link.badgeTag === 'UPCOMING' || app.badgeTag === 'UPCOMING';
+      const badgeTag = link.badgeTag && link.badgeTag !== 'NONE' ? link.badgeTag : '';
+
+      card.className = `platform-card ${isUpcoming ? 'upcoming-blocked-card' : ''}`;
+
+      let tagBadgeHtml = '';
+      if (badgeTag === 'NEW') {
+        tagBadgeHtml = `<span class="attr-badge ribbon-new-badge" style="background: rgba(16, 185, 129, 0.18); color: #34d399; border-color: rgba(16, 185, 129, 0.45); font-weight: 800;">NEW</span>`;
+      } else if (badgeTag === 'PREMIUM') {
+        tagBadgeHtml = `<span class="attr-badge ribbon-premium-badge" style="background: rgba(245, 158, 11, 0.18); color: #fbbf24; border-color: rgba(245, 158, 11, 0.45); font-weight: 800;">PREMIUM</span>`;
+      } else if (isUpcoming) {
+        tagBadgeHtml = `<span class="attr-badge ribbon-upcoming-badge" style="background: rgba(168, 85, 247, 0.18); color: #c084fc; border-color: rgba(168, 85, 247, 0.45); font-weight: 800;">UPCOMING</span>`;
+      }
 
       card.innerHTML = `
         <div class="link-item" style="padding: 24px 28px; border-radius: 16px; min-height: 100px;">
           <div class="link-details" style="gap: 12px;">
-            <div class="link-title" style="font-size: 20px; font-weight: 800; color: var(--ink); letter-spacing: -0.3px;">${escapeHtml(link.title || 'Access Portal')}</div>
+            <div class="link-title" style="font-size: 20px; font-weight: 800; color: var(--ink); letter-spacing: -0.3px;">
+              ${escapeHtml(link.title || 'Access Portal')}
+            </div>
             <div class="link-badges" style="gap: 10px;">
+              ${tagBadgeHtml}
               <span class="status-badge checking" id="status_${link.id}" style="font-size: 13px; padding: 6px 14px; font-weight: 700;">
                 <span class="status-dot"></span><span class="status-lbl">Checking...</span>
               </span>
@@ -147,16 +162,34 @@ document.addEventListener('DOMContentLoaded', () => {
               </span>
             </div>
           </div>
-          <a href="${link.url || '#'}" class="link-access-btn" style="padding: 14px 28px; font-size: 15px; font-weight: 700; height: 50px; border-radius: 12px;" ${link.url ? 'target="_self"' : ''}>
-            <span>Access</span>
-            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none">
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
-              <polyline points="15 3 21 3 21 9"></polyline>
-              <line x1="10" y1="14" x2="21" y2="3"></line>
-            </svg>
-          </a>
+          ${isUpcoming ? `
+            <button type="button" class="link-access-btn blocked-btn" style="padding: 14px 28px; font-size: 15px; font-weight: 700; height: 50px; border-radius: 12px; background: #475569; color: #cbd5e1; cursor: not-allowed; opacity: 0.85;">
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.2" fill="none"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              <span>Upcoming</span>
+            </button>
+          ` : `
+            <a href="${link.url || '#'}" class="link-access-btn" style="padding: 14px 28px; font-size: 15px; font-weight: 700; height: 50px; border-radius: 12px;" ${link.url ? 'target="_self"' : ''}>
+              <span>Access</span>
+              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none">
+                <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <line x1="10" y1="14" x2="21" y2="3"></line>
+              </svg>
+            </a>
+          `}
         </div>
       `;
+
+      if (isUpcoming) {
+        const blockedBtn = card.querySelector('.blocked-btn');
+        if (blockedBtn) {
+          blockedBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            alert(`⛔ Access Blocked: "${link.title || 'This Portal'}" is Upcoming and will be available soon!`);
+          });
+        }
+      }
 
       const statusBadge = card.querySelector(`#status_${link.id}`);
       if (link.statusMode === 'online') {

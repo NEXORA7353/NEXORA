@@ -421,6 +421,47 @@ img {
   transition: opacity 0.3s ease;
 }
 
+/* CARD RIBBONS & BADGES */
+.card-ribbon {
+  position: absolute;
+  top: 14px;
+  right: -32px;
+  transform: rotate(45deg);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 4px 34px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  z-index: 5;
+}
+
+.ribbon-new {
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: #ffffff;
+}
+
+.ribbon-premium {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #ffffff;
+}
+
+.ribbon-upcoming {
+  background: linear-gradient(135deg, #a855f7, #7c3aed);
+  color: #ffffff;
+}
+
+.upcoming-blocked-card {
+  opacity: 0.85;
+  border-color: rgba(168, 85, 247, 0.4) !important;
+}
+
+.upcoming-blocked-card:hover {
+  transform: none !important;
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.15) !important;
+}
+
 .platform-card:hover {
   transform: translateY(-5px);
   border-color: rgba(var(--accent-orange-rgb), 0.55);
