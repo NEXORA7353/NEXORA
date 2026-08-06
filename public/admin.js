@@ -248,22 +248,127 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Load platforms
+  function getDefaultInitialPlatforms() {
+    return [
+      {
+        id: 'pw_main',
+        name: 'Physics Wallah',
+        category: 'LIVE CLASS',
+        logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w',
+        order: 1,
+        featured: true,
+        addedAt: new Date().toISOString(),
+        links: [
+          {
+            id: 'pw_link_1',
+            title: 'Physics Wallah Main Portal',
+            url: 'https://study.physicswallah.live',
+            statusMode: 'online',
+            keyRequirement: 'without_key',
+            loginRequirement: 'login_not_required'
+          },
+          {
+            id: 'pw_link_2',
+            title: 'PW Yakeen NEET Batch',
+            url: 'https://study.physicswallah.live/batches',
+            statusMode: 'online',
+            keyRequirement: 'with_key',
+            loginRequirement: 'login_required'
+          }
+        ]
+      },
+      {
+        id: 'netprep_main',
+        name: 'NETprep Portal',
+        category: 'EXAM PREP',
+        logoUrl: '',
+        order: 2,
+        featured: false,
+        addedAt: new Date().toISOString(),
+        links: [
+          {
+            id: 'netprep_link_1',
+            title: 'NETprep Study Hub',
+            url: 'https://netprep.in',
+            statusMode: 'online',
+            keyRequirement: 'without_key',
+            loginRequirement: 'login_not_required'
+          }
+        ]
+      }
+    ];
+  }
+
+  async function savePlatforms(updatedPlatforms) {
+    platforms = updatedPlatforms;
+
+    // 1. Save to LocalStorage for zero-latency UI persistence
+    try {
+      localStorage.setItem('nexora_apps', JSON.stringify(platforms));
+    } catch (e) {}
+
+    // 2. Render UI immediately
+    renderPlatformList();
+    const metricPlatformCount = document.getElementById('metricPlatformCount');
+    if (metricPlatformCount) metricPlatformCount.textContent = platforms.length;
+
+    // 3. Sync to API route if backend server running
+    try {
+      await fetch('/api/apps', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(platforms)
+      });
+    } catch (e) {}
+
+    // 4. Sync to Upstash Cloud Redis
+    await saveToUpstash('nexora_apps', platforms);
+  }
+
+  // Load platforms with 4-step fallback system
   async function loadPlatforms() {
+    // 1. Try API
     try {
       const res = await fetch('/api/apps', { cache: 'no-store' });
       if (res.ok) {
         const resData = await res.json();
         if (resData && (Array.isArray(resData) || Array.isArray(resData.data))) {
-          platforms = Array.isArray(resData) ? resData : (resData.data || []);
+          const fetched = Array.isArray(resData) ? resData : (resData.data || []);
+          if (fetched.length > 0) {
+            platforms = fetched;
+            try { localStorage.setItem('nexora_apps', JSON.stringify(platforms)); } catch (e) {}
+            renderPlatformList();
+            return;
+          }
+        }
+      }
+    } catch (e) {}
+
+    // 2. Try Upstash Cloud Redis
+    const upstashApps = await fetchFromUpstash('nexora_apps');
+    if (Array.isArray(upstashApps) && upstashApps.length > 0) {
+      platforms = upstashApps;
+      try { localStorage.setItem('nexora_apps', JSON.stringify(platforms)); } catch (e) {}
+      renderPlatformList();
+      return;
+    }
+
+    // 3. Try LocalStorage
+    try {
+      const local = localStorage.getItem('nexora_apps');
+      if (local) {
+        const parsed = JSON.parse(local);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          platforms = parsed;
           renderPlatformList();
           return;
         }
       }
     } catch (e) {}
 
-    const upstashApps = await fetchFromUpstash('nexora_apps');
-    platforms = upstashApps || [];
+    // 4. Fallback Default Sample Platforms
+    platforms = getDefaultInitialPlatforms();
+    try { localStorage.setItem('nexora_apps', JSON.stringify(platforms)); } catch (e) {}
     renderPlatformList();
   }
 
@@ -465,93 +570,68 @@ document.addEventListener('DOMContentLoaded', () => {
 
     card.querySelector('.cancel-edit-btn').addEventListener('click', () => renderCardNormalState(card, app));
 
-    card.querySelector('.inline-edit-form').addEventListener('submit', (e) => {
+    card.querySelector('.inline-edit-form').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const updatedPayload = {
-        name: card.querySelector('.edit-name').value.trim(),
-        logoUrl: card.querySelector('.edit-logo').value.trim(),
-        logo: card.querySelector('.edit-logo').value.trim(),
-        category: card.querySelector('.edit-category').value.trim(),
-        order: parseInt(card.querySelector('.edit-order').value, 10) || 1,
-        featured: card.querySelector('.edit-featured').checked,
-        links: editLinks
-      };
-
-      fetch(`/api/apps/${app.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updatedPayload)
-      })
-        .then(res => res.json())
-        .then(() => loadPlatforms())
-        .catch(async () => {
-          let currentApps = (await fetchFromUpstash('nexora_apps')) || platforms || [];
-          const idx = currentApps.findIndex(p => p.id === app.id);
-          if (idx !== -1) {
-            currentApps[idx] = { ...currentApps[idx], ...updatedPayload };
-          }
-          await saveToUpstash('nexora_apps', currentApps);
-          loadPlatforms();
-        });
+      const idx = platforms.findIndex(p => p.id === app.id);
+      if (idx !== -1) {
+        platforms[idx] = {
+          ...platforms[idx],
+          name: card.querySelector('.edit-name').value.trim(),
+          logoUrl: card.querySelector('.edit-logo').value.trim(),
+          logo: card.querySelector('.edit-logo').value.trim(),
+          category: card.querySelector('.edit-category').value.trim() || 'GENERAL',
+          order: parseInt(card.querySelector('.edit-order').value, 10) || 1,
+          featured: card.querySelector('.edit-featured').checked,
+          links: editLinks
+        };
+        await savePlatforms(platforms);
+        alert('Platform updated successfully!');
+      }
     });
   }
 
   // Add platform form submit
-  addPlatformForm.addEventListener('submit', (e) => {
+  addPlatformForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const payload = {
-      name: document.getElementById('appName').value.trim(),
+    const nameVal = document.getElementById('appName').value.trim();
+    if (!nameVal) return;
+
+    const newItem = {
+      id: 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+      name: nameVal,
       logoUrl: document.getElementById('appLogo').value.trim(),
       logo: document.getElementById('appLogo').value.trim(),
-      category: document.getElementById('appCategory').value.trim(),
-      order: parseInt(document.getElementById('appOrder').value, 10) || 1,
+      category: document.getElementById('appCategory').value.trim() || 'GENERAL',
+      order: parseInt(document.getElementById('appOrder').value, 10) || (platforms.length + 1),
       featured: document.getElementById('appFeatured').checked,
-      links: tempLinks
+      addedAt: new Date().toISOString(),
+      links: Array.isArray(tempLinks) && tempLinks.length > 0 ? JSON.parse(JSON.stringify(tempLinks)) : [
+        {
+          id: 'link_1',
+          title: nameVal + ' Portal',
+          url: '',
+          statusMode: 'auto',
+          keyRequirement: 'without_key',
+          loginRequirement: 'login_not_required'
+        }
+      ]
     };
 
-    fetch('/api/apps', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload)
-    })
-      .then(res => res.json())
-      .then(() => {
-        addPlatformForm.reset();
-        document.getElementById('appOrder').value = 1;
-        resetLinksBuilder();
-        loadPlatforms();
-      })
-      .catch(async () => {
-        let currentApps = (await fetchFromUpstash('nexora_apps')) || platforms || [];
-        const newItem = {
-          id: 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
-          name: payload.name,
-          logoUrl: payload.logoUrl,
-          category: payload.category || 'GENERAL',
-          order: payload.order || (currentApps.length + 1),
-          featured: payload.featured,
-          addedAt: new Date().toISOString(),
-          links: payload.links
-        };
-        currentApps.push(newItem);
-        await saveToUpstash('nexora_apps', currentApps);
-        addPlatformForm.reset();
-        document.getElementById('appOrder').value = 1;
-        resetLinksBuilder();
-        loadPlatforms();
-      });
+    platforms.unshift(newItem);
+    await savePlatforms(platforms);
+
+    addPlatformForm.reset();
+    const appOrderEl = document.getElementById('appOrder');
+    if (appOrderEl) appOrderEl.value = 1;
+    resetLinksBuilder();
+
+    alert(`Platform "${nameVal}" added successfully!`);
   });
 
-  function deletePlatform(id) {
-    fetch(`/api/apps/${id}`, { method: 'DELETE' })
-      .then(res => res.json())
-      .then(() => loadPlatforms())
-      .catch(async () => {
-        let currentApps = (await fetchFromUpstash('nexora_apps')) || platforms || [];
-        currentApps = currentApps.filter(p => p.id !== id);
-        await saveToUpstash('nexora_apps', currentApps);
-        loadPlatforms();
-      });
+  async function deletePlatform(id) {
+    if (!confirm('Are you sure you want to delete this platform?')) return;
+    platforms = platforms.filter(p => p.id !== id);
+    await savePlatforms(platforms);
   }
 
   function escapeHtml(str) {

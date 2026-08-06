@@ -69,13 +69,93 @@ document.addEventListener('DOMContentLoaded', () => {
     return null;
   }
 
+  function getDefaultInitialPlatforms() {
+    return [
+      {
+        id: 'pw_main',
+        name: 'Physics Wallah',
+        category: 'LIVE CLASS',
+        logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w',
+        order: 1,
+        featured: true,
+        addedAt: new Date().toISOString(),
+        links: [
+          {
+            id: 'pw_link_1',
+            title: 'Physics Wallah Main Portal',
+            url: 'https://study.physicswallah.live',
+            statusMode: 'online',
+            keyRequirement: 'without_key',
+            loginRequirement: 'login_not_required'
+          },
+          {
+            id: 'pw_link_2',
+            title: 'PW Yakeen NEET Batch',
+            url: 'https://study.physicswallah.live/batches',
+            statusMode: 'online',
+            keyRequirement: 'with_key',
+            loginRequirement: 'login_required'
+          }
+        ]
+      },
+      {
+        id: 'netprep_main',
+        name: 'NETprep Portal',
+        category: 'EXAM PREP',
+        logoUrl: '',
+        order: 2,
+        featured: false,
+        addedAt: new Date().toISOString(),
+        links: [
+          {
+            id: 'netprep_link_1',
+            title: 'NETprep Study Hub',
+            url: 'https://netprep.in',
+            statusMode: 'online',
+            keyRequirement: 'without_key',
+            loginRequirement: 'login_not_required'
+          }
+        ]
+      }
+    ];
+  }
+
   async function fetchApps() {
+    // 1. Try API
     try {
       const res = await fetch('/api/apps', { cache: 'no-store' });
       if (res.ok) {
         const resData = await res.json();
         if (resData && (Array.isArray(resData) || Array.isArray(resData.data))) {
-          allApps = Array.isArray(resData) ? resData : (resData.data || []);
+          const fetched = Array.isArray(resData) ? resData : (resData.data || []);
+          if (fetched.length > 0) {
+            allApps = fetched;
+            try { localStorage.setItem('nexora_apps', JSON.stringify(allApps)); } catch (e) {}
+            renderCategoryTabs();
+            renderGrid();
+            return;
+          }
+        }
+      }
+    } catch (e) {}
+
+    // 2. Try Upstash Cloud Redis
+    const upstashApps = await fetchFromUpstash('nexora_apps');
+    if (Array.isArray(upstashApps) && upstashApps.length > 0) {
+      allApps = upstashApps;
+      try { localStorage.setItem('nexora_apps', JSON.stringify(allApps)); } catch (e) {}
+      renderCategoryTabs();
+      renderGrid();
+      return;
+    }
+
+    // 3. Try LocalStorage
+    try {
+      const local = localStorage.getItem('nexora_apps');
+      if (local) {
+        const parsed = JSON.parse(local);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          allApps = parsed;
           renderCategoryTabs();
           renderGrid();
           return;
@@ -83,8 +163,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (e) {}
 
-    const upstashApps = await fetchFromUpstash('nexora_apps');
-    allApps = upstashApps || [];
+    // 4. Default Pre-seeded Sample Platforms
+    allApps = getDefaultInitialPlatforms();
+    try { localStorage.setItem('nexora_apps', JSON.stringify(allApps)); } catch (e) {}
     renderCategoryTabs();
     renderGrid();
   }
