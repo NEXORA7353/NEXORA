@@ -83,54 +83,60 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function getDefaultInitialPlatforms() {
-    return [
-      {
-        id: 'pw_main',
-        name: 'Physics Wallah',
-        category: 'LIVE CLASS',
-        logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w',
-        order: 1,
-        featured: true,
-        addedAt: new Date().toISOString(),
-        links: [
-          {
-            id: 'pw_link_1',
-            title: 'Physics Wallah Main Portal',
-            url: 'https://study.physicswallah.live',
-            statusMode: 'online',
-            keyRequirement: 'without_key',
-            loginRequirement: 'login_not_required'
-          },
-          {
-            id: 'pw_link_2',
-            title: 'PW Yakeen NEET Batch',
-            url: 'https://study.physicswallah.live/batches',
-            statusMode: 'online',
-            keyRequirement: 'with_key',
-            loginRequirement: 'login_required'
-          }
-        ]
-      },
-      {
-        id: 'netprep_main',
-        name: 'NETprep Portal',
-        category: 'EXAM PREP',
-        logoUrl: '',
-        order: 2,
-        featured: false,
-        addedAt: new Date().toISOString(),
-        links: [
-          {
-            id: 'netprep_link_1',
-            title: 'NETprep Study Hub',
-            url: 'https://netprep.in',
-            statusMode: 'online',
-            keyRequirement: 'without_key',
-            loginRequirement: 'login_not_required'
-          }
-        ]
-      }
+    const list = [
+      { id: 'vidyakul', name: 'Vidyakul', category: 'LIVE CLASS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w', featured: true },
+      { id: 'sciencemagnet', name: 'Science Magnet', category: 'SCIENCE & MATHS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT6Z6R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+      { id: 'parmar', name: 'Parmar Academy', category: 'DEFENCE & GOVT', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcP0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+      { id: 'rgvikramjeet', name: 'RG VIKRAMJEET', category: 'REASONING & MATHS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcV0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+      { id: 'testbook', name: 'Testbook', category: 'TEST SERIES', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTB0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w', featured: true },
+      { id: 'utkarsh', name: 'Utkarsh Classes', category: 'COMPETITIVE EXAM', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcU0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w', featured: true },
+      { id: 'yesofficer', name: 'Yes Officer', category: 'BANKING EXAMS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcY0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+      { id: 'kdlive', name: 'KD LIVE', category: 'SSC & DEFENCE', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcK0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+      { id: 'selectionway', name: 'Selection Way', category: 'SELECTION PREP', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+      { id: 'careerwill', name: 'Careerwill', category: 'LIVE CLASS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcC0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w', featured: true },
+      { id: 'nexttopper', name: 'Next Topper', category: 'TOPPER BATCH', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcN0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+      { id: 'studyiq', name: 'Study IQ', category: 'UPSC & IAS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSI0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w', featured: true },
+      { id: 'rojgarwithankit', name: 'Rojgar With Ankit', category: 'GOVT JOBS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWA0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w', featured: true },
+      { id: 'cdsjourney', name: 'CDS Journey', category: 'DEFENCE & CDS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcCDS0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+      { id: 'khanglobal', name: 'Khan Global Studies', category: 'GS & UPSC', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcKGS0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w', featured: true },
+      { id: 'uclive', name: 'UC Live Rani Mam', category: 'ENGLISH SPECIAL', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcUCL0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+      { id: 'gyanbindu', name: 'Gyanbindu', category: 'BIHAR & GOVT', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcGB0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+      { id: 'gkgsmasti', name: 'GK GS Masti', category: 'GENERAL KNOWLEDGE', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcGKM0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+      { id: 'pw_main', name: 'Physics Wallah', category: 'LIVE CLASS', logoUrl: 'https://images.seeklogo.com/logo-png/47/1/physics-wallah-logo-png_seeklogo-474856.png', featured: true },
+      { id: 'dishaonline', name: 'Disha Online Class', category: 'BOARD EXAMS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcDOC0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+      { id: 'mastersahab', name: 'Master Sahab', category: 'TEACHING EXAMS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcMS0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+      { id: 'classplus', name: 'Classplus', category: 'EDTECH APPS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcCP0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+      { id: 'unacademy', name: 'Unacademy', category: 'LIVE CLASS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcU0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w', featured: true }
     ];
+
+    return list.map((item, idx) => ({
+      id: item.id,
+      name: item.name,
+      category: item.category,
+      logoUrl: item.logoUrl,
+      logo: item.logoUrl,
+      order: idx + 1,
+      featured: !!item.featured,
+      addedAt: new Date().toISOString(),
+      links: [
+        {
+          id: `${item.id}_link_1`,
+          title: `${item.name} Main Access Portal`,
+          url: `https://${item.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
+          statusMode: 'online',
+          keyRequirement: 'without_key',
+          loginRequirement: 'login_not_required'
+        },
+        {
+          id: `${item.id}_link_2`,
+          title: `${item.name} Premium Batch Portal`,
+          url: `https://${item.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com/batches`,
+          statusMode: 'online',
+          keyRequirement: 'with_key',
+          loginRequirement: 'login_required'
+        }
+      ]
+    }));
   }
 
   function sanitizePlatforms(apps) {
@@ -314,13 +320,13 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
 
-        <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--hairline);">
-          <span class="attr-badge" style="font-size: 11px; padding: 4px 10px;">
-            📁 ${linksCount} ${linksCount === 1 ? 'Portal / Batch' : 'Portals & Batches'}
+        <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 14px; border-top: 1px solid var(--hairline);">
+          <span class="attr-badge" style="font-size: 12px; padding: 6px 12px; font-weight: 700; background: rgba(var(--accent-orange-rgb), 0.12); color: var(--accent-orange); border-color: rgba(var(--accent-orange-rgb), 0.3);">
+            ⚡ ${linksCount} ${linksCount === 1 ? 'Portal' : 'Portals & Batches'}
           </span>
-          <a href="/platform.html?id=${app.id}" class="link-access-btn" style="text-decoration: none;">
-            <span>Open Folder</span>
-            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none">
+          <a href="/platform.html?id=${app.id}" class="link-access-btn" style="text-decoration: none; padding: 10px 18px; font-size: 13px; font-weight: 700;">
+            <span>Open Platform</span>
+            <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2.5" fill="none">
               <line x1="5" y1="12" x2="19" y2="12"></line>
               <polyline points="12 5 19 12 12 19"></polyline>
             </svg>

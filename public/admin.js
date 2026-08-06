@@ -235,6 +235,50 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Links Builder in Add Form
+  const PRESET_PLATFORMS = {
+    pw: { name: 'Physics Wallah', category: 'LIVE CLASS', logoUrl: 'https://images.seeklogo.com/logo-png/47/1/physics-wallah-logo-png_seeklogo-474856.png' },
+    vidyakul: { name: 'Vidyakul', category: 'LIVE CLASS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+    sciencemagnet: { name: 'Science Magnet', category: 'SCIENCE & MATHS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT6Z6R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+    parmar: { name: 'Parmar Academy', category: 'DEFENCE & GOVT', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcP0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+    rgvikramjeet: { name: 'RG VIKRAMJEET', category: 'REASONING & MATHS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcV0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+    testbook: { name: 'Testbook', category: 'TEST SERIES', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTB0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+    utkarsh: { name: 'Utkarsh Classes', category: 'COMPETITIVE EXAM', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcU0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+    yesofficer: { name: 'Yes Officer', category: 'BANKING EXAMS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcY0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+    kdlive: { name: 'KD LIVE', category: 'SSC & DEFENCE', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcK0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+    selectionway: { name: 'Selection Way', category: 'SELECTION PREP', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+    careerwill: { name: 'Careerwill', category: 'LIVE CLASS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcC0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+    nexttopper: { name: 'Next Topper', category: 'TOPPER BATCH', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcN0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+    studyiq: { name: 'Study IQ', category: 'UPSC & IAS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSI0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+    rojgarwithankit: { name: 'Rojgar With Ankit', category: 'GOVT JOBS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWA0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+    cdsjourney: { name: 'CDS Journey', category: 'DEFENCE & CDS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcCDS0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+    khanglobal: { name: 'Khan Global Studies', category: 'GS & UPSC', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcKGS0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+    uclive: { name: 'UC Live Rani Mam', category: 'ENGLISH SPECIAL', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcUCL0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+    gyanbindu: { name: 'Gyanbindu', category: 'BIHAR & GOVT', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcGB0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+    gkgsmasti: { name: 'GK GS Masti', category: 'GENERAL KNOWLEDGE', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcGKM0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+    dishaonline: { name: 'Disha Online Class', category: 'BOARD EXAMS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcDOC0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+    mastersahab: { name: 'Master Sahab', category: 'TEACHING EXAMS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcMS0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+    classplus: { name: 'Classplus', category: 'EDTECH APPS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcCP0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
+    unacademy: { name: 'Unacademy', category: 'LIVE CLASS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcU0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' }
+  };
+
+  const presetSelect = document.getElementById('presetPlatformSelect');
+  if (presetSelect) {
+    presetSelect.addEventListener('change', (e) => {
+      const val = e.target.value;
+      if (val && PRESET_PLATFORMS[val]) {
+        const p = PRESET_PLATFORMS[val];
+        document.getElementById('appName').value = p.name;
+        document.getElementById('appCategory').value = p.category;
+        document.getElementById('appLogo').value = p.logoUrl;
+        tempLinks = [
+          { id: 'link_1', title: p.name + ' Main Portal', url: 'https://' + p.name.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com', statusMode: 'online', keyRequirement: 'without_key', loginRequirement: 'login_not_required' },
+          { id: 'link_2', title: p.name + ' Verified Batch Portal', url: 'https://' + p.name.toLowerCase().replace(/[^a-z0-9]/g, '') + '.com/batches', statusMode: 'online', keyRequirement: 'with_key', loginRequirement: 'login_required' }
+        ];
+        renderLinksBuilder();
+      }
+    });
+  }
+
   function resetLinksBuilder() {
     tempLinks = [
       { id: 'link_1', title: 'Main Portal Link', url: '', statusMode: 'auto', keyRequirement: 'without_key', loginRequirement: 'login_not_required' }

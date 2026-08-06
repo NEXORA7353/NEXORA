@@ -128,24 +128,24 @@ document.addEventListener('DOMContentLoaded', () => {
       card.className = 'platform-card';
 
       card.innerHTML = `
-        <div class="link-item" style="padding: 16px; border-radius: 12px;">
-          <div class="link-details" style="gap: 8px;">
-            <div class="link-title" style="font-size: 16px; font-weight: 600; color: var(--ink);">${escapeHtml(link.title || 'Access Portal')}</div>
-            <div class="link-badges">
-              <span class="status-badge checking" id="status_${link.id}">
+        <div class="link-item" style="padding: 24px 28px; border-radius: 16px; min-height: 100px;">
+          <div class="link-details" style="gap: 12px;">
+            <div class="link-title" style="font-size: 20px; font-weight: 800; color: var(--ink); letter-spacing: -0.3px;">${escapeHtml(link.title || 'Access Portal')}</div>
+            <div class="link-badges" style="gap: 10px;">
+              <span class="status-badge checking" id="status_${link.id}" style="font-size: 13px; padding: 6px 14px; font-weight: 700;">
                 <span class="status-dot"></span><span class="status-lbl">Checking...</span>
               </span>
-              <span class="attr-badge ${link.keyRequirement === 'with_key' ? 'key-req' : ''}">
-                ${link.keyRequirement === 'with_key' ? 'Key Required' : 'Without Key'}
+              <span class="attr-badge ${link.keyRequirement === 'with_key' ? 'key-req' : ''}" style="font-size: 13px; padding: 6px 14px; font-weight: 700;">
+                ${link.keyRequirement === 'with_key' ? '🔐 Key Required' : '🔓 Without Key'}
               </span>
-              <span class="attr-badge ${link.loginRequirement === 'login_required' ? 'login-req' : ''}">
-                ${link.loginRequirement === 'login_required' ? 'Login Required' : 'No Login'}
+              <span class="attr-badge ${link.loginRequirement === 'login_required' ? 'login-req' : ''}" style="font-size: 13px; padding: 6px 14px; font-weight: 700;">
+                ${link.loginRequirement === 'login_required' ? '👤 Login Required' : '⚡ No Login'}
               </span>
             </div>
           </div>
-          <a href="${link.url || '#'}" class="link-access-btn" style="padding: 10px 18px; font-size: 13px;" ${link.url ? 'target="_self"' : ''}>
+          <a href="${link.url || '#'}" class="link-access-btn" style="padding: 14px 28px; font-size: 15px; font-weight: 700; height: 50px; border-radius: 12px;" ${link.url ? 'target="_self"' : ''}>
             <span>Access</span>
-            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none">
+            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2.5" fill="none">
               <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
               <polyline points="15 3 21 3 21 9"></polyline>
               <line x1="10" y1="14" x2="21" y2="3"></line>
