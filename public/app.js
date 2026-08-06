@@ -71,6 +71,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function fetchFromUpstash(key) {
     try {
+      const res = await fetch(`${UPSTASH_URL}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${UPSTASH_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(['GET', key])
+      });
+      const data = await res.json();
+      if (data && data.result) {
+        return typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
+      }
+    } catch (e) {}
+
+    try {
       const res = await fetch(`${UPSTASH_URL}/get/${key}`, {
         headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` }
       });
@@ -79,73 +94,33 @@ document.addEventListener('DOMContentLoaded', () => {
         return typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
       }
     } catch (e) {}
+
     return null;
   }
 
-  function getDefaultInitialPlatforms() {
-    const list = [
-      { id: 'vidyakul', name: 'Vidyakul', category: 'LIVE CLASS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w', featured: true },
-      { id: 'sciencemagnet', name: 'Science Magnet', category: 'SCIENCE & MATHS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT6Z6R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
-      { id: 'parmar', name: 'Parmar Academy', category: 'DEFENCE & GOVT', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcP0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
-      { id: 'rgvikramjeet', name: 'RG VIKRAMJEET', category: 'REASONING & MATHS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcV0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
-      { id: 'testbook', name: 'Testbook', category: 'TEST SERIES', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTB0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w', featured: true },
-      { id: 'utkarsh', name: 'Utkarsh Classes', category: 'COMPETITIVE EXAM', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcU0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w', featured: true },
-      { id: 'yesofficer', name: 'Yes Officer', category: 'BANKING EXAMS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcY0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
-      { id: 'kdlive', name: 'KD LIVE', category: 'SSC & DEFENCE', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcK0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
-      { id: 'selectionway', name: 'Selection Way', category: 'SELECTION PREP', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
-      { id: 'careerwill', name: 'Careerwill', category: 'LIVE CLASS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcC0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w', featured: true },
-      { id: 'nexttopper', name: 'Next Topper', category: 'TOPPER BATCH', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcN0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
-      { id: 'studyiq', name: 'Study IQ', category: 'UPSC & IAS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSI0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w', featured: true },
-      { id: 'rojgarwithankit', name: 'Rojgar With Ankit', category: 'GOVT JOBS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRWA0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w', featured: true },
-      { id: 'cdsjourney', name: 'CDS Journey', category: 'DEFENCE & CDS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcCDS0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
-      { id: 'khanglobal', name: 'Khan Global Studies', category: 'GS & UPSC', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcKGS0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w', featured: true },
-      { id: 'uclive', name: 'UC Live Rani Mam', category: 'ENGLISH SPECIAL', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcUCL0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
-      { id: 'gyanbindu', name: 'Gyanbindu', category: 'BIHAR & GOVT', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcGB0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
-      { id: 'gkgsmasti', name: 'GK GS Masti', category: 'GENERAL KNOWLEDGE', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcGKM0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
-      { id: 'pw_main', name: 'Physics Wallah', category: 'LIVE CLASS', logoUrl: 'https://images.seeklogo.com/logo-png/47/1/physics-wallah-logo-png_seeklogo-474856.png', featured: true },
-      { id: 'dishaonline', name: 'Disha Online Class', category: 'BOARD EXAMS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcDOC0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
-      { id: 'mastersahab', name: 'Master Sahab', category: 'TEACHING EXAMS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcMS0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
-      { id: 'classplus', name: 'Classplus', category: 'EDTECH APPS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcCP0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w' },
-      { id: 'unacademy', name: 'Unacademy', category: 'LIVE CLASS', logoUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcU0R0LwT3K9b5R2E7Lq8v7t4x1w0z9u8v7t6x5w', featured: true }
-    ];
-
-    return list.map((item, idx) => ({
-      id: item.id,
-      name: item.name,
-      category: item.category,
-      logoUrl: item.logoUrl,
-      logo: item.logoUrl,
-      order: idx + 1,
-      featured: !!item.featured,
-      addedAt: new Date().toISOString(),
-      links: [
-        {
-          id: `${item.id}_link_1`,
-          title: `${item.name} Main Access Portal`,
-          url: `https://${item.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com`,
-          statusMode: 'online',
-          keyRequirement: 'without_key',
-          loginRequirement: 'login_not_required'
+  async function saveToUpstash(key, payload) {
+    try {
+      const payloadStr = typeof payload === 'string' ? payload : JSON.stringify(payload);
+      await fetch(`${UPSTASH_URL}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${UPSTASH_TOKEN}`,
+          'Content-Type': 'application/json'
         },
-        {
-          id: `${item.id}_link_2`,
-          title: `${item.name} Premium Batch Portal`,
-          url: `https://${item.name.toLowerCase().replace(/[^a-z0-9]/g, '')}.com/batches`,
-          statusMode: 'online',
-          keyRequirement: 'with_key',
-          loginRequirement: 'login_required'
-        }
-      ]
-    }));
+        body: JSON.stringify(['SET', key, payloadStr])
+      });
+      return true;
+    } catch (e) {}
+    return false;
   }
 
   function sanitizePlatforms(apps) {
     if (!Array.isArray(apps)) return [];
-    return apps.filter(a => a && a.name && a.name.trim() !== '' && a.name.trim().toLowerCase() !== 'new platform');
+    return apps.filter(a => a && a.name && typeof a.name === 'string' && a.name.trim() !== '');
   }
 
   async function fetchApps() {
-    // Priority 1: Check Upstash Cloud Redis (Central Live Database)
+    // Priority 1: Check Upstash Cloud Redis (Central Database)
     const upstashApps = await fetchFromUpstash('nexora_apps');
     const validUpstash = sanitizePlatforms(upstashApps);
     if (validUpstash.length > 0) {
@@ -156,7 +131,24 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Priority 2: Try Server API Endpoint
+    // Priority 2: Check LocalStorage Fallback
+    try {
+      const local = localStorage.getItem('nexora_apps');
+      if (local) {
+        const parsed = JSON.parse(local);
+        const validLocal = sanitizePlatforms(parsed);
+        if (validLocal.length > 0) {
+          allApps = validLocal;
+          renderCategoryTabs();
+          renderGrid();
+          // Sync back to Upstash Cloud Database!
+          saveToUpstash('nexora_apps', validLocal);
+          return;
+        }
+      }
+    } catch (e) {}
+
+    // Priority 3: Try Server API Endpoint
     try {
       const res = await fetch('/api/apps', { cache: 'no-store' });
       if (res.ok) {
@@ -167,6 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (validApi.length > 0) {
             allApps = validApi;
             try { localStorage.setItem('nexora_apps', JSON.stringify(allApps)); } catch (e) {}
+            saveToUpstash('nexora_apps', validApi);
             renderCategoryTabs();
             renderGrid();
             return;
@@ -175,24 +168,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (e) {}
 
-    // Priority 3: Check LocalStorage Fallback
-    try {
-      const local = localStorage.getItem('nexora_apps');
-      if (local) {
-        const parsed = JSON.parse(local);
-        const validLocal = sanitizePlatforms(parsed);
-        if (validLocal.length > 0) {
-          allApps = validLocal;
-          renderCategoryTabs();
-          renderGrid();
-          return;
-        }
-      }
-    } catch (e) {}
-
-    // Priority 4: Default Pre-seeded Physics Wallah Platform
+    // Priority 4: Default Pre-seeded 23 Major Platforms
     allApps = getDefaultInitialPlatforms();
     try { localStorage.setItem('nexora_apps', JSON.stringify(allApps)); } catch (e) {}
+    saveToUpstash('nexora_apps', allApps);
     renderCategoryTabs();
     renderGrid();
   }

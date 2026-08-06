@@ -153,6 +153,21 @@ document.addEventListener('DOMContentLoaded', () => {
   // Upstash REST API Helper
   async function fetchFromUpstash(key) {
     try {
+      const res = await fetch(`${UPSTASH_URL}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${UPSTASH_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(['GET', key])
+      });
+      const data = await res.json();
+      if (data && data.result) {
+        return typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
+      }
+    } catch (e) {}
+
+    try {
       const res = await fetch(`${UPSTASH_URL}/get/${key}`, {
         headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` }
       });
@@ -161,15 +176,20 @@ document.addEventListener('DOMContentLoaded', () => {
         return typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
       }
     } catch (e) {}
+
     return null;
   }
 
   async function saveToUpstash(key, payload) {
     try {
-      await fetch(`${UPSTASH_URL}/set/${key}`, {
+      const payloadStr = typeof payload === 'string' ? payload : JSON.stringify(payload);
+      await fetch(`${UPSTASH_URL}`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` },
-        body: JSON.stringify(payload)
+        headers: {
+          Authorization: `Bearer ${UPSTASH_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(['SET', key, payloadStr])
       });
       return true;
     } catch (e) {}
@@ -475,7 +495,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function sanitizePlatforms(apps) {
     if (!Array.isArray(apps)) return [];
-    return apps.filter(a => a && a.name && a.name.trim() !== '' && a.name.trim().toLowerCase() !== 'new platform');
+    return apps.filter(a => a && a.name && typeof a.name === 'string' && a.name.trim() !== '');
   }
 
   // Persistence Engine
