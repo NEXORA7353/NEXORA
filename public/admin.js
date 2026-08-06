@@ -495,7 +495,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function sanitizePlatforms(apps) {
     if (!Array.isArray(apps)) return [];
-    return apps.filter(a => a && a.name && typeof a.name === 'string' && a.name.trim() !== '');
+    return apps.filter(a => {
+      if (!a || !a.name || typeof a.name !== 'string') return false;
+      const cleanName = a.name.trim().toLowerCase();
+      if (cleanName === '' || cleanName === 'new platform') return false;
+      return true;
+    });
   }
 
   // Persistence Engine
