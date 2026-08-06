@@ -10,13 +10,15 @@
     } else {
       document.documentElement.removeAttribute('data-theme');
     }
-    localStorage.setItem('nexora_theme', theme);
+    try {
+      localStorage.setItem('nexora_theme', theme);
+    } catch (e) {}
     updateIcons(theme);
   }
 
   function updateIcons(theme) {
-    const sunIcons = document.querySelectorAll('#themeSunIcon, #admSunIcon');
-    const moonIcons = document.querySelectorAll('#themeMoonIcon, #admMoonIcon');
+    const sunIcons = document.querySelectorAll('#themeSunIcon, #admSunIcon, .sun-icon');
+    const moonIcons = document.querySelectorAll('#themeMoonIcon, #admMoonIcon, .moon-icon');
 
     sunIcons.forEach(icon => {
       if (icon) icon.style.display = theme === 'light' ? 'block' : 'none';
@@ -26,17 +28,26 @@
     });
   }
 
+  // Apply immediately to prevent FOUC
+  const initialTheme = getSavedTheme();
+  applyTheme(initialTheme);
+
   function init() {
-    const current = getSavedTheme();
-    applyTheme(current);
+    applyTheme(getSavedTheme());
 
     document.addEventListener('click', function (e) {
-      const btn = e.target.closest('#themeToggleBtn, #adminThemeToggleBtn');
+      const btn = e.target.closest('#themeToggleBtn, #adminThemeToggleBtn, .theme-toggle-btn');
       if (btn) {
         e.preventDefault();
-        const now = document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark';
-        const next = now === 'light' ? 'dark' : 'light';
+        const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+        const next = isLight ? 'dark' : 'light';
         applyTheme(next);
+      }
+    });
+
+    window.addEventListener('storage', function (e) {
+      if (e.key === 'nexora_theme' && e.newValue) {
+        applyTheme(e.newValue);
       }
     });
   }
