@@ -199,7 +199,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Telegram Settings
   async function loadTelegramSettings() {
     try {
-      const res = await fetch('/api/settings', { cache: 'no-store' });
+      // ✅ Railway se load karo
+      const res = await fetch('https://nexora7.up.railway.app/api/settings',
+        { cache: 'no-store' });
       if (res.ok) {
         const resData = await res.json();
         if (resData && resData.data) {
@@ -209,6 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch (e) {}
 
+    // Upstash fallback
     const upstashSettings = await fetchFromUpstash('nexora_settings');
     if (upstashSettings) {
       applyTelegramFields(upstashSettings);
@@ -246,8 +249,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Admin.js me Telegram save fix
   if (telegramSettingsForm) {
-    telegramSettingsForm.addEventListener('submit', (e) => {
+    telegramSettingsForm.addEventListener('submit', async (e) => {
       e.preventDefault();
       const payload = {
         telegramEnabled: tgEnabled.checked,
@@ -256,17 +260,24 @@ document.addEventListener('DOMContentLoaded', () => {
         telegramMessage: tgMessage.value.trim()
       };
 
-      fetch('/api/settings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
-      })
-        .then(res => res.json())
-        .then(() => showTgStatus('Saved successfully!'))
-        .catch(async () => {
-          await saveToUpstash('nexora_settings', payload);
-          showTgStatus('Saved successfully!');
+      try {
+        // ✅ Railway se save karo
+        const res = await fetch('https://nexora7.up.railway.app/api/settings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
         });
+
+        if (res.ok) {
+          showTgStatus('Saved successfully!');
+        } else {
+          showTgStatus('Save failed - check connection');
+        }
+      } catch (err) {
+        // Upstash fallback
+        await saveToUpstash('nexora_settings', payload);
+        showTgStatus('Saved to backup (Railway offline)');
+      }
     });
   }
 

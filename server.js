@@ -7,97 +7,230 @@ const { v4: uuidv4 } = require('uuid')
 
 const app = express()
 const PORT = process.env.PORT || 3000
-const DATA_FILE = path.join(__dirname, 'data', 'apps.json')
-const SETTINGS_FILE = path.join(__dirname, 'data', 'settings.json')
 
-// Middleware
-app.use(cors())
-app.use(express.json())
-app.use(express.static('public'))
+// ✅ FIX: Proper CORS - Cloudflare Pages domain allow karo
+const allowedOrigins = [
+  'https://nexora-download-center.pages.dev',  // Apna Cloudflare domain
+  'https://nexora7.up.railway.app',
+  'http://localhost:3000',
+  'http://localhost:5500',
+  'http://127.0.0.1:5500'
+];
 
-// Strip Netlify function path prefix if routed via Netlify Functions
-app.use((req, res, next) => {
-  if (req.url.startsWith('/.netlify/functions/server')) {
-    req.url = req.url.replace('/.netlify/functions/server', '');
-    if (!req.url) req.url = '/';
-  }
-  next();
-});
-
-// Generic Dark Theme Error HTML (No branding names or emojis)
-function getErrorHtml(targetUrl) {
-  let safeUrl = targetUrl ? String(targetUrl).trim() : '';
-  if (safeUrl && !/^https?:\/\//i.test(safeUrl)) {
-    safeUrl = 'https://' + safeUrl;
-  }
-  const escapedUrl = safeUrl.replace(/"/g, '&quot;');
-
-  return `<!DOCTYPE html>
-<html>
-<head>
-  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5451638891460185" crossorigin="anonymous"></script>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    * { margin:0; padding:0; box-sizing:border-box; }
-    body {
-      background: #0a0a0a; color: #ffffff;
-      font-family: system-ui, -apple-system, sans-serif;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      min-height: 100vh; padding: 24px; text-align: center;
+app.use(cors({
+  origin: function (origin, callback) {
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
     }
-    .label {
-      font-family: monospace; font-size: 11px;
-      text-transform: uppercase; letter-spacing: 1.4px;
-      color: #7d8187; margin-bottom: 16px;
+    // Allow any *.pages.dev domain
+    if (origin && origin.endsWith('.pages.dev')) {
+      return callback(null, true);
     }
-    .title { font-size: 18px; color: #ffffff; margin-bottom: 8px; font-weight: 400; }
-    .sub   { font-size: 14px; color: #7d8187; font-weight: 400; margin-bottom: 24px; }
-    .btn   {
-      background: #ffffff; color: #0a0a0a; border: none;
-      border-radius: 9999px; padding: 12px 24px; font-size: 14px;
-      font-weight: 400; cursor: pointer; text-decoration: none;
-      display: inline-flex; align-items: center; justify-content: center;
+    // Allow any *.railway.app domain
+    if (origin && origin.endsWith('.railway.app')) {
+      return callback(null, true);
     }
-  </style>
-</head>
-<body>
-  <p class="label">NOTICE</p>
-  <p class="title">Protected Educational Platform</p>
-  <p class="sub">This platform requires direct tab access.</p>
-  ${safeUrl ? `<a href="${escapedUrl}" target="_self" class="btn">Open Platform Directly</a>` : ''}
-</body>
-</html>`
-}
+    return callback(null, true); // Dev me sab allow
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
 
-let globalAppsStore = null;
-let globalSettingsStore = null;
+app.use(express.json({ limit: '10mb' }));
+app.use(express.static('public'));
 
+// ============================================================
+// DATA FILE PATHS
+// ============================================================
+const DATA_DIR       = path.join(__dirname, 'data');
+const DATA_FILE      = path.join(DATA_DIR, 'apps.json');
+const SETTINGS_FILE  = path.join(DATA_DIR, 'settings.json');
+const FEEDBACK_FILE  = path.join(DATA_DIR, 'feedback.json');
+const CLICKS_FILE    = path.join(DATA_DIR, 'clicks.json');
+const DOWNLOADS_FILE = path.join(DATA_DIR, 'downloads.json');
+const DL_ANALYTICS_FILE = path.join(DATA_DIR, 'download_analytics.json');
+const STUDENTS_FILE  = path.join(DATA_DIR, 'students.json');
+
+// ============================================================
+// UPSTASH REDIS SETUP
+// ============================================================
 let Redis = null;
-try {
-  Redis = require('@upstash/redis').Redis;
-} catch (e) {}
+try { Redis = require('@upstash/redis').Redis; } catch (e) {}
 
-const DEFAULT_UPSTASH_URL = 'https://legible-loon-84378.upstash.io';
-const DEFAULT_UPSTASH_TOKEN = 'gQAAAAAAAUmaAAIgcDE5M2IwMjM4MTczZjA0ZWQ5YWUwYzYzNTU1YzIyYTQ3Mg';
-
-function getUpstashClient() {
-  const url = process.env.UPSTASH_REDIS_REST_URL || DEFAULT_UPSTASH_URL;
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN || DEFAULT_UPSTASH_TOKEN;
+function getRedis() {
+  const url   = process.env.UPSTASH_REDIS_REST_URL   || 'https://legible-loon-84378.upstash.io';
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN  || 'gQAAAAAAAUmaAAIgcDE5M2IwMjM4MTczZjA0ZWQ5YWUwYzYzNTU1YzIyYTQ3Mg';
   if (Redis && url && token) {
-    try {
-      return new Redis({ url, token });
-    } catch (e) {
-      console.warn('Upstash Redis init warning:', e.message);
-    }
+    try { return new Redis({ url, token }); } catch (e) {}
   }
   return null;
 }
 
-const CF_KV_URL = 'https://api.cloudflare.com/client/v4/accounts/ce3f6c1f773e98fb3d8039bfaf999b62/storage/kv/namespaces/791f4ba63d8b4e07baa2ca09986cd53d/values/nexora_apps';
-const CF_KV_SETTINGS_URL = 'https://api.cloudflare.com/client/v4/accounts/ce3f6c1f773e98fb3d8039bfaf999b62/storage/kv/namespaces/791f4ba63d8b4e07baa2ca09986cd53d/values/nexora_settings';
-const CF_KV_TOKEN = Buffer.from('Y2ZhdF83anlsVHRaSEYyNlZwRnNudW94QmdnMHdwSEVsdVJBVnRxZjI5VGY1MjA2YmU4MmE=', 'base64').toString('utf-8');
+// ============================================================
+// UTILITY FUNCTIONS
+// ============================================================
+function ensureDir(filePath) {
+  const dir = path.dirname(filePath);
+  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+}
 
+function readJson(filePath, fallback) {
+  try {
+    if (fs.existsSync(filePath)) {
+      return JSON.parse(fs.readFileSync(filePath, 'utf8') || JSON.stringify(fallback));
+    }
+  } catch (e) {}
+  return fallback;
+}
+
+function writeJson(filePath, data) {
+  try {
+    ensureDir(filePath);
+    fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
+  } catch (e) {}
+}
+
+// ============================================================
+// IN-MEMORY STORES (Railway ephemeral disk ke liye)
+// ============================================================
+let store = {
+  apps: null,
+  settings: null,
+  feedback: null,
+  clicks: null,
+  downloads: null,
+  dlAnalytics: null,
+  students: null
+};
+
+// ============================================================
+// DEFAULT DATA
+// ============================================================
+const DEFAULT_SETTINGS = {
+  telegramEnabled: true,
+  telegramLink: 'https://t.me/telegram',
+  telegramTitle: 'Join Official Channel',
+  telegramMessage: 'Get instant updates, live class links, and announcements!',
+  announcementEnabled: false,
+  announcementText: ''
+};
+
+const DEFAULT_DOWNLOADS = {
+  published: true,
+  globalMaintenance: false,
+  android: {
+    version: '1.0.0',
+    latestVersion: '1.0.0',
+    minVersion: '1.0.0',
+    minSupportedVersion: '1.0.0',
+    fileSize: '6.62 MB',
+    downloadUrl: 'https://github.com/NEXORA7353/NEXORA/releases/latest/download/NEXORA.apk',
+    apkUrl: 'https://github.com/NEXORA7353/NEXORA/releases/latest/download/NEXORA.apk',
+    checksum: 'sha256:b04e2cadb9254fb8274bde4df526b372b2702885ec0ca6ce5b6bdbd81a240780',
+    sha256: 'sha256:b04e2cadb9254fb8274bde4df526b372b2702885ec0ca6ce5b6bdbd81a240780',
+    releaseDate: '2026-08-07',
+    maintenance: false,
+    maintenanceMode: false,
+    forceUpdate: false,
+    releaseNotes: [
+      'Initial Official Android Release',
+      'Performance Improvements',
+      'UI Enhancements',
+      'Bug Fixes',
+      'Security Improvements'
+    ]
+  },
+  windows: {
+    version: '1.0.0',
+    latestVersion: '1.0.0',
+    minVersion: '1.0.0',
+    minSupportedVersion: '1.0.0',
+    fileSize: '88.2 MB',
+    downloadUrl: 'https://github.com/NEXORA7353/NEXORA/releases/latest/download/NEXORA.Setup.1.0.0.exe',
+    exeUrl: 'https://github.com/NEXORA7353/NEXORA/releases/latest/download/NEXORA.Setup.1.0.0.exe',
+    checksum: 'sha256:2c5e529c5966e780365e13866067542156f3c5174c4026ca705c5dd957639c5e',
+    sha256: 'sha256:2c5e529c5966e780365e13866067542156f3c5174c4026ca705c5dd957639c5e',
+    releaseDate: '2026-08-07',
+    maintenance: false,
+    maintenanceMode: false,
+    forceUpdate: false,
+    releaseNotes: [
+      'Initial Official Windows Release',
+      'Performance Improvements',
+      'UI Enhancements',
+      'Bug Fixes',
+      'Security Improvements'
+    ]
+  },
+  updatedAt: new Date().toISOString()
+};
+
+// ============================================================
+// DATA ACCESS LAYER - Upstash → Memory → File
+// ============================================================
+async function getData(key, fileStore, filePath, fallback) {
+  // 1. Memory cache
+  if (store[fileStore] !== null) return store[fileStore];
+
+  // 2. Upstash Redis
+  const redis = getRedis();
+  if (redis) {
+    try {
+      const val = await redis.get(key);
+      if (val !== null && val !== undefined) {
+        store[fileStore] = val;
+        return store[fileStore];
+      }
+    } catch (e) {}
+  }
+
+  // 3. Local file
+  const fromFile = readJson(filePath, null);
+  if (fromFile !== null) {
+    store[fileStore] = fromFile;
+    return store[fileStore];
+  }
+
+  // 4. Fallback default
+  store[fileStore] = fallback;
+  return store[fileStore];
+}
+
+async function setData(key, fileStore, filePath, data) {
+  store[fileStore] = data;
+
+  // Save to Upstash
+  const redis = getRedis();
+  if (redis) {
+    try { await redis.set(key, data); } catch (e) {}
+  }
+
+  // Save to file
+  writeJson(filePath, data);
+}
+
+// Shorthand helpers
+const readApps     = () => getData('nexora_apps',     'apps',       DATA_FILE,          []);
+const writeApps    = (d) => setData('nexora_apps',    'apps',       DATA_FILE,          d);
+const readSettings = () => getData('nexora_settings', 'settings',   SETTINGS_FILE,      DEFAULT_SETTINGS);
+const writeSettings= (d) => setData('nexora_settings','settings',   SETTINGS_FILE,      d);
+const readFeedback = () => getData('nexora_feedback',  'feedback',   FEEDBACK_FILE,      []);
+const writeFeedback= (d) => setData('nexora_feedback', 'feedback',   FEEDBACK_FILE,      d);
+const readClicks   = () => getData('nexora_clicks',    'clicks',     CLICKS_FILE,        {});
+const writeClicks  = (d) => setData('nexora_clicks',   'clicks',     CLICKS_FILE,        d);
+const readDownloads= () => getData('nexora_download_config', 'downloads', DOWNLOADS_FILE, DEFAULT_DOWNLOADS);
+const writeDownloads=(d) => setData('nexora_download_config','downloads', DOWNLOADS_FILE, d);
+const readDlAnalytics=()=> getData('nexora_dl_analytics','dlAnalytics',DL_ANALYTICS_FILE,{ totalDownloads:0, androidDownloads:0, windowsDownloads:0, history:[] });
+const writeDlAnalytics=(d)=>setData('nexora_dl_analytics','dlAnalytics',DL_ANALYTICS_FILE,d);
+const readStudents = () => getData('nexora_students',  'students',   STUDENTS_FILE,      []);
+const writeStudents= (d) => setData('nexora_students', 'students',   STUDENTS_FILE,      d);
+
+// ============================================================
+// APPS NORMALIZER
+// ============================================================
 function normalizeApps(apps) {
   if (!Array.isArray(apps)) return [];
   return apps.map(app => {
@@ -119,338 +252,284 @@ function normalizeApps(apps) {
       logo: app.logoUrl || app.logo || '',
       category: app.category || 'GENERAL',
       featured: Boolean(app.featured),
+      badgeTag: app.badgeTag || 'NONE',
       order: typeof app.order === 'number' ? app.order : 1,
       addedAt: app.addedAt || new Date().toISOString(),
-      links: links
+      links
     };
   });
 }
 
-async function fetchCloudflareKV() {
-  try {
-    const response = await axios.get(CF_KV_URL, {
-      headers: { Authorization: `Bearer ${CF_KV_TOKEN}` },
-      timeout: 5000
-    });
-    if (response.data && Array.isArray(response.data)) {
-      return response.data;
-    }
-  } catch (e) {}
-  return null;
-}
+// ============================================================
+// HEALTH CHECK
+// ============================================================
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    version: '3.0.0',
+    service: 'NEXORA Backend'
+  });
+});
 
-async function writeCloudflareKV(data) {
+// ============================================================
+// APPS API
+// ============================================================
+app.get('/api/apps', async (req, res) => {
   try {
-    await axios.put(CF_KV_URL, JSON.stringify(data), {
-      headers: {
-        Authorization: `Bearer ${CF_KV_TOKEN}`,
-        'Content-Type': 'text/plain'
-      },
-      timeout: 5000
-    });
-  } catch (e) {}
-}
+    let apps = await readApps();
+    apps = normalizeApps(apps);
 
-async function readApps() {
-  const cfApps = await fetchCloudflareKV();
-  if (cfApps && Array.isArray(cfApps)) {
-    globalAppsStore = normalizeApps(cfApps);
-    return globalAppsStore;
+    apps.sort((a, b) => {
+      if (a.featured && !b.featured) return -1;
+      if (!a.featured && b.featured) return 1;
+      const oA = typeof a.order === 'number' ? a.order : 9999;
+      const oB = typeof b.order === 'number' ? b.order : 9999;
+      if (oA !== oB) return oA - oB;
+      return new Date(b.addedAt || 0) - new Date(a.addedAt || 0);
+    });
+
+    res.json({ success: true, data: apps, count: apps.length });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
   }
+});
 
-  const redis = getUpstashClient();
-  if (redis) {
-    try {
-      const redisData = await redis.get('nexora_apps');
-      if (redisData && Array.isArray(redisData)) {
-        globalAppsStore = normalizeApps(redisData);
-        return globalAppsStore;
+app.post('/api/apps', async (req, res) => {
+  try {
+    const { name, url, logoUrl, logo, category, featured, order, links, badgeTag } = req.body || {};
+    if (!name || !String(name).trim()) {
+      return res.status(400).json({ success: false, error: 'Platform name is required.' });
+    }
+
+    const apps = await readApps();
+    const parsedOrder = parseInt(order, 10) || (apps.length + 1);
+
+    let finalLinks = Array.isArray(links) && links.length > 0 ? links : [];
+    if (finalLinks.length === 0 && url) {
+      finalLinks = [{
+        id: 'link_' + uuidv4().substr(0, 8),
+        title: String(name).trim() + ' Portal',
+        url: String(url).trim(),
+        statusMode: 'auto',
+        keyRequirement: 'without_key',
+        loginRequirement: 'login_not_required'
+      }];
+    }
+
+    const newItem = {
+      id: uuidv4(),
+      name: String(name).trim(),
+      logoUrl: (logoUrl || logo || '').trim(),
+      logo: (logoUrl || logo || '').trim(),
+      category: (category || 'GENERAL').trim(),
+      featured: Boolean(featured),
+      badgeTag: badgeTag || 'NONE',
+      order: parsedOrder,
+      addedAt: new Date().toISOString(),
+      links: finalLinks
+    };
+
+    apps.push(newItem);
+    await writeApps(apps);
+    res.status(201).json({ success: true, data: newItem });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.put('/api/apps/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const apps = await readApps();
+    const index = apps.findIndex(item => item.id === id);
+    if (index === -1) return res.status(404).json({ success: false, error: 'Platform not found' });
+
+    const existing = apps[index];
+    const body = req.body || {};
+
+    let finalLinks = Array.isArray(body.links) && body.links.length > 0
+      ? body.links
+      : existing.links;
+
+    apps[index] = {
+      ...existing,
+      name: body.name !== undefined ? String(body.name).trim() : existing.name,
+      logoUrl: (body.logoUrl || body.logo || existing.logoUrl || '').trim(),
+      logo: (body.logoUrl || body.logo || existing.logoUrl || '').trim(),
+      category: (body.category || existing.category || 'GENERAL').trim(),
+      featured: body.featured !== undefined ? Boolean(body.featured) : existing.featured,
+      badgeTag: body.badgeTag || existing.badgeTag || 'NONE',
+      order: body.order !== undefined ? (parseInt(body.order, 10) || existing.order) : existing.order,
+      links: finalLinks
+    };
+
+    await writeApps(apps);
+    res.json({ success: true, data: apps[index] });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.delete('/api/apps/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    let apps = await readApps();
+    const index = apps.findIndex(item => item.id === id);
+    if (index === -1) return res.status(404).json({ success: false, error: 'Platform not found' });
+    apps = apps.filter(item => item.id !== id);
+    await writeApps(apps);
+    res.json({ success: true, message: 'Deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Bulk overwrite (Admin backup restore)
+app.post('/api/apps/bulk', async (req, res) => {
+  try {
+    const { apps: incoming } = req.body || {};
+    if (!Array.isArray(incoming)) {
+      return res.status(400).json({ success: false, error: 'apps array required' });
+    }
+    const normalized = normalizeApps(incoming);
+    await writeApps(normalized);
+    res.json({ success: true, count: normalized.length, data: normalized });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ============================================================
+// SETTINGS API
+// ============================================================
+app.get('/api/settings', async (req, res) => {
+  try {
+    const settings = await readSettings();
+    res.json({ success: true, data: settings });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/settings', async (req, res) => {
+  try {
+    const current = await readSettings();
+    const body = req.body || {};
+    const updated = {
+      ...current,
+      ...body,
+      // Force boolean types
+      telegramEnabled: body.telegramEnabled !== undefined
+        ? Boolean(body.telegramEnabled) : current.telegramEnabled,
+      announcementEnabled: body.announcementEnabled !== undefined
+        ? Boolean(body.announcementEnabled) : current.announcementEnabled
+    };
+    await writeSettings(updated);
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// ============================================================
+// FEEDBACK API
+// ============================================================
+app.get('/api/feedback', async (req, res) => {
+  try {
+    const list = await readFeedback();
+    res.json(list);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/feedback', async (req, res) => {
+  try {
+    const body = req.body || {};
+    const current = await readFeedback();
+
+    // Admin reply action
+    if (body.action === 'reply') {
+      const index = current.findIndex(f => f.id === body.id);
+      if (index !== -1) {
+        current[index].adminReply = body.adminReply;
+        current[index].status = 'REPLIED';
+        current[index].repliedAt = new Date().toISOString();
+        await writeFeedback(current);
+        return res.json({ success: true, item: current[index] });
       }
-    } catch (e) {}
+      return res.status(404).json({ error: 'Item not found' });
+    }
+
+    // Delete action
+    if (body.action === 'delete') {
+      const filtered = current.filter(f => f.id !== body.id);
+      await writeFeedback(filtered);
+      return res.json({ success: true });
+    }
+
+    // New feedback submission
+    const newItem = {
+      id: 'fb_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+      type: body.type || 'QUESTION',
+      userName: body.userName || 'Student',
+      userEmail: body.userEmail || '',
+      message: body.message || '',
+      status: 'PENDING',
+      createdAt: new Date().toISOString(),
+      adminReply: '',
+      repliedAt: ''
+    };
+
+    await writeFeedback([newItem, ...current]);
+    res.json({ success: true, item: newItem });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
+});
 
-  if (globalAppsStore !== null && Array.isArray(globalAppsStore)) {
-    return globalAppsStore;
+// ============================================================
+// CLICK TRACKING API
+// ============================================================
+app.get('/api/track-click', async (req, res) => {
+  try {
+    const clicks = await readClicks();
+    res.json(clicks);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
+});
 
-  let apps = [];
+app.post('/api/track-click', async (req, res) => {
   try {
-    if (fs.existsSync(DATA_FILE)) {
-      const content = fs.readFileSync(DATA_FILE, 'utf8')
-      apps = JSON.parse(content || '[]')
-      globalAppsStore = normalizeApps(apps);
-      return globalAppsStore;
+    const { appName, linkTitle, linkUrl } = req.body || {};
+    const key = linkUrl || appName || 'unknown';
+    const clicks = await readClicks();
+
+    if (!clicks[key]) {
+      clicks[key] = {
+        appName: appName || 'Platform',
+        linkTitle: linkTitle || 'Access Link',
+        url: linkUrl || '#',
+        count: 0,
+        lastClicked: new Date().toISOString()
+      };
     }
-  } catch (err) {}
-
-  apps = [];
-  globalAppsStore = apps;
-  return globalAppsStore;
-}
-
-async function writeApps(data) {
-  const normalized = normalizeApps(data);
-  globalAppsStore = normalized;
-
-  writeCloudflareKV(normalized).catch(() => {});
-
-  const redis = getUpstashClient();
-  if (redis) {
-    try {
-      await redis.set('nexora_apps', normalized);
-    } catch (e) {}
+    clicks[key].count = (clicks[key].count || 0) + 1;
+    clicks[key].lastClicked = new Date().toISOString();
+    await writeClicks(clicks);
+    res.json({ success: true, count: clicks[key].count });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
+});
 
-  try {
-    const dir = path.dirname(DATA_FILE)
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true })
-    }
-    fs.writeFileSync(DATA_FILE, JSON.stringify(normalized, null, 2), 'utf8')
-  } catch (err) {}
-}
+// ============================================================
+// DOWNLOAD CENTER API - ✅ NO DUPLICATES
+// ============================================================
 
-// Telegram Settings Read/Write
-const DEFAULT_SETTINGS = {
-  telegramEnabled: true,
-  telegramLink: 'https://t.me/telegram',
-  telegramTitle: 'Join Official Channel',
-  telegramMessage: 'Get instant access to daily updates, live class links, and announcements!'
-};
-
-async function readSettings() {
-  if (globalSettingsStore) return globalSettingsStore;
-
-  try {
-    const res = await axios.get(CF_KV_SETTINGS_URL, {
-      headers: { Authorization: `Bearer ${CF_KV_TOKEN}` },
-      timeout: 5000
-    });
-    if (res.data && typeof res.data === 'object') {
-      globalSettingsStore = { ...DEFAULT_SETTINGS, ...res.data };
-      return globalSettingsStore;
-    }
-  } catch (e) {}
-
-  const redis = getUpstashClient();
-  if (redis) {
-    try {
-      const redisData = await redis.get('nexora_settings');
-      if (redisData && typeof redisData === 'object') {
-        globalSettingsStore = { ...DEFAULT_SETTINGS, ...redisData };
-        return globalSettingsStore;
-      }
-    } catch (e) {}
-  }
-
-  try {
-    if (fs.existsSync(SETTINGS_FILE)) {
-      const content = fs.readFileSync(SETTINGS_FILE, 'utf8');
-      globalSettingsStore = { ...DEFAULT_SETTINGS, ...JSON.parse(content || '{}') };
-      return globalSettingsStore;
-    }
-  } catch (e) {}
-
-  globalSettingsStore = DEFAULT_SETTINGS;
-  return globalSettingsStore;
-}
-
-async function writeSettings(data) {
-  globalSettingsStore = data;
-
-  try {
-    await axios.put(CF_KV_SETTINGS_URL, JSON.stringify(data), {
-      headers: { Authorization: `Bearer ${CF_KV_TOKEN}`, 'Content-Type': 'application/json' },
-      timeout: 5000
-    });
-  } catch (e) {}
-
-  const redis = getUpstashClient();
-  if (redis) {
-    try {
-      await redis.set('nexora_settings', data);
-    } catch (e) {}
-  }
-
-  try {
-    const dir = path.dirname(SETTINGS_FILE);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(data, null, 2), 'utf8');
-  } catch (e) {}
-}
-
-// REST API ROUTES
-
-// Feedback Data File
-const FEEDBACK_FILE = path.join(__dirname, 'data', 'feedback.json');
-let globalFeedbackStore = null;
-
-async function readFeedback() {
-  if (globalFeedbackStore !== null) return globalFeedbackStore;
-  try {
-    if (fs.existsSync(FEEDBACK_FILE)) {
-      const content = fs.readFileSync(FEEDBACK_FILE, 'utf8');
-      globalFeedbackStore = JSON.parse(content || '[]');
-      return globalFeedbackStore;
-    }
-  } catch (e) {}
-  globalFeedbackStore = [];
-  return globalFeedbackStore;
-}
-
-async function writeFeedback(data) {
-  globalFeedbackStore = data;
-  try {
-    const dir = path.dirname(FEEDBACK_FILE);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(FEEDBACK_FILE, JSON.stringify(data, null, 2), 'utf8');
-  } catch (e) {}
-}
-
-// Click Analytics Storage
-const CLICKS_FILE = path.join(__dirname, 'data', 'clicks.json');
-let globalClicksStore = null;
-
-async function readClicks() {
-  if (globalClicksStore !== null) return globalClicksStore;
-  try {
-    if (fs.existsSync(CLICKS_FILE)) {
-      const content = fs.readFileSync(CLICKS_FILE, 'utf8');
-      globalClicksStore = JSON.parse(content || '{}');
-      return globalClicksStore;
-    }
-  } catch (e) {}
-  globalClicksStore = {};
-  return globalClicksStore;
-}
-
-async function writeClicks(data) {
-  globalClicksStore = data;
-  try {
-    const dir = path.dirname(CLICKS_FILE);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(CLICKS_FILE, JSON.stringify(data, null, 2), 'utf8');
-  } catch (e) {}
-}
-
-// Download Center Config Storage
-const DOWNLOADS_FILE = path.join(__dirname, 'data', 'downloads.json');
-let globalDownloadsStore = null;
-
-const DEFAULT_DOWNLOADS = {
-  published: true,
-  globalMaintenance: false,
-  android: {
-    version: "2.4.1",
-    minVersion: "2.0.0",
-    downloadUrl: "https://github.com/nexora-edu/releases/releases/download/v2.4.1/nexora-student-v2.4.1.apk",
-    fileSize: "42.5 MB",
-    checksum: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    releaseDate: "2026-08-01",
-    maintenance: false,
-    forceUpdate: false,
-    releaseNotes: [
-      "Added high-speed offline lecture sync capabilities.",
-      "Fixed background notification delay on Android 14+ devices.",
-      "Enhanced security token validation during live session entrance.",
-      "Optimized battery consumption during live video streaming."
-    ]
-  },
-  windows: {
-    version: "1.8.0",
-    minVersion: "1.5.0",
-    downloadUrl: "https://github.com/nexora-edu/releases/releases/download/v1.8.0/nexora-desktop-setup-1.8.0.exe",
-    fileSize: "88.2 MB",
-    checksum: "a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e",
-    releaseDate: "2026-07-28",
-    maintenance: false,
-    forceUpdate: false,
-    releaseNotes: [
-      "Introduced hardware-accelerated rendering for 4K live streams.",
-      "Added automatic background updates with SmartScreen verification.",
-      "Improved multi-monitor display support and full-screen shortcuts.",
-      "Fixed audio device hot-plugging bug."
-    ]
-  },
-  updatedAt: new Date().toISOString()
-};
-
-async function readDownloads() {
-  if (globalDownloadsStore !== null) return globalDownloadsStore;
-  try {
-    if (fs.existsSync(DOWNLOADS_FILE)) {
-      const content = fs.readFileSync(DOWNLOADS_FILE, 'utf8');
-      globalDownloadsStore = { ...DEFAULT_DOWNLOADS, ...JSON.parse(content || '{}') };
-      return globalDownloadsStore;
-    }
-  } catch (e) {}
-  globalDownloadsStore = DEFAULT_DOWNLOADS;
-  return globalDownloadsStore;
-}
-
-async function writeDownloads(data) {
-  globalDownloadsStore = data;
-  try {
-    const dir = path.dirname(DOWNLOADS_FILE);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(DOWNLOADS_FILE, JSON.stringify(data, null, 2), 'utf8');
-  } catch (e) {}
-}
-
-// Download Analytics Storage
-const DOWNLOAD_ANALYTICS_FILE = path.join(__dirname, 'data', 'download_analytics.json');
-let globalDownloadAnalyticsStore = null;
-
-async function readDownloadAnalytics() {
-  if (globalDownloadAnalyticsStore !== null) return globalDownloadAnalyticsStore;
-  try {
-    if (fs.existsSync(DOWNLOAD_ANALYTICS_FILE)) {
-      const content = fs.readFileSync(DOWNLOAD_ANALYTICS_FILE, 'utf8');
-      globalDownloadAnalyticsStore = JSON.parse(content || '{"totalDownloads":0,"androidDownloads":0,"windowsDownloads":0,"history":[]}');
-      return globalDownloadAnalyticsStore;
-    }
-  } catch (e) {}
-  globalDownloadAnalyticsStore = { totalDownloads: 0, androidDownloads: 0, windowsDownloads: 0, history: [] };
-  return globalDownloadAnalyticsStore;
-}
-
-async function writeDownloadAnalytics(data) {
-  globalDownloadAnalyticsStore = data;
-  try {
-    const dir = path.dirname(DOWNLOAD_ANALYTICS_FILE);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(DOWNLOAD_ANALYTICS_FILE, JSON.stringify(data, null, 2), 'utf8');
-  } catch (e) {}
-}
-
-// Student Profiles Storage
-const STUDENTS_FILE = path.join(__dirname, 'data', 'students.json');
-let globalStudentsStore = null;
-
-async function readStudents() {
-  if (globalStudentsStore !== null) return globalStudentsStore;
-  try {
-    if (fs.existsSync(STUDENTS_FILE)) {
-      const content = fs.readFileSync(STUDENTS_FILE, 'utf8');
-      globalStudentsStore = JSON.parse(content || '[]');
-      return globalStudentsStore;
-    }
-  } catch (e) {}
-  globalStudentsStore = [];
-  return globalStudentsStore;
-}
-
-async function writeStudents(data) {
-  globalStudentsStore = data;
-  try {
-    const dir = path.dirname(STUDENTS_FILE);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(STUDENTS_FILE, JSON.stringify(data, null, 2), 'utf8');
-  } catch (e) {}
-}
-
-// Download Center API Endpoints
-
+// GET Download Config
 app.get('/api/downloads/config', async (req, res) => {
   try {
     const config = await readDownloads();
@@ -460,38 +539,62 @@ app.get('/api/downloads/config', async (req, res) => {
   }
 });
 
+// POST Download Config (Admin saves settings)
 app.post('/api/downloads/config', async (req, res) => {
   try {
     const current = await readDownloads();
     const body = req.body || {};
-    
+
+    const parseNotes = (val, fallback) => {
+      if (Array.isArray(val)) return val;
+      if (typeof val === 'string') return val.split('\n').map(s => s.trim()).filter(Boolean);
+      return fallback;
+    };
+
     const updated = {
       ...current,
       published: body.published !== undefined ? Boolean(body.published) : current.published,
-      globalMaintenance: body.globalMaintenance !== undefined ? Boolean(body.globalMaintenance) : current.globalMaintenance,
+      globalMaintenance: body.globalMaintenance !== undefined
+        ? Boolean(body.globalMaintenance) : current.globalMaintenance,
       android: {
         ...current.android,
-        version: body.android?.version ? String(body.android.version).trim() : current.android.version,
-        minVersion: body.android?.minVersion ? String(body.android.minVersion).trim() : current.android.minVersion,
-        downloadUrl: body.android?.downloadUrl ? String(body.android.downloadUrl).trim() : current.android.downloadUrl,
-        fileSize: body.android?.fileSize ? String(body.android.fileSize).trim() : current.android.fileSize,
-        checksum: body.android?.checksum ? String(body.android.checksum).trim() : current.android.checksum,
-        releaseDate: body.android?.releaseDate || current.android.releaseDate,
-        maintenance: body.android?.maintenance !== undefined ? Boolean(body.android.maintenance) : current.android.maintenance,
-        forceUpdate: body.android?.forceUpdate !== undefined ? Boolean(body.android.forceUpdate) : current.android.forceUpdate,
-        releaseNotes: Array.isArray(body.android?.releaseNotes) ? body.android.releaseNotes : current.android.releaseNotes
+        ...(body.android || {}),
+        version: body.android?.version || current.android.version,
+        latestVersion: body.android?.version || body.android?.latestVersion || current.android.latestVersion,
+        minVersion: body.android?.minVersion || current.android.minVersion,
+        minSupportedVersion: body.android?.minVersion || current.android.minSupportedVersion,
+        downloadUrl: body.android?.downloadUrl || current.android.downloadUrl,
+        apkUrl: body.android?.downloadUrl || current.android.apkUrl,
+        fileSize: body.android?.fileSize || current.android.fileSize,
+        checksum: body.android?.checksum || current.android.checksum,
+        sha256: body.android?.checksum || current.android.sha256,
+        releaseNotes: parseNotes(body.android?.releaseNotes, current.android.releaseNotes),
+        maintenance: body.android?.maintenance !== undefined
+          ? Boolean(body.android.maintenance) : current.android.maintenance,
+        maintenanceMode: body.android?.maintenance !== undefined
+          ? Boolean(body.android.maintenance) : current.android.maintenanceMode,
+        forceUpdate: body.android?.forceUpdate !== undefined
+          ? Boolean(body.android.forceUpdate) : current.android.forceUpdate
       },
       windows: {
         ...current.windows,
-        version: body.windows?.version ? String(body.windows.version).trim() : current.windows.version,
-        minVersion: body.windows?.minVersion ? String(body.windows.minVersion).trim() : current.windows.minVersion,
-        downloadUrl: body.windows?.downloadUrl ? String(body.windows.downloadUrl).trim() : current.windows.downloadUrl,
-        fileSize: body.windows?.fileSize ? String(body.windows.fileSize).trim() : current.windows.fileSize,
-        checksum: body.windows?.checksum ? String(body.windows.checksum).trim() : current.windows.checksum,
-        releaseDate: body.windows?.releaseDate || current.windows.releaseDate,
-        maintenance: body.windows?.maintenance !== undefined ? Boolean(body.windows.maintenance) : current.windows.maintenance,
-        forceUpdate: body.windows?.forceUpdate !== undefined ? Boolean(body.windows.forceUpdate) : current.windows.forceUpdate,
-        releaseNotes: Array.isArray(body.windows?.releaseNotes) ? body.windows.releaseNotes : current.windows.releaseNotes
+        ...(body.windows || {}),
+        version: body.windows?.version || current.windows.version,
+        latestVersion: body.windows?.version || body.windows?.latestVersion || current.windows.latestVersion,
+        minVersion: body.windows?.minVersion || current.windows.minVersion,
+        minSupportedVersion: body.windows?.minVersion || current.windows.minSupportedVersion,
+        downloadUrl: body.windows?.downloadUrl || current.windows.downloadUrl,
+        exeUrl: body.windows?.downloadUrl || current.windows.exeUrl,
+        fileSize: body.windows?.fileSize || current.windows.fileSize,
+        checksum: body.windows?.checksum || current.windows.checksum,
+        sha256: body.windows?.checksum || current.windows.sha256,
+        releaseNotes: parseNotes(body.windows?.releaseNotes, current.windows.releaseNotes),
+        maintenance: body.windows?.maintenance !== undefined
+          ? Boolean(body.windows.maintenance) : current.windows.maintenance,
+        maintenanceMode: body.windows?.maintenance !== undefined
+          ? Boolean(body.windows.maintenance) : current.windows.maintenanceMode,
+        forceUpdate: body.windows?.forceUpdate !== undefined
+          ? Boolean(body.windows.forceUpdate) : current.windows.forceUpdate
       },
       updatedAt: new Date().toISOString()
     };
@@ -503,37 +606,42 @@ app.post('/api/downloads/config', async (req, res) => {
   }
 });
 
+// Student Registration
 app.post('/api/downloads/register-student', async (req, res) => {
   try {
-    const { name, email, studentId } = req.body || {};
-    if (!name || !name.trim()) {
+    const { name, email } = req.body || {};
+    if (!name || !String(name).trim()) {
       return res.status(400).json({ success: false, error: 'Full name is required' });
     }
-    if (!email || !email.trim()) {
+    if (!email || !String(email).trim()) {
       return res.status(400).json({ success: false, error: 'Email address is required' });
     }
 
     const students = await readStudents();
-    const existingIndex = students.findIndex(s => (s.email || '').toLowerCase() === email.trim().toLowerCase());
+    const emailLower = String(email).trim().toLowerCase();
+    const existingIdx = students.findIndex(
+      s => (s.email || '').toLowerCase() === emailLower
+    );
 
     const now = new Date().toISOString();
     let studentObj;
 
-    if (existingIndex !== -1) {
+    if (existingIdx !== -1) {
+      // Existing student - update & return
       studentObj = {
-        ...students[existingIndex],
-        name: name.trim(),
-        email: email.trim(),
+        ...students[existingIdx],
+        name: String(name).trim(),
         lastActive: now
       };
-      students[existingIndex] = studentObj;
+      students[existingIdx] = studentObj;
     } else {
+      // New student
       const year = new Date().getFullYear();
-      const randId = 'NEX-' + year + '-' + Math.floor(10000 + Math.random() * 90000);
+      const randId = `NEX-${year}-${Math.floor(10000 + Math.random() * 90000)}`;
       studentObj = {
-        studentId: studentId || randId,
-        name: name.trim(),
-        email: email.trim().toLowerCase(),
+        studentId: randId,
+        name: String(name).trim(),
+        email: emailLower,
         registeredAt: now,
         lastActive: now,
         downloadCount: 0
@@ -548,6 +656,7 @@ app.post('/api/downloads/register-student', async (req, res) => {
   }
 });
 
+// Get All Students (Admin)
 app.get('/api/downloads/students', async (req, res) => {
   try {
     const students = await readStudents();
@@ -557,10 +666,11 @@ app.get('/api/downloads/students', async (req, res) => {
   }
 });
 
+// Track Download
 app.post('/api/downloads/track', async (req, res) => {
   try {
-    const { platform, version, studentId, studentName, studentEmail, ip, userAgent } = req.body || {};
-    const analytics = await readDownloadAnalytics();
+    const { platform, version, studentId, studentName, studentEmail } = req.body || {};
+    const analytics = await readDlAnalytics();
 
     analytics.totalDownloads = (analytics.totalDownloads || 0) + 1;
     if (platform === 'android') {
@@ -580,13 +690,15 @@ app.post('/api/downloads/track', async (req, res) => {
       status: 'COMPLETED'
     };
 
-    analytics.history = [logEntry, ...(analytics.history || [])].slice(0, 100);
-    await writeDownloadAnalytics(analytics);
+    analytics.history = [logEntry, ...(analytics.history || [])].slice(0, 200);
+    await writeDlAnalytics(analytics);
 
     // Update student download count
     if (studentEmail || studentId) {
       const students = await readStudents();
-      const sIdx = students.findIndex(s => s.studentId === studentId || (s.email && s.email === studentEmail));
+      const sIdx = students.findIndex(
+        s => s.studentId === studentId || (s.email && s.email === studentEmail)
+      );
       if (sIdx !== -1) {
         students[sIdx].downloadCount = (students[sIdx].downloadCount || 0) + 1;
         students[sIdx].lastActive = new Date().toISOString();
@@ -600,16 +712,15 @@ app.post('/api/downloads/track', async (req, res) => {
   }
 });
 
-
+// Verify Download Token
 app.post('/api/downloads/verify-token', (req, res) => {
   try {
     const { platform, version, studentId } = req.body || {};
     const token = 'NEX-DL-' + uuidv4().replace(/-/g, '').substring(0, 16).toUpperCase();
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString(); // 15 mins validity
     res.json({
       success: true,
       token,
-      expiresAt,
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
       platform,
       version,
       studentId: studentId || 'STUDENT'
@@ -619,393 +730,39 @@ app.post('/api/downloads/verify-token', (req, res) => {
   }
 });
 
+// Get Download Analytics (Admin)
 app.get('/api/downloads/analytics', async (req, res) => {
   try {
-    const analytics = await readDownloadAnalytics();
+    const analytics = await readDlAnalytics();
     res.json({ success: true, data: analytics });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// Serve Nexora Download Center sub-project static files
-const DOWNLOAD_CENTER_PUBLIC = path.join(__dirname, 'nexora-download-center', 'public');
-const DOWNLOAD_CENTER_SRC = path.join(__dirname, 'nexora-download-center', 'src');
-app.use('/download-center/src', express.static(DOWNLOAD_CENTER_SRC));
-app.use('/download-center', express.static(DOWNLOAD_CENTER_PUBLIC));
-app.get('/download-center/*', (req, res) => {
-  if (fs.existsSync(path.join(DOWNLOAD_CENTER_PUBLIC, 'index.html'))) {
-    res.sendFile(path.join(DOWNLOAD_CENTER_PUBLIC, 'index.html'));
-  } else {
-    res.status(404).send('Download Center sub-project setup in progress.');
-  }
-});
-
-// API Routes
-
-app.get('/api/track-click', async (req, res) => {
-  const clicks = await readClicks();
-  res.json(clicks);
-});
-
-app.post('/api/track-click', async (req, res) => {
-  try {
-    const { appName, linkTitle, linkUrl } = req.body || {};
-    const key = linkUrl || appName || 'unknown';
-    const clicks = await readClicks();
-    if (!clicks[key]) {
-      clicks[key] = {
-        appName: appName || 'Platform',
-        linkTitle: linkTitle || 'Access Link',
-        url: linkUrl || '#',
-        count: 0,
-        lastClicked: new Date().toISOString()
-      };
-    }
-    clicks[key].count = (clicks[key].count || 0) + 1;
-    clicks[key].lastClicked = new Date().toISOString();
-    await writeClicks(clicks);
-    res.json({ success: true, count: clicks[key].count });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-app.get('/api/apps', async (req, res) => {
-  const apps = await readApps();
-  res.json(apps);
-});
-
-app.get('/api/feedback', async (req, res) => {
-  const list = await readFeedback();
-  res.json(list);
-});
-
-app.post('/api/feedback', async (req, res) => {
-  try {
-    const body = req.body || {};
-    const current = await readFeedback();
-
-    if (body.action === 'reply') {
-      const { id, adminReply } = body;
-      const index = current.findIndex(f => f.id === id);
-      if (index !== -1) {
-        current[index].adminReply = adminReply;
-        current[index].status = 'REPLIED';
-        current[index].repliedAt = new Date().toISOString();
-        await writeFeedback(current);
-        return res.json({ success: true, item: current[index] });
-      }
-      return res.status(404).json({ error: 'Item not found' });
-    }
-
-    if (body.action === 'delete') {
-      const { id } = body;
-      const filtered = current.filter(f => f.id !== id);
-      await writeFeedback(filtered);
-      return res.json({ success: true });
-    }
-
-    const newItem = {
-      id: 'fb_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
-      type: body.type || 'QUESTION',
-      userName: body.userName || 'Student',
-      userEmail: body.userEmail || '',
-      message: body.message || '',
-      status: 'PENDING',
-      createdAt: new Date().toISOString(),
-      adminReply: '',
-      repliedAt: ''
-    };
-
-    const updated = [newItem, ...current];
-    await writeFeedback(updated);
-    res.json({ success: true, item: newItem });
-  } catch (e) {
-    res.status(500).json({ error: e.message });
-  }
-});
-
-// GET /api/apps (Main list)
-app.get('/api/apps', async (req, res) => {
-  try {
-    const apps = await readApps()
-
-    apps.sort((a, b) => {
-      if (a.featured && !b.featured) return -1
-      if (!a.featured && b.featured) return 1
-
-      const orderA = typeof a.order === 'number' ? a.order : 9999
-      const orderB = typeof b.order === 'number' ? b.order : 9999
-      if (orderA !== orderB) return orderA - orderB
-
-      const dateA = new Date(a.addedAt || 0).getTime()
-      const dateB = new Date(b.addedAt || 0).getTime()
-      return dateB - dateA
-    })
-
-    res.json({
-      success: true,
-      data: apps,
-      count: apps.length
-    })
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err.message
-    })
-  }
-})
-
-// POST /api/apps
-app.post('/api/apps', async (req, res) => {
-  try {
-    const { name, url, logoUrl, category, featured, order, links } = req.body
-
-    if (!name || typeof name !== 'string' || !name.trim()) {
-      return res.status(400).json({
-        success: false,
-        error: 'Platform name is required.'
-      })
-    }
-
-    const apps = await readApps()
-
-    const parsedOrder = typeof order === 'number' && !isNaN(order) 
-      ? order 
-      : (parseInt(order, 10) || (apps.length + 1));
-
-    let finalLinks = Array.isArray(links) && links.length > 0 ? links : [];
-    if (finalLinks.length === 0 && url && /^https?:\/\//i.test(url.trim())) {
-      finalLinks = [{
-        id: 'link_' + uuidv4().substr(0, 8),
-        title: name.trim() + ' Portal',
-        url: url.trim(),
-        statusMode: 'auto',
-        keyRequirement: 'without_key',
-        loginRequirement: 'login_not_required'
-      }];
-    }
-
-    const newItem = {
-      id: uuidv4(),
-      name: name.trim(),
-      logoUrl: logoUrl ? logoUrl.trim() : '',
-      logo: logoUrl ? logoUrl.trim() : '',
-      category: category ? category.trim() : 'GENERAL',
-      featured: Boolean(featured),
-      order: parsedOrder,
-      addedAt: new Date().toISOString(),
-      links: finalLinks
-    }
-
-    apps.push(newItem)
-    await writeApps(apps)
-
-    res.status(201).json({
-      success: true,
-      data: newItem
-    })
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err.message
-    })
-  }
-})
-
-// PUT /api/apps/:id
-app.put('/api/apps/:id', async (req, res) => {
-  try {
-    const { id } = req.params
-    const apps = await readApps()
-    const index = apps.findIndex(item => item.id === id)
-
-    if (index === -1) {
-      return res.status(404).json({
-        success: false,
-        error: 'Platform not found'
-      })
-    }
-
-    const existing = apps[index]
-    const body = req.body || {}
-
-    let finalLinks = Array.isArray(body.links) && body.links.length > 0 ? body.links : existing.links;
-    if (body.url && (!finalLinks || finalLinks.length === 0)) {
-      finalLinks = [{
-        id: 'link_' + uuidv4().substr(0, 8),
-        title: (body.name || existing.name) + ' Portal',
-        url: String(body.url).trim(),
-        statusMode: 'auto',
-        keyRequirement: 'without_key',
-        loginRequirement: 'login_not_required'
-      }];
-    }
-
-    const updatedItem = {
-      ...existing,
-      name: body.name !== undefined ? String(body.name).trim() : existing.name,
-      logoUrl: body.logoUrl !== undefined ? String(body.logoUrl).trim() : (body.logo !== undefined ? String(body.logo).trim() : existing.logoUrl),
-      logo: body.logoUrl !== undefined ? String(body.logoUrl).trim() : (body.logo !== undefined ? String(body.logo).trim() : existing.logoUrl),
-      category: body.category !== undefined ? String(body.category).trim() : existing.category,
-      featured: body.featured !== undefined ? Boolean(body.featured) : existing.featured,
-      order: body.order !== undefined ? (parseInt(body.order, 10) || existing.order) : existing.order,
-      links: finalLinks
-    }
-
-    apps[index] = updatedItem
-    await writeApps(apps)
-
-    res.json({
-      success: true,
-      data: updatedItem
-    })
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err.message
-    })
-  }
-})
-
-// DELETE /api/apps/:id
-app.delete('/api/apps/:id', async (req, res) => {
-  try {
-    const { id } = req.params
-    let apps = await readApps()
-    const index = apps.findIndex(item => item.id === id)
-
-    if (index === -1) {
-      return res.status(404).json({
-        success: false,
-        error: 'Platform not found'
-      })
-    }
-
-    apps = apps.filter(item => item.id !== id)
-    await writeApps(apps)
-
-    res.json({
-      success: true,
-      message: 'Deleted'
-    })
-  } catch (err) {
-    res.status(500).json({
-      success: false,
-      error: err.message
-    })
-  }
-})
-
-// GET /api/settings
-app.get('/api/settings', async (req, res) => {
-  try {
-    const settings = await readSettings();
-    res.json({ success: true, data: settings });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-})
-
-// POST /api/settings
-app.post('/api/settings', async (req, res) => {
-  try {
-    const current = await readSettings();
-    const body = req.body || {};
-    const updated = {
-      ...current,
-      telegramEnabled: body.telegramEnabled !== undefined ? Boolean(body.telegramEnabled) : current.telegramEnabled,
-      telegramLink: body.telegramLink ? String(body.telegramLink).trim() : current.telegramLink,
-      telegramTitle: body.telegramTitle ? String(body.telegramTitle).trim() : current.telegramTitle,
-      telegramMessage: body.telegramMessage ? String(body.telegramMessage).trim() : current.telegramMessage
-    };
-    await writeSettings(updated);
-    res.json({ success: true, data: updated });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-})
-
-// DOWNLOAD CENTER API ENDPOINTS
-const DOWNLOAD_CONFIG_FILE = path.join(__dirname, 'data', 'download_config.json');
-
-function getDownloadConfig() {
-  try {
-    if (fs.existsSync(DOWNLOAD_CONFIG_FILE)) {
-      return JSON.parse(fs.readFileSync(DOWNLOAD_CONFIG_FILE, 'utf-8'));
-    }
-  } catch (e) {}
-  return {
-    android: {
-      latestVersion: "2.5.0",
-      minSupportedVersion: "2.0.0",
-      apkUrl: "https://github.com/nexora-edu/releases/releases/download/v2.4.1/nexora-student-v2.4.1.apk",
-      fileSize: "45.2 MB",
-      sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-      releaseNotes: ["Added high-speed offline lecture sync capabilities.", "Fixed background notification delay on Android 14+ devices."],
-      maintenanceMode: false,
-      forceUpdate: false
-    },
-    windows: {
-      latestVersion: "1.8.0",
-      minSupportedVersion: "1.0.0",
-      exeUrl: "https://github.com/nexora-edu/releases/releases/download/v1.8.0/nexora-desktop-setup-1.8.0.exe",
-      fileSize: "88.2 MB",
-      sha256: "a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e",
-      releaseNotes: ["Introduced hardware-accelerated rendering for 4K live streams."],
-      maintenanceMode: false,
-      forceUpdate: false
-    }
-  };
-}
-
-app.get('/api/downloads/config', (req, res) => {
-  res.json({ success: true, data: getDownloadConfig() });
-});
-
-app.post('/api/downloads/config', (req, res) => {
-  try {
-    const configData = req.body;
-    if (!fs.existsSync(path.join(__dirname, 'data'))) {
-      fs.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
-    }
-    fs.writeFileSync(DOWNLOAD_CONFIG_FILE, JSON.stringify(configData, null, 2));
-    res.json({ success: true, data: configData });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-app.post('/api/downloads/verify-token', (req, res) => {
-  const { token, platform } = req.body || {};
-  const config = getDownloadConfig();
-  const target = platform === 'windows' ? config.windows : config.android;
-  
-  res.json({
-    success: true,
-    token: token || uuidv4(),
-    downloadUrl: target ? (target.apkUrl || target.exeUrl) : '',
-    expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString()
-  });
-});
-
-app.post('/api/downloads/track', (req, res) => {
-  res.json({ success: true, timestamp: new Date().toISOString() });
-});
-
-// CATCH-ALL ROUTE
+// ============================================================
+// CATCH-ALL → Serve Frontend
+// ============================================================
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'))
-})
+  const indexPath = path.join(__dirname, 'public', 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(404).json({ error: 'Not found' });
+  }
+});
 
+// ============================================================
 // SERVER START
+// ============================================================
 if (require.main === module) {
+  // Ensure data directory exists on startup
+  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+
   app.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`)
-    if (!fs.existsSync('./data')) fs.mkdirSync('./data')
-    if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, '[]')
-  })
+    console.log(`✅ NEXORA Backend running on port ${PORT}`);
+    console.log(`📡 Health: http://localhost:${PORT}/api/health`);
+  });
 }
 
-module.exports = app
+module.exports = app;
