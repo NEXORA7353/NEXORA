@@ -1,53 +1,54 @@
 // NEXORA Admin Console - Download Center Management Module
 (function () {
-  let downloadConfig = null;
-  let isStaticMode = false;
+  const UPSTASH_URL = 'https://legible-loon-84378.upstash.io';
+  const UPSTASH_TOKEN = 'gQAAAAAAAUmaAAIgcDE5M2IwMjM4MTczZjA0ZWQ5YWUwYzYzNTU1YzIyYTQ3Mg';
 
-  // Helper: Try API first, then fallback to static JSON
-  async function fetchWithFallback(apiUrl, staticUrl) {
+  async function fetchFromUpstash(key) {
     try {
-      const res = await fetch(apiUrl, { cache: 'no-store' });
-      if (!res.ok) throw new Error('API returned ' + res.status);
-      const contentType = res.headers.get('content-type') || '';
-      if (!contentType.includes('application/json')) throw new Error('Not JSON response');
-      return await res.json();
-    } catch (apiErr) {
-      console.warn('API unavailable (' + apiUrl + '), trying static fallback...');
-      try {
-        const staticRes = await fetch(staticUrl, { cache: 'no-store' });
-        if (staticRes.ok) {
-          const contentType = staticRes.headers.get('content-type') || '';
-          if (contentType.includes('json') || staticUrl.endsWith('.json')) {
-            isStaticMode = true;
-            return await staticRes.json();
-          }
-        }
-      } catch (e) {}
-      return null;
-    }
+      const res = await fetch(`${UPSTASH_URL}/get/${key}`, {
+        headers: { Authorization: `Bearer ${UPSTASH_TOKEN}` }
+      });
+      const data = await res.json();
+      if (data && data.result) {
+        return typeof data.result === 'string' ? JSON.parse(data.result) : data.result;
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  async function saveToUpstash(key, payload) {
+    try {
+      const payloadStr = typeof payload === 'string' ? payload : JSON.stringify(payload);
+      await fetch(`${UPSTASH_URL}`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${UPSTASH_TOKEN}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(['SET', key, payloadStr])
+      });
+      return true;
+    } catch (e) {}
+    return false;
   }
 
   async function loadDownloadConfig() {
-    const json = await fetchWithFallback('/api/downloads/config', '/data/downloads.json');
-    if (json) {
-      const data = json.data || json;
-      downloadConfig = data;
+    const data = await fetchFromUpstash('nexora_download_config');
+    if (data) {
       populateForm(data);
     }
   }
 
   async function loadDownloadAnalytics() {
-    const json = await fetchWithFallback('/api/downloads/analytics', '/data/download_analytics.json');
-    if (json) {
-      const data = json.data || json;
+    const data = await fetchFromUpstash('nexora_download_analytics');
+    if (data) {
       renderAnalytics(data);
     }
   }
 
   async function loadRegisteredStudents() {
-    const json = await fetchWithFallback('/api/downloads/students', '/data/students.json');
-    if (json) {
-      const data = json.data || json;
+    const data = await fetchFromUpstash('nexora_download_students');
+    if (data) {
       renderStudentsList(Array.isArray(data) ? data : []);
     }
   }
@@ -62,79 +63,54 @@
       return;
     }
 
-    students.forEach(s => {
+    students.forEach(st => {
       const tr = document.createElement('tr');
       tr.style.borderBottom = '1px solid var(--hairline)';
       tr.innerHTML = `
-        <td style="padding: 10px 14px; font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--accent-orange);">${s.studentId}</td>
-        <td style="padding: 10px 14px; font-weight: 600;">${s.name}</td>
-        <td style="padding: 10px 14px; color: var(--ink-body);">${s.email}</td>
-        <td style="padding: 10px 14px;"><span class="status-pill stable">${s.downloadCount || 0} downloads</span></td>
-        <td style="padding: 10px 14px; color: var(--ink-mute); font-size: 12px;">${new Date(s.lastActive || s.registeredAt).toLocaleString()}</td>
+        <td style="padding: 10px 14px; font-family: 'JetBrains Mono', monospace; color: var(--accent-orange);">${st.studentId || '—'}</td>
+        <td style="padding: 10px 14px; font-weight: 600;">${st.name || 'Student'}</td>
+        <td style="padding: 10px 14px; color: var(--ink-body);">${st.email || '—'}</td>
+        <td style="padding: 10px 14px; font-weight: 700; color: var(--accent-green);">${st.downloadCount || 0}</td>
+        <td style="padding: 10px 14px; color: var(--ink-mute); font-size: 12px;">${st.lastActive ? new Date(st.lastActive).toLocaleString() : '—'}</td>
       `;
       listBody.appendChild(tr);
     });
   }
 
-  function populateForm(config) {
-    if (!config) return;
+  function populateForm(cfg) {
+    if (!cfg) return;
+    const isChecked = (val) => val === true || val === 'true';
 
-    // System controls
-    const dlPublished = document.getElementById('dlPublished');
-    const dlGlobalMaintenance = document.getElementById('dlGlobalMaintenance');
-    if (dlPublished) dlPublished.checked = Boolean(config.published);
-    if (dlGlobalMaintenance) dlGlobalMaintenance.checked = Boolean(config.globalMaintenance);
+    if (document.getElementById('dlPublished')) document.getElementById('dlPublished').checked = isChecked(cfg.published ?? true);
+    if (document.getElementById('dlGlobalMaintenance')) document.getElementById('dlGlobalMaintenance').checked = isChecked(cfg.globalMaintenance);
 
-    // Android fields
-    const android = config.android || {};
-    setInputValue('androidVersion', android.version || '');
-    setInputValue('androidMinVersion', android.minVersion || '');
-    setInputValue('androidFileSize', android.fileSize || '');
-    setInputValue('androidDownloadUrl', android.downloadUrl || '');
-    setInputValue('androidChecksum', android.checksum || '');
-    setInputValue('androidReleaseNotes', Array.isArray(android.releaseNotes) ? android.releaseNotes.join('\n') : '');
-    setCheckboxValue('androidMaintenance', Boolean(android.maintenance));
-    setCheckboxValue('androidForceUpdate', Boolean(android.forceUpdate));
+    const a = cfg.android || {};
+    if (document.getElementById('androidVersion')) document.getElementById('androidVersion').value = a.version || a.latestVersion || '2.5.0';
+    if (document.getElementById('androidMinVersion')) document.getElementById('androidMinVersion').value = a.minVersion || a.minSupportedVersion || '2.0.0';
+    if (document.getElementById('androidFileSize')) document.getElementById('androidFileSize').value = a.fileSize || '45.2 MB';
+    if (document.getElementById('androidDownloadUrl')) document.getElementById('androidDownloadUrl').value = a.downloadUrl || a.apkUrl || '';
+    if (document.getElementById('androidChecksum')) document.getElementById('androidChecksum').value = a.checksum || a.sha256 || '';
+    if (document.getElementById('androidReleaseNotes')) document.getElementById('androidReleaseNotes').value = Array.isArray(a.releaseNotes) ? a.releaseNotes.join('\n') : (a.releaseNotes || '');
+    if (document.getElementById('androidMaintenance')) document.getElementById('androidMaintenance').checked = isChecked(a.maintenance || a.maintenanceMode);
+    if (document.getElementById('androidForceUpdate')) document.getElementById('androidForceUpdate').checked = isChecked(a.forceUpdate);
 
-    // Windows fields
-    const windows = config.windows || {};
-    setInputValue('windowsVersion', windows.version || '');
-    setInputValue('windowsMinVersion', windows.minVersion || '');
-    setInputValue('windowsFileSize', windows.fileSize || '');
-    setInputValue('windowsDownloadUrl', windows.downloadUrl || '');
-    setInputValue('windowsChecksum', windows.checksum || '');
-    setInputValue('windowsReleaseNotes', Array.isArray(windows.releaseNotes) ? windows.releaseNotes.join('\n') : '');
-    setCheckboxValue('windowsMaintenance', Boolean(windows.maintenance));
-    setCheckboxValue('windowsForceUpdate', Boolean(windows.forceUpdate));
-
-    // Show read-only notice if static mode
-    if (isStaticMode) {
-      const statusMsg = document.getElementById('dlStatusMsg');
-      if (statusMsg) {
-        statusMsg.textContent = '⚠ Read-only mode — No backend server connected. Changes cannot be saved on static hosting.';
-        statusMsg.style.display = 'block';
-        statusMsg.style.background = 'rgba(245,158,11,0.15)';
-        statusMsg.style.color = '#f59e0b';
-        statusMsg.style.border = '1px solid rgba(245,158,11,0.3)';
-      }
-    }
-  }
-
-  function setInputValue(id, val) {
-    const el = document.getElementById(id);
-    if (el) el.value = val;
-  }
-
-  function setCheckboxValue(id, val) {
-    const el = document.getElementById(id);
-    if (el) el.checked = Boolean(val);
+    const w = cfg.windows || {};
+    if (document.getElementById('windowsVersion')) document.getElementById('windowsVersion').value = w.version || w.latestVersion || '1.8.0';
+    if (document.getElementById('windowsMinVersion')) document.getElementById('windowsMinVersion').value = w.minVersion || w.minSupportedVersion || '1.0.0';
+    if (document.getElementById('windowsFileSize')) document.getElementById('windowsFileSize').value = w.fileSize || '88.2 MB';
+    if (document.getElementById('windowsDownloadUrl')) document.getElementById('windowsDownloadUrl').value = w.downloadUrl || w.exeUrl || '';
+    if (document.getElementById('windowsChecksum')) document.getElementById('windowsChecksum').value = w.checksum || w.sha256 || '';
+    if (document.getElementById('windowsReleaseNotes')) document.getElementById('windowsReleaseNotes').value = Array.isArray(w.releaseNotes) ? w.releaseNotes.join('\n') : (w.releaseNotes || '');
+    if (document.getElementById('windowsMaintenance')) document.getElementById('windowsMaintenance').checked = isChecked(w.maintenance || w.maintenanceMode);
+    if (document.getElementById('windowsForceUpdate')) document.getElementById('windowsForceUpdate').checked = isChecked(w.forceUpdate);
   }
 
   function renderAnalytics(analytics) {
-    const totalEl = document.getElementById('dlTotalCount');
-    const androidEl = document.getElementById('dlAndroidCount');
-    const windowsEl = document.getElementById('dlWindowsCount');
-    const logsBody = document.getElementById('dlRecentLogs');
+    if (!analytics) return;
+    const totalEl = document.getElementById('statTotalDownloads');
+    const androidEl = document.getElementById('statAndroidDownloads');
+    const windowsEl = document.getElementById('statWindowsDownloads');
+    const logsBody = document.getElementById('downloadLogsBody');
 
     if (totalEl) totalEl.textContent = analytics.totalDownloads || 0;
     if (androidEl) androidEl.textContent = analytics.androidDownloads || 0;
@@ -175,17 +151,6 @@
       downloadSettingsForm.addEventListener('submit', async (e) => {
         e.preventDefault();
 
-        // Block save in static mode
-        if (isStaticMode) {
-          if (statusMsg) {
-            statusMsg.textContent = '⚠ Cannot save — No backend server connected. Deploy with a Node.js server to enable saving.';
-            statusMsg.style.display = 'block';
-            statusMsg.style.background = 'rgba(239,68,68,0.15)';
-            statusMsg.style.color = '#ef4444';
-          }
-          return;
-        }
-
         const parseNotes = (str) => (str || '')
           .split('\n')
           .map(s => s.trim().replace(/^[-•*]\s*/, ''))
@@ -195,51 +160,48 @@
           published: document.getElementById('dlPublished')?.checked ?? true,
           globalMaintenance: document.getElementById('dlGlobalMaintenance')?.checked ?? false,
           android: {
-            version: document.getElementById('androidVersion')?.value || '2.4.1',
+            version: document.getElementById('androidVersion')?.value || '2.5.0',
+            latestVersion: document.getElementById('androidVersion')?.value || '2.5.0',
             minVersion: document.getElementById('androidMinVersion')?.value || '2.0.0',
-            fileSize: document.getElementById('androidFileSize')?.value || '42.5 MB',
+            minSupportedVersion: document.getElementById('androidMinVersion')?.value || '2.0.0',
+            fileSize: document.getElementById('androidFileSize')?.value || '45.2 MB',
             downloadUrl: document.getElementById('androidDownloadUrl')?.value || '',
+            apkUrl: document.getElementById('androidDownloadUrl')?.value || '',
             checksum: document.getElementById('androidChecksum')?.value || '',
+            sha256: document.getElementById('androidChecksum')?.value || '',
             releaseNotes: parseNotes(document.getElementById('androidReleaseNotes')?.value),
             maintenance: document.getElementById('androidMaintenance')?.checked ?? false,
+            maintenanceMode: document.getElementById('androidMaintenance')?.checked ?? false,
             forceUpdate: document.getElementById('androidForceUpdate')?.checked ?? false
           },
           windows: {
             version: document.getElementById('windowsVersion')?.value || '1.8.0',
+            latestVersion: document.getElementById('windowsVersion')?.value || '1.8.0',
             minVersion: document.getElementById('windowsMinVersion')?.value || '1.5.0',
+            minSupportedVersion: document.getElementById('windowsMinVersion')?.value || '1.0.0',
             fileSize: document.getElementById('windowsFileSize')?.value || '88.2 MB',
             downloadUrl: document.getElementById('windowsDownloadUrl')?.value || '',
+            exeUrl: document.getElementById('windowsDownloadUrl')?.value || '',
             checksum: document.getElementById('windowsChecksum')?.value || '',
+            sha256: document.getElementById('windowsChecksum')?.value || '',
             releaseNotes: parseNotes(document.getElementById('windowsReleaseNotes')?.value),
             maintenance: document.getElementById('windowsMaintenance')?.checked ?? false,
+            maintenanceMode: document.getElementById('windowsMaintenance')?.checked ?? false,
             forceUpdate: document.getElementById('windowsForceUpdate')?.checked ?? false
           }
         };
 
-        try {
-          const res = await fetch('/api/downloads/config', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-          if (res.ok) {
-            const json = await res.json();
-            if (json.success) {
-              downloadConfig = json.data;
-              if (statusMsg) {
-                statusMsg.textContent = '✓ Download settings published successfully!';
-                statusMsg.style.display = 'block';
-                statusMsg.style.background = '';
-                statusMsg.style.color = '';
-                statusMsg.style.border = '';
-                setTimeout(() => { statusMsg.style.display = 'none'; }, 3000);
-              }
-            }
-          }
-        } catch (err) {
-          console.error('Error saving download settings:', err);
-          if (statusMsg) {
-            statusMsg.textContent = '⚠ Save failed — Backend server not reachable.';
+        const success = await saveToUpstash('nexora_download_config', payload);
+
+        if (statusMsg) {
+          if (success) {
+            statusMsg.textContent = '✓ Download settings published & saved to Cloud Redis Database!';
+            statusMsg.style.display = 'block';
+            statusMsg.style.background = 'rgba(16,185,129,0.15)';
+            statusMsg.style.color = '#10b981';
+            setTimeout(() => { statusMsg.style.display = 'none'; }, 4000);
+          } else {
+            statusMsg.textContent = '❌ Failed to publish download settings to Cloud Database.';
             statusMsg.style.display = 'block';
             statusMsg.style.background = 'rgba(239,68,68,0.15)';
             statusMsg.style.color = '#ef4444';
