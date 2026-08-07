@@ -1,0 +1,37 @@
+{
+  "published": true,
+  "globalMaintenance": false,
+  "android": {
+    "version": "2.5.0",
+    "minVersion": "1.0.0",
+    "downloadUrl": "https://github.com/nexora-edu/releases/releases/download/v2.4.1/nexora-student-v2.4.1.apk",
+    "fileSize": "42.5 MB",
+    "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "releaseDate": "2026-08-01",
+    "maintenance": false,
+    "forceUpdate": false,
+    "releaseNotes": [
+      "Added high-speed offline lecture sync capabilities.",
+      "Fixed background notification delay on Android 14+ devices.",
+      "Enhanced security token validation during live session entrance.",
+      "Optimized battery consumption during live video streaming."
+    ]
+  },
+  "windows": {
+    "version": "1.8.0",
+    "minVersion": "1.0.0",
+    "downloadUrl": "https://github.com/nexora-edu/releases/releases/download/v1.8.0/nexora-desktop-setup-1.8.0.exe",
+    "fileSize": "88.2 MB",
+    "checksum": "a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e",
+    "releaseDate": "2026-07-28",
+    "maintenance": false,
+    "forceUpdate": false,
+    "releaseNotes": [
+      "Introduced hardware-accelerated rendering for 4K live streams.",
+      "Added automatic background updates with SmartScreen verification.",
+      "Improved multi-monitor display support and full-screen shortcuts.",
+      "Fixed audio device hot-plugging bug."
+    ]
+  },
+  "updatedAt": "2026-08-07T04:35:16.994Z"
+}

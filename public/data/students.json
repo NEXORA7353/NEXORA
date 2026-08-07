@@ -1,0 +1,26 @@
+[
+  {
+    "studentId": "NEX-2026-93674",
+    "name": "Arjit patel",
+    "email": "arjittreadingcompany@gmail.com",
+    "registeredAt": "2026-08-07T08:38:28.402Z",
+    "lastActive": "2026-08-07T08:38:28.402Z",
+    "downloadCount": 0
+  },
+  {
+    "studentId": "NEX-2026-48301",
+    "name": "Test Student",
+    "email": "test@student.com",
+    "registeredAt": "2026-08-07T08:35:21.945Z",
+    "lastActive": "2026-08-07T08:35:21.945Z",
+    "downloadCount": 0
+  },
+  {
+    "studentId": "NEX-2026-60490",
+    "name": "Arjit Sharma",
+    "email": "arjit@nexora.com",
+    "registeredAt": "2026-08-07T08:35:13.519Z",
+    "lastActive": "2026-08-07T08:35:13.519Z",
+    "downloadCount": 0
+  }
+]

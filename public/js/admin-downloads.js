@@ -1,47 +1,54 @@
 // NEXORA Admin Console - Download Center Management Module
 (function () {
   let downloadConfig = null;
+  let isStaticMode = false;
+
+  // Helper: Try API first, then fallback to static JSON
+  async function fetchWithFallback(apiUrl, staticUrl) {
+    try {
+      const res = await fetch(apiUrl, { cache: 'no-store' });
+      if (!res.ok) throw new Error('API returned ' + res.status);
+      const contentType = res.headers.get('content-type') || '';
+      if (!contentType.includes('application/json')) throw new Error('Not JSON response');
+      return await res.json();
+    } catch (apiErr) {
+      console.warn('API unavailable (' + apiUrl + '), trying static fallback...');
+      try {
+        const staticRes = await fetch(staticUrl, { cache: 'no-store' });
+        if (staticRes.ok) {
+          const contentType = staticRes.headers.get('content-type') || '';
+          if (contentType.includes('json') || staticUrl.endsWith('.json')) {
+            isStaticMode = true;
+            return await staticRes.json();
+          }
+        }
+      } catch (e) {}
+      return null;
+    }
+  }
 
   async function loadDownloadConfig() {
-    try {
-      const res = await fetch('/api/downloads/config', { cache: 'no-store' });
-      if (res.ok) {
-        const json = await res.json();
-        if (json.success && json.data) {
-          downloadConfig = json.data;
-          populateForm(downloadConfig);
-        }
-      }
-    } catch (e) {
-      console.error('Failed to load download config:', e);
+    const json = await fetchWithFallback('/api/downloads/config', '/data/downloads.json');
+    if (json) {
+      const data = json.data || json;
+      downloadConfig = data;
+      populateForm(data);
     }
   }
 
   async function loadDownloadAnalytics() {
-    try {
-      const res = await fetch('/api/downloads/analytics', { cache: 'no-store' });
-      if (res.ok) {
-        const json = await res.json();
-        if (json.success && json.data) {
-          renderAnalytics(json.data);
-        }
-      }
-    } catch (e) {
-      console.error('Failed to load download analytics:', e);
+    const json = await fetchWithFallback('/api/downloads/analytics', '/data/download_analytics.json');
+    if (json) {
+      const data = json.data || json;
+      renderAnalytics(data);
     }
   }
 
   async function loadRegisteredStudents() {
-    try {
-      const res = await fetch('/api/downloads/students', { cache: 'no-store' });
-      if (res.ok) {
-        const json = await res.json();
-        if (json.success && Array.isArray(json.data)) {
-          renderStudentsList(json.data);
-        }
-      }
-    } catch (e) {
-      console.error('Failed to load registered students:', e);
+    const json = await fetchWithFallback('/api/downloads/students', '/data/students.json');
+    if (json) {
+      const data = json.data || json;
+      renderStudentsList(Array.isArray(data) ? data : []);
     }
   }
 
@@ -68,7 +75,6 @@
       listBody.appendChild(tr);
     });
   }
-
 
   function populateForm(config) {
     if (!config) return;
@@ -100,6 +106,18 @@
     setInputValue('windowsReleaseNotes', Array.isArray(windows.releaseNotes) ? windows.releaseNotes.join('\n') : '');
     setCheckboxValue('windowsMaintenance', Boolean(windows.maintenance));
     setCheckboxValue('windowsForceUpdate', Boolean(windows.forceUpdate));
+
+    // Show read-only notice if static mode
+    if (isStaticMode) {
+      const statusMsg = document.getElementById('dlStatusMsg');
+      if (statusMsg) {
+        statusMsg.textContent = '⚠ Read-only mode — No backend server connected. Changes cannot be saved on static hosting.';
+        statusMsg.style.display = 'block';
+        statusMsg.style.background = 'rgba(245,158,11,0.15)';
+        statusMsg.style.color = '#f59e0b';
+        statusMsg.style.border = '1px solid rgba(245,158,11,0.3)';
+      }
+    }
   }
 
   function setInputValue(id, val) {
@@ -149,7 +167,6 @@
     }
   }
 
-
   function initDownloadManagement() {
     const downloadSettingsForm = document.getElementById('downloadSettingsForm');
     const statusMsg = document.getElementById('dlStatusMsg');
@@ -157,6 +174,17 @@
     if (downloadSettingsForm) {
       downloadSettingsForm.addEventListener('submit', async (e) => {
         e.preventDefault();
+
+        // Block save in static mode
+        if (isStaticMode) {
+          if (statusMsg) {
+            statusMsg.textContent = '⚠ Cannot save — No backend server connected. Deploy with a Node.js server to enable saving.';
+            statusMsg.style.display = 'block';
+            statusMsg.style.background = 'rgba(239,68,68,0.15)';
+            statusMsg.style.color = '#ef4444';
+          }
+          return;
+        }
 
         const parseNotes = (str) => (str || '')
           .split('\n')
@@ -199,13 +227,23 @@
             if (json.success) {
               downloadConfig = json.data;
               if (statusMsg) {
+                statusMsg.textContent = '✓ Download settings published successfully!';
                 statusMsg.style.display = 'block';
+                statusMsg.style.background = '';
+                statusMsg.style.color = '';
+                statusMsg.style.border = '';
                 setTimeout(() => { statusMsg.style.display = 'none'; }, 3000);
               }
             }
           }
         } catch (err) {
           console.error('Error saving download settings:', err);
+          if (statusMsg) {
+            statusMsg.textContent = '⚠ Save failed — Backend server not reachable.';
+            statusMsg.style.display = 'block';
+            statusMsg.style.background = 'rgba(239,68,68,0.15)';
+            statusMsg.style.color = '#ef4444';
+          }
         }
       });
     }
