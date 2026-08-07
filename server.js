@@ -927,6 +927,73 @@ app.post('/api/settings', async (req, res) => {
   }
 })
 
+// DOWNLOAD CENTER API ENDPOINTS
+const DOWNLOAD_CONFIG_FILE = path.join(__dirname, 'data', 'download_config.json');
+
+function getDownloadConfig() {
+  try {
+    if (fs.existsSync(DOWNLOAD_CONFIG_FILE)) {
+      return JSON.parse(fs.readFileSync(DOWNLOAD_CONFIG_FILE, 'utf-8'));
+    }
+  } catch (e) {}
+  return {
+    android: {
+      latestVersion: "2.5.0",
+      minSupportedVersion: "2.0.0",
+      apkUrl: "https://github.com/nexora-edu/releases/releases/download/v2.4.1/nexora-student-v2.4.1.apk",
+      fileSize: "45.2 MB",
+      sha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      releaseNotes: ["Added high-speed offline lecture sync capabilities.", "Fixed background notification delay on Android 14+ devices."],
+      maintenanceMode: false,
+      forceUpdate: false
+    },
+    windows: {
+      latestVersion: "1.8.0",
+      minSupportedVersion: "1.0.0",
+      exeUrl: "https://github.com/nexora-edu/releases/releases/download/v1.8.0/nexora-desktop-setup-1.8.0.exe",
+      fileSize: "88.2 MB",
+      sha256: "a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e",
+      releaseNotes: ["Introduced hardware-accelerated rendering for 4K live streams."],
+      maintenanceMode: false,
+      forceUpdate: false
+    }
+  };
+}
+
+app.get('/api/downloads/config', (req, res) => {
+  res.json({ success: true, data: getDownloadConfig() });
+});
+
+app.post('/api/downloads/config', (req, res) => {
+  try {
+    const configData = req.body;
+    if (!fs.existsSync(path.join(__dirname, 'data'))) {
+      fs.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
+    }
+    fs.writeFileSync(DOWNLOAD_CONFIG_FILE, JSON.stringify(configData, null, 2));
+    res.json({ success: true, data: configData });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/downloads/verify-token', (req, res) => {
+  const { token, platform } = req.body || {};
+  const config = getDownloadConfig();
+  const target = platform === 'windows' ? config.windows : config.android;
+  
+  res.json({
+    success: true,
+    token: token || uuidv4(),
+    downloadUrl: target ? (target.apkUrl || target.exeUrl) : '',
+    expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString()
+  });
+});
+
+app.post('/api/downloads/track', (req, res) => {
+  res.json({ success: true, timestamp: new Date().toISOString() });
+});
+
 // CATCH-ALL ROUTE
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'))
