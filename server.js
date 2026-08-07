@@ -333,7 +333,316 @@ async function writeClicks(data) {
   } catch (e) {}
 }
 
+// Download Center Config Storage
+const DOWNLOADS_FILE = path.join(__dirname, 'data', 'downloads.json');
+let globalDownloadsStore = null;
+
+const DEFAULT_DOWNLOADS = {
+  published: true,
+  globalMaintenance: false,
+  android: {
+    version: "2.4.1",
+    minVersion: "2.0.0",
+    downloadUrl: "https://github.com/nexora-edu/releases/releases/download/v2.4.1/nexora-student-v2.4.1.apk",
+    fileSize: "42.5 MB",
+    checksum: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    releaseDate: "2026-08-01",
+    maintenance: false,
+    forceUpdate: false,
+    releaseNotes: [
+      "Added high-speed offline lecture sync capabilities.",
+      "Fixed background notification delay on Android 14+ devices.",
+      "Enhanced security token validation during live session entrance.",
+      "Optimized battery consumption during live video streaming."
+    ]
+  },
+  windows: {
+    version: "1.8.0",
+    minVersion: "1.5.0",
+    downloadUrl: "https://github.com/nexora-edu/releases/releases/download/v1.8.0/nexora-desktop-setup-1.8.0.exe",
+    fileSize: "88.2 MB",
+    checksum: "a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e",
+    releaseDate: "2026-07-28",
+    maintenance: false,
+    forceUpdate: false,
+    releaseNotes: [
+      "Introduced hardware-accelerated rendering for 4K live streams.",
+      "Added automatic background updates with SmartScreen verification.",
+      "Improved multi-monitor display support and full-screen shortcuts.",
+      "Fixed audio device hot-plugging bug."
+    ]
+  },
+  updatedAt: new Date().toISOString()
+};
+
+async function readDownloads() {
+  if (globalDownloadsStore !== null) return globalDownloadsStore;
+  try {
+    if (fs.existsSync(DOWNLOADS_FILE)) {
+      const content = fs.readFileSync(DOWNLOADS_FILE, 'utf8');
+      globalDownloadsStore = { ...DEFAULT_DOWNLOADS, ...JSON.parse(content || '{}') };
+      return globalDownloadsStore;
+    }
+  } catch (e) {}
+  globalDownloadsStore = DEFAULT_DOWNLOADS;
+  return globalDownloadsStore;
+}
+
+async function writeDownloads(data) {
+  globalDownloadsStore = data;
+  try {
+    const dir = path.dirname(DOWNLOADS_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(DOWNLOADS_FILE, JSON.stringify(data, null, 2), 'utf8');
+  } catch (e) {}
+}
+
+// Download Analytics Storage
+const DOWNLOAD_ANALYTICS_FILE = path.join(__dirname, 'data', 'download_analytics.json');
+let globalDownloadAnalyticsStore = null;
+
+async function readDownloadAnalytics() {
+  if (globalDownloadAnalyticsStore !== null) return globalDownloadAnalyticsStore;
+  try {
+    if (fs.existsSync(DOWNLOAD_ANALYTICS_FILE)) {
+      const content = fs.readFileSync(DOWNLOAD_ANALYTICS_FILE, 'utf8');
+      globalDownloadAnalyticsStore = JSON.parse(content || '{"totalDownloads":0,"androidDownloads":0,"windowsDownloads":0,"history":[]}');
+      return globalDownloadAnalyticsStore;
+    }
+  } catch (e) {}
+  globalDownloadAnalyticsStore = { totalDownloads: 0, androidDownloads: 0, windowsDownloads: 0, history: [] };
+  return globalDownloadAnalyticsStore;
+}
+
+async function writeDownloadAnalytics(data) {
+  globalDownloadAnalyticsStore = data;
+  try {
+    const dir = path.dirname(DOWNLOAD_ANALYTICS_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(DOWNLOAD_ANALYTICS_FILE, JSON.stringify(data, null, 2), 'utf8');
+  } catch (e) {}
+}
+
+// Student Profiles Storage
+const STUDENTS_FILE = path.join(__dirname, 'data', 'students.json');
+let globalStudentsStore = null;
+
+async function readStudents() {
+  if (globalStudentsStore !== null) return globalStudentsStore;
+  try {
+    if (fs.existsSync(STUDENTS_FILE)) {
+      const content = fs.readFileSync(STUDENTS_FILE, 'utf8');
+      globalStudentsStore = JSON.parse(content || '[]');
+      return globalStudentsStore;
+    }
+  } catch (e) {}
+  globalStudentsStore = [];
+  return globalStudentsStore;
+}
+
+async function writeStudents(data) {
+  globalStudentsStore = data;
+  try {
+    const dir = path.dirname(STUDENTS_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(STUDENTS_FILE, JSON.stringify(data, null, 2), 'utf8');
+  } catch (e) {}
+}
+
+// Download Center API Endpoints
+
+app.get('/api/downloads/config', async (req, res) => {
+  try {
+    const config = await readDownloads();
+    res.json({ success: true, data: config });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/downloads/config', async (req, res) => {
+  try {
+    const current = await readDownloads();
+    const body = req.body || {};
+    
+    const updated = {
+      ...current,
+      published: body.published !== undefined ? Boolean(body.published) : current.published,
+      globalMaintenance: body.globalMaintenance !== undefined ? Boolean(body.globalMaintenance) : current.globalMaintenance,
+      android: {
+        ...current.android,
+        version: body.android?.version ? String(body.android.version).trim() : current.android.version,
+        minVersion: body.android?.minVersion ? String(body.android.minVersion).trim() : current.android.minVersion,
+        downloadUrl: body.android?.downloadUrl ? String(body.android.downloadUrl).trim() : current.android.downloadUrl,
+        fileSize: body.android?.fileSize ? String(body.android.fileSize).trim() : current.android.fileSize,
+        checksum: body.android?.checksum ? String(body.android.checksum).trim() : current.android.checksum,
+        releaseDate: body.android?.releaseDate || current.android.releaseDate,
+        maintenance: body.android?.maintenance !== undefined ? Boolean(body.android.maintenance) : current.android.maintenance,
+        forceUpdate: body.android?.forceUpdate !== undefined ? Boolean(body.android.forceUpdate) : current.android.forceUpdate,
+        releaseNotes: Array.isArray(body.android?.releaseNotes) ? body.android.releaseNotes : current.android.releaseNotes
+      },
+      windows: {
+        ...current.windows,
+        version: body.windows?.version ? String(body.windows.version).trim() : current.windows.version,
+        minVersion: body.windows?.minVersion ? String(body.windows.minVersion).trim() : current.windows.minVersion,
+        downloadUrl: body.windows?.downloadUrl ? String(body.windows.downloadUrl).trim() : current.windows.downloadUrl,
+        fileSize: body.windows?.fileSize ? String(body.windows.fileSize).trim() : current.windows.fileSize,
+        checksum: body.windows?.checksum ? String(body.windows.checksum).trim() : current.windows.checksum,
+        releaseDate: body.windows?.releaseDate || current.windows.releaseDate,
+        maintenance: body.windows?.maintenance !== undefined ? Boolean(body.windows.maintenance) : current.windows.maintenance,
+        forceUpdate: body.windows?.forceUpdate !== undefined ? Boolean(body.windows.forceUpdate) : current.windows.forceUpdate,
+        releaseNotes: Array.isArray(body.windows?.releaseNotes) ? body.windows.releaseNotes : current.windows.releaseNotes
+      },
+      updatedAt: new Date().toISOString()
+    };
+
+    await writeDownloads(updated);
+    res.json({ success: true, data: updated });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/downloads/register-student', async (req, res) => {
+  try {
+    const { name, email, studentId } = req.body || {};
+    if (!name || !name.trim()) {
+      return res.status(400).json({ success: false, error: 'Full name is required' });
+    }
+    if (!email || !email.trim()) {
+      return res.status(400).json({ success: false, error: 'Email address is required' });
+    }
+
+    const students = await readStudents();
+    const existingIndex = students.findIndex(s => (s.email || '').toLowerCase() === email.trim().toLowerCase());
+
+    const now = new Date().toISOString();
+    let studentObj;
+
+    if (existingIndex !== -1) {
+      studentObj = {
+        ...students[existingIndex],
+        name: name.trim(),
+        email: email.trim(),
+        lastActive: now
+      };
+      students[existingIndex] = studentObj;
+    } else {
+      const year = new Date().getFullYear();
+      const randId = 'NEX-' + year + '-' + Math.floor(10000 + Math.random() * 90000);
+      studentObj = {
+        studentId: studentId || randId,
+        name: name.trim(),
+        email: email.trim().toLowerCase(),
+        registeredAt: now,
+        lastActive: now,
+        downloadCount: 0
+      };
+      students.unshift(studentObj);
+    }
+
+    await writeStudents(students);
+    res.json({ success: true, data: studentObj });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/downloads/students', async (req, res) => {
+  try {
+    const students = await readStudents();
+    res.json({ success: true, data: students });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/downloads/track', async (req, res) => {
+  try {
+    const { platform, version, studentId, studentName, studentEmail, ip, userAgent } = req.body || {};
+    const analytics = await readDownloadAnalytics();
+
+    analytics.totalDownloads = (analytics.totalDownloads || 0) + 1;
+    if (platform === 'android') {
+      analytics.androidDownloads = (analytics.androidDownloads || 0) + 1;
+    } else if (platform === 'windows') {
+      analytics.windowsDownloads = (analytics.windowsDownloads || 0) + 1;
+    }
+
+    const logEntry = {
+      id: 'dl_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+      platform: platform || 'unknown',
+      version: version || '1.0.0',
+      studentId: studentId || 'Anonymous',
+      studentName: studentName || 'Student',
+      studentEmail: studentEmail || '',
+      timestamp: new Date().toISOString(),
+      status: 'COMPLETED'
+    };
+
+    analytics.history = [logEntry, ...(analytics.history || [])].slice(0, 100);
+    await writeDownloadAnalytics(analytics);
+
+    // Update student download count
+    if (studentEmail || studentId) {
+      const students = await readStudents();
+      const sIdx = students.findIndex(s => s.studentId === studentId || (s.email && s.email === studentEmail));
+      if (sIdx !== -1) {
+        students[sIdx].downloadCount = (students[sIdx].downloadCount || 0) + 1;
+        students[sIdx].lastActive = new Date().toISOString();
+        await writeStudents(students);
+      }
+    }
+
+    res.json({ success: true, log: logEntry });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+
+app.post('/api/downloads/verify-token', (req, res) => {
+  try {
+    const { platform, version, studentId } = req.body || {};
+    const token = 'NEX-DL-' + uuidv4().replace(/-/g, '').substring(0, 16).toUpperCase();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString(); // 15 mins validity
+    res.json({
+      success: true,
+      token,
+      expiresAt,
+      platform,
+      version,
+      studentId: studentId || 'STUDENT'
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.get('/api/downloads/analytics', async (req, res) => {
+  try {
+    const analytics = await readDownloadAnalytics();
+    res.json({ success: true, data: analytics });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Serve Nexora Download Center sub-project static files
+const DOWNLOAD_CENTER_PUBLIC = path.join(__dirname, 'nexora-download-center', 'public');
+const DOWNLOAD_CENTER_SRC = path.join(__dirname, 'nexora-download-center', 'src');
+app.use('/download-center/src', express.static(DOWNLOAD_CENTER_SRC));
+app.use('/download-center', express.static(DOWNLOAD_CENTER_PUBLIC));
+app.get('/download-center/*', (req, res) => {
+  if (fs.existsSync(path.join(DOWNLOAD_CENTER_PUBLIC, 'index.html'))) {
+    res.sendFile(path.join(DOWNLOAD_CENTER_PUBLIC, 'index.html'));
+  } else {
+    res.status(404).send('Download Center sub-project setup in progress.');
+  }
+});
+
 // API Routes
+
 app.get('/api/track-click', async (req, res) => {
   const clicks = await readClicks();
   res.json(clicks);

@@ -117,7 +117,12 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2L2 9.5l7.5 3L18 5.5l-6 8.5v5l3.5-3.5L20 18.5 21.5 2z"/></svg>
             Telegram Popup
           </button>
+          <button type="button" class="admin-tab-btn" data-tab="tab-downloads">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download Center
+          </button>
         </nav>
+
 
         <!-- TAB 1: OVERVIEW METRICS -->
         <div class="tab-content" id="tab-overview">
@@ -387,6 +392,221 @@
             </form>
           </section>
         </div>
+
+        <!-- TAB: DOWNLOAD CENTER MANAGEMENT -->
+        <div class="tab-content" id="tab-downloads" style="display: none;">
+          <div class="eyebrow" style="margin-bottom: 12px;">DOWNLOAD CENTER RELEASE & MAINTENANCE MANAGEMENT</div>
+          
+          <form id="downloadSettingsForm" class="admin-form">
+            <!-- STATUS & SYSTEM TOGGLES -->
+            <section style="margin-bottom: 24px;">
+              <div class="eyebrow" style="margin-bottom: 12px;">GLOBAL SYSTEM CONTROLS</div>
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px;">
+                <div class="toggle-wrapper" style="padding: 14px 16px; background: var(--canvas-soft); border: 1px solid var(--hairline); border-radius: 12px;">
+                  <div>
+                    <div style="font-weight: 600; font-size: 14px;">Publish Download Center</div>
+                    <div class="eyebrow" style="font-size: 10px; margin-top: 2px;">LIVE TO STUDENTS</div>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="dlPublished" checked>
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+
+                <div class="toggle-wrapper" style="padding: 14px 16px; background: var(--canvas-soft); border: 1px solid var(--hairline); border-radius: 12px;">
+                  <div>
+                    <div style="font-weight: 600; font-size: 14px;">Global Maintenance Mode</div>
+                    <div class="eyebrow" style="font-size: 10px; margin-top: 2px;">BLOCK ALL DOWNLOADS</div>
+                  </div>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="dlGlobalMaintenance">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+            </section>
+
+            <div class="hairline" style="margin: 20px 0;"></div>
+
+            <!-- ANDROID RELEASE MANAGEMENT -->
+            <section style="margin-bottom: 24px;">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 14px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" stroke-width="2"><path d="M3 5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5z"/><path d="M7 15l5-5 5 5"/></svg>
+                <div class="eyebrow" style="font-size: 13px; color: var(--ink);">ANDROID APP RELEASE</div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 12px;">
+                <div class="form-group">
+                  <label class="form-label" for="androidVersion">Latest Version</label>
+                  <input type="text" id="androidVersion" class="admin-input" placeholder="e.g. 2.4.1" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="androidMinVersion">Minimum Supported Version</label>
+                  <input type="text" id="androidMinVersion" class="admin-input" placeholder="e.g. 2.0.0" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="androidFileSize">APK File Size</label>
+                  <input type="text" id="androidFileSize" class="admin-input" placeholder="e.g. 42.5 MB" required>
+                </div>
+              </div>
+
+              <div class="form-group full-width" style="margin-bottom: 12px;">
+                <label class="form-label" for="androidDownloadUrl">APK Direct Download URL</label>
+                <input type="url" id="androidDownloadUrl" class="admin-input" placeholder="https://..." required>
+              </div>
+
+              <div class="form-group full-width" style="margin-bottom: 12px;">
+                <label class="form-label" for="androidChecksum">SHA-256 Checksum Hash</label>
+                <input type="text" id="androidChecksum" class="admin-input" placeholder="64-character hex hash...">
+              </div>
+
+              <div class="form-group full-width" style="margin-bottom: 12px;">
+                <label class="form-label" for="androidReleaseNotes">Release Notes (One item per line)</label>
+                <textarea id="androidReleaseNotes" class="admin-input" rows="3" placeholder="- Feature 1&#10;- Feature 2"></textarea>
+              </div>
+
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                <div class="toggle-wrapper" style="padding: 10px 14px; background: var(--canvas-soft); border: 1px solid var(--hairline); border-radius: 8px;">
+                  <span class="form-label" style="margin: 0; font-size: 13px;">Android Maintenance Mode</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="androidMaintenance">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="toggle-wrapper" style="padding: 10px 14px; background: var(--canvas-soft); border: 1px solid var(--hairline); border-radius: 8px;">
+                  <span class="form-label" style="margin: 0; font-size: 13px;">Force Update Android</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="androidForceUpdate">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+            </section>
+
+            <div class="hairline" style="margin: 20px 0;"></div>
+
+            <!-- WINDOWS RELEASE MANAGEMENT -->
+            <section style="margin-bottom: 24px;">
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 14px;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="2"><rect x="3" y="3" width="8" height="8"/><rect x="13" y="3" width="8" height="8"/><rect x="13" y="13" width="8" height="8"/><rect x="3" y="13" width="8" height="8"/></svg>
+                <div class="eyebrow" style="font-size: 13px; color: var(--ink);">WINDOWS DESKTOP RELEASE</div>
+              </div>
+
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 12px;">
+                <div class="form-group">
+                  <label class="form-label" for="windowsVersion">Latest Version</label>
+                  <input type="text" id="windowsVersion" class="admin-input" placeholder="e.g. 1.8.0" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="windowsMinVersion">Minimum Supported Version</label>
+                  <input type="text" id="windowsMinVersion" class="admin-input" placeholder="e.g. 1.5.0" required>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="windowsFileSize">EXE File Size</label>
+                  <input type="text" id="windowsFileSize" class="admin-input" placeholder="e.g. 88.2 MB" required>
+                </div>
+              </div>
+
+              <div class="form-group full-width" style="margin-bottom: 12px;">
+                <label class="form-label" for="windowsDownloadUrl">EXE Setup Direct Download URL</label>
+                <input type="url" id="windowsDownloadUrl" class="admin-input" placeholder="https://..." required>
+              </div>
+
+              <div class="form-group full-width" style="margin-bottom: 12px;">
+                <label class="form-label" for="windowsChecksum">SHA-256 Checksum Hash</label>
+                <input type="text" id="windowsChecksum" class="admin-input" placeholder="64-character hex hash...">
+              </div>
+
+              <div class="form-group full-width" style="margin-bottom: 12px;">
+                <label class="form-label" for="windowsReleaseNotes">Release Notes (One item per line)</label>
+                <textarea id="windowsReleaseNotes" class="admin-input" rows="3" placeholder="- Feature 1&#10;- Feature 2"></textarea>
+              </div>
+
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px;">
+                <div class="toggle-wrapper" style="padding: 10px 14px; background: var(--canvas-soft); border: 1px solid var(--hairline); border-radius: 8px;">
+                  <span class="form-label" style="margin: 0; font-size: 13px;">Windows Maintenance Mode</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="windowsMaintenance">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+                <div class="toggle-wrapper" style="padding: 10px 14px; background: var(--canvas-soft); border: 1px solid var(--hairline); border-radius: 8px;">
+                  <span class="form-label" style="margin: 0; font-size: 13px;">Force Update Windows</span>
+                  <label class="toggle-switch">
+                    <input type="checkbox" id="windowsForceUpdate">
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
+            </section>
+
+            <div class="form-group full-width" style="margin-top: 20px;">
+              <button type="submit" class="btn-primary" style="height: 48px; font-weight: 600; width: 100%; font-size: 15px;">Publish Download Center Settings</button>
+            </div>
+            <div id="dlStatusMsg" style="display: none; color: #10b981; font-size: 14px; text-align: center; padding: 10px; background: rgba(16, 185, 129, 0.1); border-radius: 8px; border: 1px solid rgba(16, 185, 129, 0.3);">Saved & Published to Download Center!</div>
+          </form>
+
+          <div class="hairline" style="margin: 24px 0;"></div>
+
+          <!-- DOWNLOAD ANALYTICS SUMMARY -->
+          <section>
+            <div class="eyebrow" style="margin-bottom: 12px;">DOWNLOAD ANALYTICS SUMMARY</div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px;">
+              <div class="content-card" style="padding: 16px;">
+                <div class="eyebrow">TOTAL DOWNLOADS</div>
+                <div style="font-size: 26px; font-weight: 700; color: var(--accent-orange);" id="dlTotalCount">0</div>
+              </div>
+              <div class="content-card" style="padding: 16px;">
+                <div class="eyebrow">ANDROID DOWNLOADS</div>
+                <div style="font-size: 26px; font-weight: 700; color: #10b981;" id="dlAndroidCount">0</div>
+              </div>
+              <div class="content-card" style="padding: 16px;">
+                <div class="eyebrow">WINDOWS DOWNLOADS</div>
+                <div style="font-size: 26px; font-weight: 700; color: #3b82f6;" id="dlWindowsCount">0</div>
+              </div>
+            </div>
+
+            <div class="eyebrow" style="margin-bottom: 8px;">RECENT DOWNLOAD LOGS</div>
+            <div class="content-card" style="padding: 0; overflow-x: auto;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                <thead>
+                  <tr style="border-bottom: 1px solid var(--hairline); text-align: left;">
+                    <th style="padding: 10px 14px; color: var(--ink-mute);">PLATFORM</th>
+                    <th style="padding: 10px 14px; color: var(--ink-mute);">VERSION</th>
+                    <th style="padding: 10px 14px; color: var(--ink-mute);">STUDENT ID</th>
+                    <th style="padding: 10px 14px; color: var(--ink-mute);">STUDENT NAME</th>
+                    <th style="padding: 10px 14px; color: var(--ink-mute);">EMAIL</th>
+                    <th style="padding: 10px 14px; color: var(--ink-mute);">TIMESTAMP</th>
+                  </tr>
+                </thead>
+                <tbody id="dlRecentLogs">
+                  <tr><td colspan="6" style="padding: 16px; text-align: center; color: var(--ink-mute);">No download activity logged yet.</td></tr>
+                </tbody>
+
+              </table>
+            <div class="hairline" style="margin: 20px 0;"></div>
+
+            <div class="eyebrow" style="margin-bottom: 8px;">REGISTERED STUDENTS & UNIQUE IDs</div>
+            <div class="content-card" style="padding: 0; overflow-x: auto;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                <thead>
+                  <tr style="border-bottom: 1px solid var(--hairline); text-align: left; background: var(--canvas-soft);">
+                    <th style="padding: 10px 14px; color: var(--ink-mute);">UNIQUE STUDENT ID</th>
+                    <th style="padding: 10px 14px; color: var(--ink-mute);">FULL NAME</th>
+                    <th style="padding: 10px 14px; color: var(--ink-mute);">EMAIL ADDRESS</th>
+                    <th style="padding: 10px 14px; color: var(--ink-mute);">DOWNLOADS</th>
+                    <th style="padding: 10px 14px; color: var(--ink-mute);">LAST ACTIVE</th>
+                  </tr>
+                </thead>
+                <tbody id="registeredStudentsList">
+                  <tr><td colspan="5" style="padding: 16px; text-align: center; color: var(--ink-mute);">No registered students found.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        </div>
+
+
       </div>
     </div>
   </div>
@@ -395,6 +615,8 @@
   <script src="/js/admin-tabs.js"></script>
   <script src="/js/admin-analytics.js"></script>
   <script src="/js/admin-feedback.js"></script>
+  <script src="/js/admin-downloads.js"></script>
   <script src="/admin.js"></script>
+
 </body>
 </html>

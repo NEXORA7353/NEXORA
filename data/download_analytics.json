@@ -1,0 +1,47 @@
+{
+  "totalDownloads": 5,
+  "androidDownloads": 3,
+  "windowsDownloads": 2,
+  "history": [
+    {
+      "id": "dl_1786090859544_dhrzh",
+      "platform": "windows",
+      "version": "1.8.0",
+      "studentId": "NEX-2026-34013",
+      "timestamp": "2026-08-07T08:20:59.545Z",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "dl_1786077371045_k6c1f",
+      "platform": "windows",
+      "version": "1.8.0",
+      "studentId": "STU-99201",
+      "timestamp": "2026-08-07T04:36:11.048Z",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "dl_1786076945284_s8nmt",
+      "platform": "android",
+      "version": "2.5.0",
+      "studentId": "STU-99201",
+      "timestamp": "2026-08-07T04:29:05.284Z",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "dl_1786076882047_ufddo",
+      "platform": "android",
+      "version": "2.5.0",
+      "studentId": "STU-99201",
+      "timestamp": "2026-08-07T04:28:02.047Z",
+      "status": "COMPLETED"
+    },
+    {
+      "id": "dl_1786076880087_obqfi",
+      "platform": "android",
+      "version": "2.5.0",
+      "studentId": "STU-99201",
+      "timestamp": "2026-08-07T04:28:00.089Z",
+      "status": "COMPLETED"
+    }
+  ]
+}
