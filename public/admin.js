@@ -1148,34 +1148,29 @@ document.addEventListener('DOMContentLoaded', () => {
   const RAILWAY_BACKEND = 'https://nexora7.up.railway.app';
 
   if (downloadSettingsForm) {
-    // Load current download config from Railway backend
     async function loadDownloadSettings() {
       try {
-        const res = await fetch(`${RAILWAY_BACKEND}/api/downloads/config`);
-        if (res.ok) {
-          const json = await res.json();
-          if (json.success && json.data) {
-            const d = json.data;
-            if (d.android) {
-              if (document.getElementById('androidVersion')) document.getElementById('androidVersion').value = d.android.latestVersion || '';
-              if (document.getElementById('androidMinVersion')) document.getElementById('androidMinVersion').value = d.android.minSupportedVersion || '';
-              if (document.getElementById('androidFileSize')) document.getElementById('androidFileSize').value = d.android.fileSize || '';
-              if (document.getElementById('androidApkUrl')) document.getElementById('androidApkUrl').value = d.android.apkUrl || '';
-              if (document.getElementById('androidSha256')) document.getElementById('androidSha256').value = d.android.sha256 || '';
-              if (document.getElementById('androidNotes')) document.getElementById('androidNotes').value = (d.android.releaseNotes || []).join('\n');
-            }
-            if (d.windows) {
-              if (document.getElementById('winVersion')) document.getElementById('winVersion').value = d.windows.latestVersion || '';
-              if (document.getElementById('winMinVersion')) document.getElementById('winMinVersion').value = d.windows.minSupportedVersion || '';
-              if (document.getElementById('winFileSize')) document.getElementById('winFileSize').value = d.windows.fileSize || '';
-              if (document.getElementById('winExeUrl')) document.getElementById('winExeUrl').value = d.windows.exeUrl || '';
-              if (document.getElementById('winSha256')) document.getElementById('winSha256').value = d.windows.sha256 || '';
-              if (document.getElementById('winNotes')) document.getElementById('winNotes').value = (d.windows.releaseNotes || []).join('\n');
-            }
+        const d = await fetchFromUpstash('nexora_download_config');
+        if (d) {
+          if (d.android) {
+            if (document.getElementById('androidVersion')) document.getElementById('androidVersion').value = d.android.latestVersion || '';
+            if (document.getElementById('androidMinVersion')) document.getElementById('androidMinVersion').value = d.android.minSupportedVersion || '';
+            if (document.getElementById('androidFileSize')) document.getElementById('androidFileSize').value = d.android.fileSize || '';
+            if (document.getElementById('androidApkUrl')) document.getElementById('androidApkUrl').value = d.android.apkUrl || '';
+            if (document.getElementById('androidSha256')) document.getElementById('androidSha256').value = d.android.sha256 || '';
+            if (document.getElementById('androidNotes')) document.getElementById('androidNotes').value = (d.android.releaseNotes || []).join('\n');
+          }
+          if (d.windows) {
+            if (document.getElementById('winVersion')) document.getElementById('winVersion').value = d.windows.latestVersion || '';
+            if (document.getElementById('winMinVersion')) document.getElementById('winMinVersion').value = d.windows.minSupportedVersion || '';
+            if (document.getElementById('winFileSize')) document.getElementById('winFileSize').value = d.windows.fileSize || '';
+            if (document.getElementById('winExeUrl')) document.getElementById('winExeUrl').value = d.windows.exeUrl || '';
+            if (document.getElementById('winSha256')) document.getElementById('winSha256').value = d.windows.sha256 || '';
+            if (document.getElementById('winNotes')) document.getElementById('winNotes').value = (d.windows.releaseNotes || []).join('\n');
           }
         }
       } catch (e) {
-        console.warn('Could not load download settings from Railway backend:', e);
+        console.warn('Could not load download settings from Upstash:', e);
       }
     }
 
@@ -1204,19 +1199,14 @@ document.addEventListener('DOMContentLoaded', () => {
       };
 
       try {
-        const res = await fetch(`${RAILWAY_BACKEND}/api/downloads/config`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const json = await res.json();
-        if (json.success) {
-          alert('✅ Download Center settings saved & synced live to Railway backend!');
+        const ok = await saveToUpstash('nexora_download_config', payload);
+        if (ok) {
+          alert('✅ Download Center settings saved & synced to Cloud Redis database!');
         } else {
-          alert('❌ Failed to save: ' + (json.error || 'Unknown error'));
+          alert('❌ Failed to save to Cloud Database');
         }
       } catch (err) {
-        alert('❌ Network error saving download settings to Railway backend: ' + err.message);
+        alert('❌ Error saving download settings: ' + err.message);
       }
     });
   }
