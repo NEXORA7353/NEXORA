@@ -2,36 +2,48 @@
   "published": true,
   "globalMaintenance": false,
   "android": {
-    "version": "2.5.0",
+    "version": "1.0.0",
+    "latestVersion": "1.0.0",
     "minVersion": "1.0.0",
-    "downloadUrl": "https://github.com/nexora-edu/releases/releases/download/v2.4.1/nexora-student-v2.4.1.apk",
-    "fileSize": "42.5 MB",
-    "checksum": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "releaseDate": "2026-08-01",
+    "minSupportedVersion": "1.0.0",
+    "fileSize": "6.62 MB",
+    "downloadUrl": "https://github.com/NEXORA7353/NEXORA/releases/latest/download/NEXORA.apk",
+    "apkUrl": "https://github.com/NEXORA7353/NEXORA/releases/latest/download/NEXORA.apk",
+    "checksum": "sha256:b04e2cadb9254fb8274bde4df526b372b2702885ec0ca6ce5b6bdbd81a240780",
+    "sha256": "sha256:b04e2cadb9254fb8274bde4df526b372b2702885ec0ca6ce5b6bdbd81a240780",
+    "releaseDate": "2026-08-07",
     "maintenance": false,
+    "maintenanceMode": false,
     "forceUpdate": false,
     "releaseNotes": [
-      "Added high-speed offline lecture sync capabilities.",
-      "Fixed background notification delay on Android 14+ devices.",
-      "Enhanced security token validation during live session entrance.",
-      "Optimized battery consumption during live video streaming."
+      "Initial Official Android Release",
+      "Performance Improvements",
+      "UI Enhancements",
+      "Bug Fixes",
+      "Security Improvements"
     ]
   },
   "windows": {
     "version": "1.8.0",
+    "latestVersion": "1.8.0",
     "minVersion": "1.0.0",
-    "downloadUrl": "https://github.com/nexora-edu/releases/releases/download/v1.8.0/nexora-desktop-setup-1.8.0.exe",
+    "minSupportedVersion": "1.0.0",
     "fileSize": "88.2 MB",
-    "checksum": "a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e",
-    "releaseDate": "2026-07-28",
+    "downloadUrl": "https://github.com/NEXORA7353/NEXORA/releases/latest/download/NEXORA.Setup.1.0.0.exe",
+    "exeUrl": "https://github.com/NEXORA7353/NEXORA/releases/latest/download/NEXORA.Setup.1.0.0.exe",
+    "checksum": "sha256:2c5e529c5966e780365e13866067542156f3c5174c4026ca705c5dd957639c5e",
+    "sha256": "sha256:2c5e529c5966e780365e13866067542156f3c5174c4026ca705c5dd957639c5e",
+    "releaseDate": "2026-08-07",
     "maintenance": false,
+    "maintenanceMode": false,
     "forceUpdate": false,
     "releaseNotes": [
-      "Introduced hardware-accelerated rendering for 4K live streams.",
-      "Added automatic background updates with SmartScreen verification.",
-      "Improved multi-monitor display support and full-screen shortcuts.",
-      "Fixed audio device hot-plugging bug."
+      "Initial Official Android Release",
+      "Performance Improvements",
+      "UI Enhancements",
+      "Bug Fixes",
+      "Security Improvements"
     ]
   },
-  "updatedAt": "2026-08-07T04:35:16.994Z"
+  "updatedAt": "2026-08-07T16:00:00.000Z"
 }
