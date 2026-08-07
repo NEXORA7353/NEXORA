@@ -42,6 +42,19 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static('public'));
 
+// ✅ MOUNT SECURE ACTIVATION & PROXY SYSTEM ROUTES
+const studentRoutes = require('./routes/studentRoutes');
+const activationRoutes = require('./routes/activationRoutes');
+const secureDownloadRoutes = require('./routes/secureDownloadRoutes');
+const popupRoutes = require('./routes/popupRoutes');
+const adminControlRoutes = require('./routes/adminControlRoutes');
+
+app.use('/api/student', studentRoutes);
+app.use('/api/activation', activationRoutes);
+app.use('/api/downloads', secureDownloadRoutes);
+app.use('/api/popup', popupRoutes);
+app.use('/api/admin/control', adminControlRoutes);
+
 // ============================================================
 // DATA FILE PATHS
 // ============================================================

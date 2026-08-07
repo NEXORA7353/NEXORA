@@ -121,6 +121,10 @@
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Download Center
           </button>
+          <button type="button" class="admin-tab-btn" data-tab="tab-activation">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            Access & Activation
+          </button>
         </nav>
 
 
@@ -606,6 +610,43 @@
           </section>
         </div>
 
+        <!-- TAB 5: ACCESS CONTROL & ACTIVATION CODES -->
+        <div class="tab-content" id="tab-activation" style="display: none;">
+          <div class="eyebrow">SECURITY & DEVICE ACTIVATION CONTROLS</div>
+          <h2 style="font-size: 22px; font-weight: 700; color: var(--ink); margin-bottom: 20px;">App Access & Device Controls</h2>
+
+          <div class="content-card" style="margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between;">
+            <div>
+              <div style="font-weight: 700; font-size: 16px; color: var(--ink);">Require Activation Code</div>
+              <div style="font-size: 13px; color: var(--ink-mute);">When ON, Android & Windows apps require an 8-digit activation code. When OFF, activation is bypassed.</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="masterActivationToggle" checked>
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="eyebrow" style="margin-bottom: 8px;">ACTIVATED CODES & HARDWARE BINDINGS</div>
+          <div class="content-card" style="padding: 0; overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+              <thead>
+                <tr style="border-bottom: 1px solid var(--hairline); text-align: left; background: var(--canvas-soft);">
+                  <th style="padding: 10px 14px; color: var(--ink-mute);">CODE</th>
+                  <th style="padding: 10px 14px; color: var(--ink-mute);">STUDENT ID</th>
+                  <th style="padding: 10px 14px; color: var(--ink-mute);">EMAIL</th>
+                  <th style="padding: 10px 14px; color: var(--ink-mute);">PLATFORM</th>
+                  <th style="padding: 10px 14px; color: var(--ink-mute);">DEVICE FINGERPRINT</th>
+                  <th style="padding: 10px 14px; color: var(--ink-mute);">STATUS</th>
+                  <th style="padding: 10px 14px; color: var(--ink-mute);">ACTIONS</th>
+                </tr>
+              </thead>
+              <tbody id="activationCodesList">
+                <tr><td colspan="7" style="padding: 16px; text-align: center; color: var(--ink-mute);">No activation codes generated yet.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
 
       </div>
     </div>
@@ -616,6 +657,7 @@
   <script src="/js/admin-analytics.js?v=3.0.0"></script>
   <script src="/js/admin-feedback.js?v=3.0.0"></script>
   <script src="/js/admin-downloads.js?v=3.0.0"></script>
+  <script src="/js/admin-activation.js?v=3.0.0"></script>
   <script src="/admin.js?v=3.0.0"></script>
 
 </body>
